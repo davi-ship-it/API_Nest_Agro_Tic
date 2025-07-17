@@ -6,4 +6,6 @@ import { MapasController } from './mapas.controller';
   controllers: [MapasController],
   providers: [MapasService],
 })
-export class MapasModule {}
+export class MapasModule {
+
+}
