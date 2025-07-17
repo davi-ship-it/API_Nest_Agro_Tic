@@ -13,21 +13,44 @@ import { EpaModule } from './epa/epa.module';
 import { InventarioModule } from './inventario/inventario.module';
 import { InventarioXActividadesModule } from './inventario_x_actividades/inventario_x_actividades.module';
 import { CategoriaModule } from './categoria/categoria.module';
-import { MapasController } from './mapas/mapas.controller';
-import { MedicionSensorController } from './medicion_sensor/medicion_sensor.controller';
-import { SensorController } from './sensor/sensor.controller';
-import { TipoCultivoController } from './tipo_cultivo/tipo_cultivo.controller';
-import { TipoSensorController } from './tipo_sensor/tipo_sensor.controller';
-import { TipoUnidadController } from './tipo_unidad/tipo_unidad.controller';
-import { UsuariosController } from './usuarios/usuarios.controller';
-import { UsuariosXActividadesController } from './usuarios_x_actividades/usuarios_x_actividades.controller';
-import { VariedadController } from './variedad/variedad.controller';
-import { Venta } from './venta/entities/venta.entity';
-import { VentaController } from './venta/venta.controller';
-import { ZonasController } from './zonas/zonas.controller';
+import { MapasModule } from './mapas/mapas.module';
+import { MedicionSensorModule } from './medicion_sensor/medicion_sensor.module';
+import { SensorModule } from './sensor/sensor.module';
+import { TipoCultivoModule } from './tipo_cultivo/tipo_cultivo.module';
+import { TipoSensorModule } from './tipo_sensor/tipo_sensor.module';
+import { TipoUnidadModule } from './tipo_unidad/tipo_unidad.module';
+import { UsuariosModule } from './usuarios/usuarios.module';
+import { UsuariosXActividadesModule } from './usuarios_x_actividades/usuarios_x_actividades.module';
+import { VariedadModule } from './variedad/variedad.module';
+import { VentaModule } from './venta/venta.module';
+import { ZonasModule } from './zonas/zonas.module';
 
 @Module({
-  imports: [ActividadesModule, BodegaModule, CosechasModule, CultivosModule, CultivosVariedadXZonaModule, CultivosXEpaModule, CultivosXVariedadModule, EpaModule, InventarioModule, InventarioXActividadesModule, CategoriaModule, MapasController, MedicionSensorController,SensorController, TipoCultivoController, TipoSensorController,TipoUnidadController, UsuariosController, UsuariosXActividadesController, VariedadController,VentaController, ZonasController],
+  imports: [
+    ActividadesModule,
+    BodegaModule,
+    CosechasModule,
+    CultivosModule,
+    CultivosVariedadXZonaModule,
+    CultivosXEpaModule,
+    CultivosXVariedadModule,
+    EpaModule,
+    InventarioModule,
+    InventarioXActividadesModule,
+    CategoriaModule,
+    MapasModule,
+    MedicionSensorModule,
+    SensorModule,
+    TipoCultivoModule,
+    TipoSensorModule,
+    TipoUnidadModule,
+    UsuariosModule,
+    UsuariosModule,
+    UsuariosXActividadesModule,
+    VariedadModule,
+    VentaModule,
+    ZonasModule,
+  ],
 
   controllers: [AppController],
   providers: [AppService],
