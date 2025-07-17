@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+
 import { ActividadesModule } from './actividades/actividades.module';
 import { BodegaModule } from './bodega/bodega.module';
 import { CosechasModule } from './cosechas/cosechas.module';
@@ -15,6 +16,7 @@ import { CategoriaModule } from './categoria/categoria.module';
 
 @Module({
   imports: [ActividadesModule, BodegaModule, CosechasModule, CultivosModule, CultivosVariedadXZonaModule, CultivosXEpaModule, CultivosXVariedadModule, EpaModule, InventarioModule, InventarioXActividadesModule, CategoriaModule],
+
   controllers: [AppController],
   providers: [AppService],
 })
