@@ -1,0 +1,25 @@
+# docker-compose.yml
+
+version: '3.8'
+
+services:
+  # Nombre del servicio de la base de datos
+  db:
+    image: postgres:15-alpine  # Usamos una imagen oficial de PostgreSQL
+    container_name: mi_proyecto_db
+    restart: always
+    # Variables de entorno para configurar PostgreSQL
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: mydatabase
+    # Mapeo de puertos: El puerto 5432 de tu máquina se conecta al 5432 del contenedor
+    ports:
+      - "5433:5432"
+    # Volumen para que los datos persistan aunque apagues el contenedor
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+# Definición del volumen
+volumes:
+  postgres_data:
