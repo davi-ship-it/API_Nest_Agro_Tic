@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule } from '@nestjs/config';
 
 import { ActividadesModule } from './actividades/actividades.module';
 import { BodegaModule } from './bodega/bodega.module';
@@ -27,6 +29,22 @@ import { ZonasModule } from './zonas/zonas.module';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      host: process.env.DB_HOST,
+      port: 5433,
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_DATABASE,
+      entities: [__dirname + '/**/*.entity{.ts,.js}'], // Esto cargará todas las entidades automáticamente
+      migrations: [__dirname + '/migrations/*{.ts,.js}'],
+      migrationsRun: false,
+      logging: ['query', 'error'],
+    }),
+
     ActividadesModule,
     BodegaModule,
     CosechasModule,
@@ -44,14 +62,12 @@ import { ZonasModule } from './zonas/zonas.module';
     TipoCultivoModule,
     TipoSensorModule,
     TipoUnidadModule,
-    UsuariosModule,
-    UsuariosModule,
+    UsuariosModule, // Solo una vez
     UsuariosXActividadesModule,
     VariedadModule,
     VentaModule,
     ZonasModule,
   ],
-
   controllers: [AppController],
   providers: [AppService],
 })
