@@ -1,15 +1,31 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { InventarioXActividadesService } from './inventario_x_actividades.service';
-import { CreateInventarioXActividadeDto } from './dto/create-inventario_x_actividade.dto';
-import { UpdateInventarioXActividadeDto } from './dto/update-inventario_x_actividade.dto';
+
+import { UpdateInventarioXActividadesDto } from './dto/update-inventario_x_actividades.dto';
+
+import { CreateInventarioXActividadesDto } from './dto/create-inventario_x_actividades.dto';
 
 @Controller('inventario-x-actividades')
 export class InventarioXActividadesController {
-  constructor(private readonly inventarioXActividadesService: InventarioXActividadesService) {}
+  constructor(
+    private readonly inventarioXActividadesService: InventarioXActividadesService,
+  ) {}
 
   @Post()
-  create(@Body() createInventarioXActividadeDto: CreateInventarioXActividadeDto) {
-    return this.inventarioXActividadesService.create(createInventarioXActividadeDto);
+  create(
+    @Body() createInventarioXActividadeDto: CreateInventarioXActividadesDto,
+  ) {
+    return this.inventarioXActividadesService.create(
+      createInventarioXActividadeDto,
+    );
   }
 
   @Get()
@@ -23,8 +39,14 @@ export class InventarioXActividadesController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateInventarioXActividadeDto: UpdateInventarioXActividadeDto) {
-    return this.inventarioXActividadesService.update(+id, updateInventarioXActividadeDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateInventarioXActividadeDto: UpdateInventarioXActividadesDto,
+  ) {
+    return this.inventarioXActividadesService.update(
+      +id,
+      updateInventarioXActividadeDto,
+    );
   }
 
   @Delete(':id')

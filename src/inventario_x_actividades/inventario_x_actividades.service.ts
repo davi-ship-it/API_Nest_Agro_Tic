@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { CreateInventarioXActividadeDto } from './dto/create-inventario_x_actividade.dto';
-import { UpdateInventarioXActividadeDto } from './dto/update-inventario_x_actividade.dto';
+import { CreateInventarioXActividadesDto } from './dto/create-inventario_x_actividades.dto';
+import { UpdateInventarioXActividadesDto } from './dto/update-inventario_x_actividades.dto';
 
 @Injectable()
 export class InventarioXActividadesService {
-  create(createInventarioXActividadeDto: CreateInventarioXActividadeDto) {
+  create(createInventarioXActividadeDto: CreateInventarioXActividadesDto) {
     return 'This action adds a new inventarioXActividade';
   }
 
@@ -16,7 +16,10 @@ export class InventarioXActividadesService {
     return `This action returns a #${id} inventarioXActividade`;
   }
 
-  update(id: number, updateInventarioXActividadeDto: UpdateInventarioXActividadeDto) {
+  update(
+    id: number,
+    updateInventarioXActividadeDto: UpdateInventarioXActividadesDto,
+  ) {
     return `This action updates a #${id} inventarioXActividade`;
   }
 
