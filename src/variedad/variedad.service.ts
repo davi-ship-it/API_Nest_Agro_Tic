@@ -24,3 +24,4 @@ export class VariedadService {
     return `This action removes a #${id} variedad`;
   }
 }
+

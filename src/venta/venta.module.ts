@@ -7,3 +7,4 @@ import { VentaController } from './venta.controller';
   providers: [VentaService],
 })
 export class VentaModule {}
+

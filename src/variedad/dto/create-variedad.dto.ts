@@ -16,3 +16,4 @@ export class CreateVariedadDto {
   @IsOptional()
   fkTipoCultivoId?: number;
 }
+

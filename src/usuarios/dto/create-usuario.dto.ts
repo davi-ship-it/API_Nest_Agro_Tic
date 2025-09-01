@@ -25,7 +25,7 @@ export class CreateUsuarioDto {
 
   @IsNumber()
   @IsOptional()
-  telefono?: number;
+  telefono: number;
 
   @IsEmail()
   @IsNotEmpty()
@@ -41,3 +41,4 @@ export class CreateUsuarioDto {
   @IsNotEmpty()
   dni: number;
 }
+

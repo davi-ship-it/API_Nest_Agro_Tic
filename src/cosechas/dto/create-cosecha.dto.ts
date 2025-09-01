@@ -20,3 +20,4 @@ export class CreateCosechaDto {
     @IsNotEmpty()
     fkCultivosXVariedadId: number;
 }
+

@@ -24,3 +24,4 @@ export class CultivosService {
     return `This action removes a #${id} cultivo`;
   }
 }
+

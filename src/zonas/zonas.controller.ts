@@ -32,3 +32,4 @@ export class ZonasController {
     return this.zonasService.remove(+id);
   }
 }
+

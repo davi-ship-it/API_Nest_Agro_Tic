@@ -4,8 +4,8 @@ import { Sensor } from '../../sensor/entities/sensor.entity';
 
 @Entity('medicion_sensor')
 export class MedicionSensor {
-  @PrimaryGeneratedColumn({ name: 'pk_id_medicion' })
-  id: number;
+  @PrimaryGeneratedColumn('uuid', { name: 'pk_id_medicion' })
+  id: string;
 
   @Column({ name: 'med_valor', type: 'numeric', precision: 10, scale: 2 })
   valor: number;
@@ -20,3 +20,4 @@ export class MedicionSensor {
   @JoinColumn({ name: 'fk_id_sensor' })
   sensor?: Sensor;
 }
+

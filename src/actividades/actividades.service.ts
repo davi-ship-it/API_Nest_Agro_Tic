@@ -24,3 +24,4 @@ export class ActividadesService {
     return `This action removes a #${id} actividade`;
   }
 }
+

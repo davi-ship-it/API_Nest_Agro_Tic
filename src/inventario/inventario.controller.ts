@@ -32,3 +32,4 @@ export class InventarioController {
     return this.inventarioService.remove(+id);
   }
 }
+

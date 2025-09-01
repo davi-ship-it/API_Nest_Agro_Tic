@@ -10,3 +10,4 @@ export class CreateCategoriaDto {
     @IsNotEmpty()
     fkTipoUnidadId: number;
 }
+

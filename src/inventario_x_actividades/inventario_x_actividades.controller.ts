@@ -54,3 +54,4 @@ export class InventarioXActividadesController {
     return this.inventarioXActividadesService.remove(+id);
   }
 }
+

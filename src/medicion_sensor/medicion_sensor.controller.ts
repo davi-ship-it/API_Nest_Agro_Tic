@@ -32,3 +32,4 @@ export class MedicionSensorController {
     return this.medicionSensorService.remove(+id);
   }
 }
+

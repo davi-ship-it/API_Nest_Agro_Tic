@@ -5,8 +5,8 @@ import { Inventario } from '../../inventario/entities/inventario.entity';
 
 @Entity('categoria')
 export class Categoria {
-  @PrimaryGeneratedColumn({ name: 'pk_id_categoria' })
-  id: number;
+  @PrimaryGeneratedColumn('uuid', { name: 'pk_id_categoria' })
+  id: string;
 
   @Column({ name: 'cat_nombre', type: 'varchar', length: 100 })
   nombre: string;
@@ -21,3 +21,4 @@ export class Categoria {
   @OneToMany(() => Inventario, (i) => i.categoria)
   inventarios?: Inventario[];
 }
+

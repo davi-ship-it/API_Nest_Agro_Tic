@@ -24,3 +24,4 @@ export class VentaService {
     return `This action removes a #${id} venta`;
   }
 }
+

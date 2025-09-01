@@ -13,3 +13,4 @@ export class CreateInventarioXActividadesDto {
   @IsOptional()
   cantidadUsada?: number;
 }
+

@@ -6,8 +6,8 @@ import { Actividad } from '../../actividades/entities/actividades.entity';
 
 @Entity('cultivos_variedad_x_zona')
 export class CultivosVariedadXZona {
-  @PrimaryGeneratedColumn({ name: 'pk_id_cv_zona' })
-  id: number;
+  @PrimaryGeneratedColumn('uuid', { name: 'pk_id_cv_zona' })
+  id: string;
 
   @Column({ name: 'fk_id_cultivos_x_variedad' })
   fkCultivosXVariedadId: number;
@@ -26,3 +26,4 @@ export class CultivosVariedadXZona {
   @OneToMany(() => Actividad, (a) => a.cultivoVariedadZona)
   actividades?: Actividad[];
 }
+

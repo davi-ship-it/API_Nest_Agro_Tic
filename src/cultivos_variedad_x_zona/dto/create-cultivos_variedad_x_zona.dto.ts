@@ -9,3 +9,4 @@ export class CreateCultivosVariedadXZonaDto {
     @IsNotEmpty()
     fkZonaId: number;
 }
+

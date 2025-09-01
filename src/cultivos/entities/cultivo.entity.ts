@@ -4,8 +4,8 @@ import { CultivosXVariedad } from '../../cultivos_x_variedad/entities/cultivos_x
 
 @Entity('cultivos')
 export class Cultivo {
-  @PrimaryGeneratedColumn({ name: 'pk_id_cultivo' })
-  id: number;
+  @PrimaryGeneratedColumn('uuid', { name: 'pk_id_cultivo' })
+  id: string;
 
   @Column({ name: 'cul_descripcion', type: 'text', nullable: true })
   descripcion?: string;
@@ -19,3 +19,4 @@ export class Cultivo {
   @OneToMany(() => CultivosXVariedad, (cxv) => cxv.cultivo)
   variedades?: CultivosXVariedad[];
 }
+

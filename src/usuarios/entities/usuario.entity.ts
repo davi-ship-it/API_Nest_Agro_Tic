@@ -1,11 +1,21 @@
-// File: src/entities/usuarios/usuarios.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { UsuarioXActividad } from '../../usuarios_x_actividades/entities/usuarios_x_actividades.entity';
+import { Roles } from 'src/roles/entities/role.entity';
 
 @Entity('usuarios')
 export class Usuario {
-  @PrimaryGeneratedColumn({ name: 'pk_id_usuario' })
-  id: number;
+  @PrimaryGeneratedColumn('uuid', { name: 'pk_id_usuario' })
+  id: string;
+
+  @Column({ name: 'usu_dni', type: 'bigint' })
+  dni: number;
 
   @Column({ name: 'usu_nombres', type: 'varchar', length: 50 })
   nombres: string;
@@ -22,12 +32,12 @@ export class Usuario {
   @Column({ name: 'usu_correo', type: 'varchar', length: 255 })
   correo: string;
 
-  @Column({ name: 'usu_rol', type: 'varchar', length: 8 })
-  rol: string;
-
-  @Column({ name: 'usu_dni', type: 'bigint' })
-  dni: number;
+  // Relación ManyToOne hacia Roles (cada usuario tiene un rol)
+  @ManyToOne(() => Roles, (r) => r.usuarios, { nullable: true })
+  @JoinColumn({ name: 'fk_id_rol' }) // crea la columna fk_id_rol en la tabla usuarios
+  rol?: Roles;
 
   @OneToMany(() => UsuarioXActividad, (uxa) => uxa.usuario)
   actividadesAsignadas?: UsuarioXActividad[];
 }
+

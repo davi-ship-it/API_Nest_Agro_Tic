@@ -58,3 +58,4 @@ export class CreateSensorDto {
   @IsOptional()
   fkZonaId?: number;
 }
+

@@ -32,3 +32,4 @@ export class VentaController {
     return this.ventaService.remove(+id);
   }
 }
+

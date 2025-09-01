@@ -19,3 +19,4 @@ export class CreateCultivosXEpaDto {
     @IsNotEmpty()
     fkEpaId: number;
 }
+

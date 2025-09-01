@@ -24,3 +24,4 @@ export class InventarioService {
     return `This action removes a #${id} inventario`;
   }
 }
+

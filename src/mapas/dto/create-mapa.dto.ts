@@ -4,5 +4,7 @@ export class CreateMapaDto {
   @IsString()
   @IsUrl()
   @IsNotEmpty()
+  nombre: string;
   urlImg: string;
 }
+

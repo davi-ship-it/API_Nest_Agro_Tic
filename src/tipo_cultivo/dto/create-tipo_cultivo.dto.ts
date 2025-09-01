@@ -6,3 +6,4 @@ export class CreateTipoCultivoDto {
     @Length(1, 50)
     nombre: string;
 }
+

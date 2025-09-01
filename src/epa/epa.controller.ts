@@ -32,3 +32,4 @@ export class EpaController {
     return this.epaService.remove(+id);
   }
 }
+

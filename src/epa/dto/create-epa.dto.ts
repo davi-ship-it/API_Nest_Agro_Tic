@@ -20,3 +20,4 @@ export class CreateEpaDto {
     @Length(1, 10)
     tipo: string;
 }
+

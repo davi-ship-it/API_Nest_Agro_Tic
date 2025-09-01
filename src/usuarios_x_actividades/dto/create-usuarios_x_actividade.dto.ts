@@ -15,3 +15,4 @@ export class CreateUsuariosXActividadeDto {
   @IsDate()
   fechaAsignacion: Date;
 }
+

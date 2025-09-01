@@ -40,3 +40,4 @@ export class CreateInventarioDto {
     @IsOptional()
     fkBodegaId?: number;
 }
+

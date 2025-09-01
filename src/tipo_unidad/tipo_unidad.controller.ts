@@ -32,3 +32,4 @@ export class TipoUnidadController {
     return this.tipoUnidadService.remove(+id);
   }
 }
+

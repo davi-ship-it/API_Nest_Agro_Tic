@@ -23,3 +23,4 @@ export class CreateVentaDto {
   @IsOptional()
   ventaTotal?: number;
 }
+

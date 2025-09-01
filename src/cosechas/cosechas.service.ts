@@ -24,3 +24,4 @@ export class CosechasService {
     return `This action removes a #${id} cosecha`;
   }
 }
+

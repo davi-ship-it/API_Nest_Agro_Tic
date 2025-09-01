@@ -1,11 +1,12 @@
 // File: src/entities/epa/epa.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
 import { CultivosXEpa } from '../../cultivos_x_epa/entities/cultivos_x_epa.entity';
+import { TipoEpa } from '../../tipo_epa/entities/tipo_epa.entity';
 
 @Entity('epa')
 export class Epa {
-  @PrimaryGeneratedColumn({ name: 'pk_id_epa' })
-  id: number;
+  @PrimaryGeneratedColumn('uuid', { name: 'pk_id_epa' })
+  id:   string;
 
   @Column({ name: 'epa_nombre', type: 'varchar', length: 100 })
   nombre: string;
@@ -16,8 +17,12 @@ export class Epa {
   @Column({ name: 'epa_img_url', type: 'varchar', length: 255, nullable: true })
   imgUrl?: string;
 
-  @Column({ name: 'epa_tipo', type: 'varchar', length: 10 })
-  tipo: string;
+  @Column({ name: 'fk_id_tipo_epa', type: 'int' })
+  tipoEpaId: number;
+
+  @ManyToOne(() => TipoEpa, (tipoEpa) => tipoEpa.epas)
+  @JoinColumn({ name: 'fk_id_tipo_epa' })
+  tipoEpa: TipoEpa;
 
   @OneToMany(() => CultivosXEpa, (cxe) => cxe.epa)
   cultivosXepa?: CultivosXEpa[];

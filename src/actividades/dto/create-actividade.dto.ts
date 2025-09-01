@@ -33,3 +33,4 @@ export class CreateActividadeDto {
     @IsNotEmpty()
     fkCultivoVariedadZonaId: number;
 }
+

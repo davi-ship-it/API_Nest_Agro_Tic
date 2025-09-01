@@ -6,8 +6,8 @@ import { UsuarioXActividad } from '../../usuarios_x_actividades/entities/usuario
 
 @Entity('actividades')
 export class Actividad {
-  @PrimaryGeneratedColumn({ name: 'pk_id_actividad' })
-  id: number;
+  @PrimaryGeneratedColumn( 'uuid', { name: 'pk_id_actividad' })
+  id: string;
 
   @Column({ name: 'act_nombre', type: 'varchar', length: 255 })
   nombre: string;
@@ -40,3 +40,4 @@ export class Actividad {
   @OneToMany(() => UsuarioXActividad, (uxa) => uxa.actividad)
   usuariosAsignados?: UsuarioXActividad[];
 }
+

@@ -7,3 +7,4 @@ import { VariedadController } from './variedad.controller';
   providers: [VariedadService],
 })
 export class VariedadModule {}
+

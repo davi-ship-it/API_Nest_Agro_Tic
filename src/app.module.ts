@@ -26,6 +26,8 @@ import { UsuariosXActividadesModule } from './usuarios_x_actividades/usuarios_x_
 import { VariedadModule } from './variedad/variedad.module';
 import { VentaModule } from './venta/venta.module';
 import { ZonasModule } from './zonas/zonas.module';
+import { TipoEpaModule } from './tipo_epa/tipo_epa.module';
+import { RolesModule } from './roles/roles.module';
 
 @Module({
   imports: [
@@ -67,6 +69,8 @@ import { ZonasModule } from './zonas/zonas.module';
     VariedadModule,
     VentaModule,
     ZonasModule,
+    TipoEpaModule,
+    RolesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

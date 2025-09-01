@@ -15,3 +15,4 @@ export class CreateCultivoDto {
     @IsDate()
     siembra?: Date;
 }
+

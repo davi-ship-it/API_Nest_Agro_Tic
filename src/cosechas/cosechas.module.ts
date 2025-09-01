@@ -7,3 +7,4 @@ import { CosechasController } from './cosechas.controller';
   providers: [CosechasService],
 })
 export class CosechasModule {}
+

@@ -7,3 +7,4 @@ import { CultivosController } from './cultivos.controller';
   providers: [CultivosService],
 })
 export class CultivosModule {}
+

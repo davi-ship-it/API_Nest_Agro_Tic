@@ -11,3 +11,4 @@ export class CreateBodegaDto {
     @Length(1, 100)
     nombre: string;
 }
+

@@ -4,8 +4,8 @@ import { Cosecha } from '../../cosechas/entities/cosecha.entity';
 
 @Entity('venta')
 export class Venta {
-  @PrimaryGeneratedColumn({ name: 'pk_id_venta' })
-  id: number;
+  @PrimaryGeneratedColumn('uuid', { name: 'pk_id_venta' })
+  id: string;
 
   @Column({ name: 'ven_cantidad', type: 'numeric', precision: 10, scale: 2 })
   cantidad: number;
@@ -26,3 +26,4 @@ export class Venta {
   @JoinColumn({ name: 'fk_id_cosecha' })
   cosecha?: Cosecha;
 }
+

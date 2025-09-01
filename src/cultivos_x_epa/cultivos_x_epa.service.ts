@@ -24,3 +24,4 @@ export class CultivosXEpaService {
     return `This action removes a #${id} cultivosXEpa`;
   }
 }
+

@@ -6,3 +6,4 @@ export class CreateTipoUnidadDto {
   @Length(1, 10)
   nombre: string;
 }
+

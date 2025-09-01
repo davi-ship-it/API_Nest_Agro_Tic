@@ -32,3 +32,4 @@ export class TipoSensorController {
     return this.tipoSensorService.remove(+id);
   }
 }
+

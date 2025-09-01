@@ -23,3 +23,4 @@ export class CreateZonaDto {
   @IsNotEmpty()
   fkMapaId: number;
 }
+

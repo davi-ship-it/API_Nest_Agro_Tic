@@ -7,3 +7,4 @@ import { InventarioController } from './inventario.controller';
   providers: [InventarioService],
 })
 export class InventarioModule {}
+
