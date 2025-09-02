@@ -1,25 +1,42 @@
-# docker-compose.yml
-
 version: '3.8'
 
 services:
-  # Nombre del servicio de la base de datos
+  # Servicio de la base de datos PostgreSQL
   db:
-    image: postgres:15-alpine  # Usamos una imagen oficial de PostgreSQL
+    image: postgres:15-alpine
     container_name: mi_proyecto_db
     restart: always
-    # Variables de entorno para configurar PostgreSQL
     environment:
       POSTGRES_USER: myuser
       POSTGRES_PASSWORD: mypassword
       POSTGRES_DB: mydatabase
-    # Mapeo de puertos: El puerto 5432 de tu máquina se conecta al 5432 del contenedor
     ports:
       - "5433:5432"
-    # Volumen para que los datos persistan aunque apagues el contenedor
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks: # Añadido para conectar a la red personalizada
+      - mi_red
 
-# Definición del volumen
+  # Nuevo servicio para Redis
+  redis:
+    image: redis:7-alpine  # Usamos una imagen oficial y ligera de Redis
+    container_name: mi_proyecto_redis
+    restart: always
+    ports:
+      # Mapea el puerto 6379 de tu máquina al 6379 del contenedor
+      - "6379:6379"
+    volumes:
+      # Volumen para que los datos de Redis (como la caché) persistan
+      - redis_data:/data
+    networks: # Añadido para conectar a la red personalizada
+      - mi_red
+
+# Definición de la red personalizada
+networks:
+  mi_red:
+    driver: bridge
+
+# Definición de los volúmenes para persistencia de datos
 volumes:
   postgres_data:
+  redis_data: # Definición del nuevo volumen para Redis

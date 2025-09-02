@@ -21,10 +21,9 @@ export class CreateUsuarioDto {
   @IsString()
   @IsNotEmpty()
   @Length(1, 255)
-  passwordHash: string;
+  password: string;
 
   @IsNumber()
-  @IsOptional()
   telefono: number;
 
   @IsEmail()
@@ -34,8 +33,7 @@ export class CreateUsuarioDto {
 
   @IsString()
   @IsNotEmpty()
-  @Length(1, 8)
-  rol: string;
+  rolId: string;
 
   @IsNumber()
   @IsNotEmpty()
