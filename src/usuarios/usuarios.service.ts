@@ -1,22 +1,26 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Usuario } from './entities/usuario.entity';
+import { Injectable } from '@nestjs/common';
+import { CreateUsuarioDto } from './dto/create-usuario.dto';
+import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 
 @Injectable()
 export class UsuariosService {
-  constructor(
-    @InjectRepository(Usuario) private userRepo: Repository<Usuario>,
-   
-  ) {}
-
-  findByCorreo(correo: string) {
-    return this.userRepo.findOne({ where: { correo } });
+  create(createUsuarioDto: CreateUsuarioDto) {
+    return 'This action adds a new usuario';
   }
 
-  findByDni(dni: number) {
-    return this.userRepo.findOne({ where: { dni } });
+  findAll() {
+    return `This action returns all usuarios`;
   }
 
+  findOne(id: number) {
+    return `This action returns a #${id} usuario`;
+  }
+
+  update(id: number, updateUsuarioDto: UpdateUsuarioDto) {
+    return `This action updates a #${id} usuario`;
+  }
+
+  remove(id: number) {
+    return `This action removes a #${id} usuario`;
+  }
 }
-
