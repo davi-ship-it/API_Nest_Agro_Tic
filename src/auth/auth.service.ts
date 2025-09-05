@@ -4,6 +4,7 @@ import {
   Injectable,
   InternalServerErrorException,
   UnauthorizedException,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -17,6 +18,9 @@ import { Usuario } from '../usuarios/entities/usuario.entity';
 import { Roles } from '../roles/entities/role.entity';
 import { RegisterAuthDto } from './dto/register-auth.dto';
 import { LoginAuthDto } from './dto/login-auth.dto';
+import { RolesService } from 'src/roles/roles.service';
+
+import { CreatePermisoDto } from 'src/permisos/dto/create-permiso.dto'; // ✅ Importa el DTO unificado
 
 @Injectable()
 export class AuthService {
@@ -25,6 +29,7 @@ export class AuthService {
     private readonly usuarioRepository: Repository<Usuario>,
     @InjectRepository(Roles)
     private readonly rolRepository: Repository<Roles>,
+    private readonly rolesService: RolesService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService, // Inyectado para leer variables .env
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
@@ -102,7 +107,13 @@ export class AuthService {
       this.jwtService.signAsync(payload, {
         secret: this.configService.get<string>('JWT_SECRET'),
         expiresIn: this.configService.get<string>('JWT_EXPIRATION_TIME'),
+        
+
+        
       }),
+
+      
+
       // Refresh Token (larga duración, ej: 30d)
       this.jwtService.signAsync(payload, {
         secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
@@ -111,6 +122,8 @@ export class AuthService {
         ),
       }),
     ]);
+
+    console.log(this.configService.get<string>('JWT_EXPIRATION_TIME')); // Debugging line
 
     // Hashear el refresh token antes de guardarlo en Redis
     const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
@@ -194,4 +207,70 @@ export class AuthService {
     await this.cacheManager.del(`session:${userId}`);
     return { message: 'Sesión cerrada exitosamente' };
   }
+
+  /**
+   * Obtiene los permisos de un usuario a través de su rol.
+   * Realiza una sola consulta a la base de datos para mayor eficiencia.
+   */
+
+  /*
+  async getUserPermissions(userId: string): Promise<any> {
+    // Se recomienda definir un tipo para los permisos
+    const user = await this.usuarioRepository.findOne({
+      where: { id: userId },
+      relations: ['rol', 'rol.permisos'], // Carga el rol y los permisos asociados al rol
+    });
+
+    if (!user) {
+      throw new NotFoundException(`Usuario con ID "${userId}" no encontrado.`);
+    }
+
+    console.log(user)
+
+    if (!user.rol) {
+      throw new InternalServerErrorException(
+        `El usuario no tiene un rol asignado.`,
+      );
+    }
+
+    return user.rol.permisos; // Devuelve los permisos del rol
+  }*/
+
+  // ✅ CAMBIO 2: Se usa CreatePermisoDto como el tipo de retorno de la promesa.
+  async getUserPermissions(userId: string): Promise<CreatePermisoDto[]> {
+    const user = await this.usuarioRepository.findOne({
+      where: { id: userId },
+      relations: ['rol', 'rol.permisos', 'rol.permisos.recurso'],
+    });
+
+    if (!user) {
+      throw new NotFoundException(`Usuario con ID "${userId}" no encontrado.`);
+    }
+
+    if (!user.rol || !user.rol.permisos) {
+      return [];
+    }
+
+    const permisosAgrupados = user.rol.permisos.reduce((acc, permiso) => {
+      const nombreRecurso = permiso.recurso.nombre;
+
+      if (!acc[nombreRecurso]) {
+        acc[nombreRecurso] = {
+          recurso: nombreRecurso,
+          acciones: [],
+        };
+      }
+
+      acc[nombreRecurso].acciones.push(permiso.accion);
+
+      return acc;
+      // ✅ CAMBIO 3: El type assertion ahora apunta al DTO unificado.
+    }, {} as Record<string, CreatePermisoDto>);
+
+    return Object.values(permisosAgrupados);
+  }
+
+    
+
+
 }

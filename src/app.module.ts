@@ -33,6 +33,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-store';
 import { AuthModule } from './auth/auth.module';
+import { PermisosModule } from './permisos/permisos.module';
+import { RecursosModule } from './recursos/recursos.module';
 
 @Module({
   imports: [
@@ -112,6 +114,8 @@ import { AuthModule } from './auth/auth.module';
     TipoEpaModule,
     RolesModule,
     AuthModule,
+    PermisosModule,
+    RecursosModule,
     
   ],
   controllers: [AppController],

@@ -3,46 +3,86 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
   ParseUUIDPipe,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { RolesService } from './roles.service';
 import { CreateRoleDto } from './dto/create-role.dto';
-import { UpdateRoleDto } from './dto/update-role.dto';
+import { AssignPermissionDto } from './dto/assign-permission.dto';
+import { AuthenticationGuard } from '../common/guards/authentication.guard';
+import { AuthorizationGuard } from '../common/guards/authorization.guard';
+import { Permisos } from '../permisos/decorators/permisos.decorator';
 
+@UseGuards(AuthenticationGuard, AuthorizationGuard)
 @Controller('roles')
 export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
+/* 
+
+se envia el id del rol al que se le va a asignar el permiso
+  http://localhost:3000/roles/2ddc2d7f-8a94-477a-8f24-221c8a230f2e/permisos
+
+  se envia en el body el id del permiso que se le va a asignar al rol
+{
+  "permisoId": "3518a2d4-c5c2-429c-bfee-bba3aa4e3bd4"
+}
+  */ 
   @Post()
+
   create(@Body() createRoleDto: CreateRoleDto) {
     return this.rolesService.create(createRoleDto);
   }
 
   @Get()
+  
   findAll() {
     return this.rolesService.findAll();
   }
 
   @Get(':id')
+  @Permisos({ recurso: 'roles', acciones: ['leer'] })
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.rolesService.findOne(id);
   }
 
-  @Patch(':id')
-  update(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateRoleDto: UpdateRoleDto,
-  ) {
-    return this.rolesService.update(id, updateRoleDto);
-  }
-
   @Delete(':id')
+  @Permisos({ recurso: 'roles', acciones: ['eliminar'] })
+  @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id', ParseUUIDPipe) id: string) {
-    // El servicio no devuelve nada, por lo que el controlador tampoco.
-    // NestJS enviará una respuesta 200 OK por defecto.
     return this.rolesService.remove(id);
   }
+
+  // --- Endpoints para gestionar permisos en un rol ---
+
+  @Post(':id/permisos')
+ 
+  assignPermission(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() assignPermissionDto: AssignPermissionDto,
+  ) {
+    return this.rolesService.assignPermission(id, assignPermissionDto.permisoId);
+  }
+
+  @Delete(':id/permisos/:permisoId')
+  @Permisos({ recurso: 'productos', acciones: ['actualizar'] })
+  removePermission(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('permisoId', ParseUUIDPipe) permisoId: string,
+  ) {
+    return this.rolesService.removePermission(id, permisoId);
+  }
 }
+
+
+/*
+
+
+const data.permisos[]
+
+
+*/

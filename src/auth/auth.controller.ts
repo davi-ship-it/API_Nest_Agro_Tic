@@ -1,9 +1,14 @@
 // src/auth/auth.controller.ts
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Get, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterAuthDto } from './dto/register-auth.dto';
 import { LoginAuthDto } from './dto/login-auth.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+
+import { Request } from 'express';
+import { UnauthorizedException } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+
 
 @Controller('auth')
 export class AuthController {
@@ -24,6 +29,7 @@ export class AuthController {
     // Simplemente pasamos el token completo al servicio
     return this.authService.refreshToken(refreshTokenDto.refreshToken);
   }
+
   
   // Este endpoint debería estar protegido por un Guard en una app real
   // @UseGuards(AuthGuard('jwt')) 
@@ -43,7 +49,7 @@ export class AuthController {
 
   {
   "dni": 987654321,
-  "password": "otraClaveFuerte456",
+  "password": "otraClaveFuerte456"
   
 }
 } */

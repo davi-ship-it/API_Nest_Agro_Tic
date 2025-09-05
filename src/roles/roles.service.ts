@@ -1,37 +1,80 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateRoleDto } from './dto/create-role.dto';
-import { UpdateRoleDto } from './dto/update-role.dto';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Roles } from './entities/role.entity';
 import { Repository } from 'typeorm';
+import { Roles } from './entities/role.entity';
+import { Permiso } from '../permisos/entities/permiso.entity';
+import { CreateRoleDto } from './dto/create-role.dto';
 
 @Injectable()
 export class RolesService {
   constructor(
     @InjectRepository(Roles)
     private readonly rolesRepository: Repository<Roles>,
+    @InjectRepository(Permiso)
+    private readonly permisosRepository: Repository<Permiso>,
   ) {}
 
   async create(createRoleDto: CreateRoleDto): Promise<Roles> {
-    const rol = this.rolesRepository.create(createRoleDto);
-    return this.rolesRepository.save(rol);
+    const rolExistente = await this.rolesRepository.findOneBy({
+      nombre: createRoleDto.nombre,
+    });
+
+    if (rolExistente) {
+      throw new ConflictException('Ya existe un rol con ese nombre');
+    }
+
+    const nuevoRol = this.rolesRepository.create(createRoleDto);
+    return this.rolesRepository.save(nuevoRol);
   }
 
   async findAll(): Promise<Roles[]> {
-    return this.rolesRepository.find();
+    return this.rolesRepository.find({
+      // ✅ CAMBIO: Añadimos 'permisos.recurso.modulo' para cargar la relación anidada.
+      relations: ['permisos', 'permisos.recurso', 'permisos.recurso.modulo'],
+    });
   }
 
   async findOne(id: string): Promise<Roles> {
-    const rol = await this.rolesRepository.findOneBy({ id });
+    const rol = await this.rolesRepository.findOne({
+      where: { id },
+      // ✅ CAMBIO: Añadimos 'permisos.recurso.modulo' aquí también.
+      relations: ['permisos', 'permisos.recurso', 'permisos.recurso.modulo'],
+    });
+
     if (!rol) {
       throw new NotFoundException(`Rol con ID "${id}" no encontrado`);
     }
     return rol;
   }
+  
 
-  async update(id: string, updateRoleDto: UpdateRoleDto): Promise<Roles> {
-    const rol = await this.findOne(id);
-    this.rolesRepository.merge(rol, updateRoleDto);
+  async assignPermission(roleId: string, permisoId: string): Promise<Roles> {
+    // Busca el rol y asegúrate de cargar sus permisos actuales
+    const rol = await this.findOne(roleId);
+
+    const permiso = await this.permisosRepository.findOneBy({ id: permisoId });
+    if (!permiso) {
+      throw new NotFoundException(`Permiso con ID "${permisoId}" no encontrado`);
+    }
+
+    // Verifica si el rol ya tiene el permiso para no duplicarlo
+    const tienePermiso = rol.permisos.some((p) => p.id === permiso.id);
+    if (tienePermiso) {
+      throw new ConflictException('El rol ya tiene este permiso asignado');
+    }
+
+    // Asigna el permiso y guarda
+    rol.permisos.push(permiso);
+    console.log({msg: await this.rolesRepository.save(rol)});
+    return this.rolesRepository.save(rol);
+  }
+
+  async removePermission(roleId: string, permisoId: string): Promise<Roles> {
+    const rol = await this.findOne(roleId);
+
+    // Filtra el permiso que se quiere eliminar
+    rol.permisos = rol.permisos.filter((p) => p.id !== permisoId);
+
     return this.rolesRepository.save(rol);
   }
 
