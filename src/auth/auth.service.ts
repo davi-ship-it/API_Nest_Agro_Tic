@@ -237,40 +237,53 @@ export class AuthService {
   }*/
 
   // ✅ CAMBIO 2: Se usa CreatePermisoDto como el tipo de retorno de la promesa.
-  async getUserPermissions(userId: string): Promise<CreatePermisoDto[]> {
-    const user = await this.usuarioRepository.findOne({
-      where: { id: userId },
-      relations: ['rol', 'rol.permisos', 'rol.permisos.recurso'],
-    });
+  
+async getUserPermissions(userId: string): Promise<CreatePermisoDto[]> {
+  const user = await this.usuarioRepository.findOne({
+    where: { id: userId },
+    // ✅ CAMBIO 1: Se añade 'rol.permisos.recurso.modulo' a las relaciones.
+    // Esto le indica a TypeORM que cargue la entidad Módulo que está anidada dentro del Recurso.
+    relations: [
+      'rol',
+      'rol.permisos',
+      'rol.permisos.recurso',
+      'rol.permisos.recurso.modulo', // <-- La nueva relación anidada
+    ],
+  });
 
-    if (!user) {
-      throw new NotFoundException(`Usuario con ID "${userId}" no encontrado.`);
-    }
-
-    if (!user.rol || !user.rol.permisos) {
-      return [];
-    }
-
-    const permisosAgrupados = user.rol.permisos.reduce((acc, permiso) => {
-      const nombreRecurso = permiso.recurso.nombre;
-
-      if (!acc[nombreRecurso]) {
-        acc[nombreRecurso] = {
-          recurso: nombreRecurso,
-          acciones: [],
-        };
-      }
-
-      acc[nombreRecurso].acciones.push(permiso.accion);
-
-      return acc;
-      // ✅ CAMBIO 3: El type assertion ahora apunta al DTO unificado.
-    }, {} as Record<string, CreatePermisoDto>);
-
-    return Object.values(permisosAgrupados);
+  if (!user) {
+    throw new NotFoundException(`Usuario con ID "${userId}" no encontrado.`);
   }
 
-    
+  if (!user.rol || !user.rol.permisos) {
+    return []; // El usuario no tiene rol o el rol no tiene permisos.
+  }
+
+  // ✅ CAMBIO 2: La lógica 'reduce' ahora también extrae y asigna el 'moduloNombre'.
+  const permisosAgrupados = user.rol.permisos.reduce((acc, permiso) => {
+    // Verificación para evitar errores si un permiso no tiene recurso o módulo asignado.
+    if (!permiso.recurso || !permiso.recurso.modulo) {
+      return acc;
+    }
+
+    const nombreRecurso = permiso.recurso.nombre;
+    const nombreModulo = permiso.recurso.modulo.nombre;
+
+    if (!acc[nombreRecurso]) {
+      acc[nombreRecurso] = {
+        moduloNombre: nombreModulo, // Se añade el nombre del módulo al objeto agrupado.
+        recurso: nombreRecurso,
+        acciones: [],
+      };
+    }
+
+    acc[nombreRecurso].acciones.push(permiso.accion);
+
+    return acc;
+  }, {} as Record<string, CreatePermisoDto>);
+
+  return Object.values(permisosAgrupados);
+}
 
 
 }

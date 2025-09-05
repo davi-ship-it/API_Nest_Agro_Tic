@@ -35,6 +35,7 @@ import { redisStore } from 'cache-manager-redis-store';
 import { AuthModule } from './auth/auth.module';
 import { PermisosModule } from './permisos/permisos.module';
 import { RecursosModule } from './recursos/recursos.module';
+import { ModulosModule } from './modulos/modulos.module';
 
 @Module({
   imports: [
@@ -116,6 +117,7 @@ import { RecursosModule } from './recursos/recursos.module';
     AuthModule,
     PermisosModule,
     RecursosModule,
+    ModulosModule,
     
   ],
   controllers: [AppController],

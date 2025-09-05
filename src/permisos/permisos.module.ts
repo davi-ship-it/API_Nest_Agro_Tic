@@ -5,12 +5,13 @@ import { PermisosService } from './permisos.service';
 import { PermisosController } from './permisos.controller';
 import { Permiso } from './entities/permiso.entity';
 import { Recurso } from '../recursos/entities/recurso.entity';
+import { Modulo } from '../modulos/entities/modulo.entity';
 
 @Module({
   imports: [
     // ✅ CORRECCIÓN: Añade la entidad 'Recurso' al arreglo de forFeature.
     // Esto hace que RecursoRepository esté disponible para inyección en este módulo.
-    TypeOrmModule.forFeature([Permiso, Recurso]),
+    TypeOrmModule.forFeature([Permiso, Recurso, Modulo]),
   ],
   controllers: [PermisosController], // Asumo que tienes un controlador
   providers: [PermisosService],

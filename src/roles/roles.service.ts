@@ -27,6 +27,7 @@ export class RolesService {
     return this.rolesRepository.save(nuevoRol);
   }
 
+
   async findAll(): Promise<Roles[]> {
     return this.rolesRepository.find({
       // ✅ CAMBIO: Añadimos 'permisos.recurso.modulo' para cargar la relación anidada.
@@ -37,7 +38,7 @@ export class RolesService {
   async findOne(id: string): Promise<Roles> {
     const rol = await this.rolesRepository.findOne({
       where: { id },
-      // ✅ CAMBIO: Añadimos 'permisos.recurso.modulo' aquí también.
+      // Esta es la configuración clave que trae toda la información.
       relations: ['permisos', 'permisos.recurso', 'permisos.recurso.modulo'],
     });
 
@@ -46,29 +47,38 @@ export class RolesService {
     }
     return rol;
   }
-  
 
+  /**
+   * Asigna un permiso a un rol y devuelve el objeto del rol completo y actualizado.
+   */
   async assignPermission(roleId: string, permisoId: string): Promise<Roles> {
-    // Busca el rol y asegúrate de cargar sus permisos actuales
+    // 1. Busca el rol usando findOne para asegurarnos de que tenemos los permisos actuales.
     const rol = await this.findOne(roleId);
 
+    // 2. Busca el permiso que se va a asignar.
     const permiso = await this.permisosRepository.findOneBy({ id: permisoId });
     if (!permiso) {
       throw new NotFoundException(`Permiso con ID "${permisoId}" no encontrado`);
     }
 
-    // Verifica si el rol ya tiene el permiso para no duplicarlo
+    // 3. Verifica si el permiso ya está asignado para evitar duplicados.
     const tienePermiso = rol.permisos.some((p) => p.id === permiso.id);
     if (tienePermiso) {
       throw new ConflictException('El rol ya tiene este permiso asignado');
     }
 
-    // Asigna el permiso y guarda
+    // 4. Asigna el nuevo permiso al arreglo en memoria.
     rol.permisos.push(permiso);
-    console.log({msg: await this.rolesRepository.save(rol)});
-    return this.rolesRepository.save(rol);
-  }
+    
+    // ✅ CAMBIO CLAVE:
+    // Primero, guardamos la relación en la base de datos.
+    // No nos importa lo que devuelva .save() en este momento.
+    await this.rolesRepository.save(rol);
 
+    // Luego, llamamos de nuevo a findOne() para obtener el estado MÁS RECIENTE y COMPLETO
+    // del rol desde la base de datos, con todas las relaciones anidadas cargadas.
+    return this.findOne(roleId);
+  }
   async removePermission(roleId: string, permisoId: string): Promise<Roles> {
     const rol = await this.findOne(roleId);
 

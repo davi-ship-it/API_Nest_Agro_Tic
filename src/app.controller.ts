@@ -9,13 +9,12 @@ import { Permisos } from './permisos/decorators/permisos.decorator';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Permisos({ recurso: 'productos', acciones: ['leer'] })
+  @Permisos({ recurso: 'productos', acciones: ['leer'], moduloNombre: 'Inventario' })
   @Get('/products')
   getProducts(@Req() req) {
     return { message: 'Acceso concedido al recurso: Productos', userId: req.userId };
   }
 
-  @Permisos({ recurso: 'usuarios', acciones: ['crear', 'leer'] })
   @Get('/users')
   getUsers(@Req() req) {
     return { message: 'Acceso concedido al recurso: Usuarios', userId: req.userId };

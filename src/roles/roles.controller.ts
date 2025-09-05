@@ -45,13 +45,11 @@ se envia el id del rol al que se le va a asignar el permiso
   }
 
   @Get(':id')
-  @Permisos({ recurso: 'roles', acciones: ['leer'] })
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.rolesService.findOne(id);
   }
 
   @Delete(':id')
-  @Permisos({ recurso: 'roles', acciones: ['eliminar'] })
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.rolesService.remove(id);
@@ -69,7 +67,6 @@ se envia el id del rol al que se le va a asignar el permiso
   }
 
   @Delete(':id/permisos/:permisoId')
-  @Permisos({ recurso: 'productos', acciones: ['actualizar'] })
   removePermission(
     @Param('id', ParseUUIDPipe) id: string,
     @Param('permisoId', ParseUUIDPipe) permisoId: string,
