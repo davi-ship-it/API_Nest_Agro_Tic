@@ -32,3 +32,4 @@ export class CultivosController {
     return this.cultivosService.remove(+id);
   }
 }
+

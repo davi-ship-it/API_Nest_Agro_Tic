@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule } from '@nestjs/config';
 
 import { ActividadesModule } from './actividades/actividades.module';
 import { BodegaModule } from './bodega/bodega.module';
@@ -26,23 +25,69 @@ import { UsuariosXActividadesModule } from './usuarios_x_actividades/usuarios_x_
 import { VariedadModule } from './variedad/variedad.module';
 import { VentaModule } from './venta/venta.module';
 import { ZonasModule } from './zonas/zonas.module';
+import { TipoEpaModule } from './tipo_epa/tipo_epa.module';
+import { RolesModule } from './roles/roles.module';
+
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
+import { CacheModule } from '@nestjs/cache-manager';
+import { redisStore } from 'cache-manager-redis-store';
+import { AuthModule } from './auth/auth.module';
+import { PermisosModule } from './permisos/permisos.module';
+import { RecursosModule } from './recursos/recursos.module';
+import { ModulosModule } from './modulos/modulos.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.DB_HOST,
-      port: 5433,
-      username: process.env.DB_USERNAME,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_DATABASE,
-      entities: [__dirname + '/**/*.entity{.ts,.js}'], // Esto cargará todas las entidades automáticamente
-      migrations: [__dirname + '/migrations/*{.ts,.js}'],
-      migrationsRun: false,
-      logging: ['query', 'error'],
+
+    // 2. Módulo de Cache (Redis)
+    CacheModule.registerAsync({
+      isGlobal: true, // Hace el módulo disponible globalmente
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        store: await redisStore({
+          socket: {
+            host: configService.get<string>('REDIS_HOST'),
+            port: parseInt(
+              configService.get<string>('REDIS_PORT') || '6379',
+              10,
+            ),
+          },
+        }),
+      }),
+    }),
+
+    // 3. Módulo JWT
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: {
+          expiresIn: configService.get<string>('JWT_EXPIRATION_TIME'),
+        },
+      }),
+      global: true, // Hace el módulo JWT disponible globalmente
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        type: 'postgres',
+        host: configService.get<string>('DB_HOST'),
+        port: parseInt(configService.get<string>('DB_PORT') || '5433', 10),
+        username: configService.get<string>('DB_USERNAME'),
+        password: configService.get<string>('DB_PASSWORD'),
+        database: configService.get<string>('DB_DATABASE'),
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],
+        migrations: [__dirname + '/migrations/*{.ts,.js}'],
+        migrationsRun: false,
+        logging: ['query', 'error'],
+      }),
     }),
 
     ActividadesModule,
@@ -67,6 +112,13 @@ import { ZonasModule } from './zonas/zonas.module';
     VariedadModule,
     VentaModule,
     ZonasModule,
+    TipoEpaModule,
+    RolesModule,
+    AuthModule,
+    PermisosModule,
+    RecursosModule,
+    ModulosModule,
+    
   ],
   controllers: [AppController],
   providers: [AppService],

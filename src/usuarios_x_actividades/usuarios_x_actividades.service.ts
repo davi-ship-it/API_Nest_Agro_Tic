@@ -24,3 +24,4 @@ export class UsuariosXActividadesService {
     return `This action removes a #${id} usuariosXActividade`;
   }
 }
+

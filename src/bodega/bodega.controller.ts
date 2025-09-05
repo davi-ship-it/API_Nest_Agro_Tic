@@ -32,3 +32,4 @@ export class BodegaController {
     return this.bodegaService.remove(+id);
   }
 }
+

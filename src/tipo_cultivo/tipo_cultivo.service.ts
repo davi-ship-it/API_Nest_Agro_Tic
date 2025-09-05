@@ -35,3 +35,4 @@ export class TipoCultivoService {
     return `This action removes a #${id} tipoCultivo`;
   }
 }
+

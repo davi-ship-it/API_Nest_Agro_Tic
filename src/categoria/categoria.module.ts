@@ -7,3 +7,4 @@ import { CategoriaController } from './categoria.controller';
   providers: [CategoriaService],
 })
 export class CategoriaModule {}
+

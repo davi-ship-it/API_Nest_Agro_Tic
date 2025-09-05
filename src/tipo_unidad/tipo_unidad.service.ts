@@ -24,3 +24,4 @@ export class TipoUnidadService {
     return `This action removes a #${id} tipoUnidad`;
   }
 }
+

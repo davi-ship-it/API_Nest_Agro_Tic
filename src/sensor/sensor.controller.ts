@@ -32,3 +32,4 @@ export class SensorController {
     return this.sensorService.remove(+id);
   }
 }
+

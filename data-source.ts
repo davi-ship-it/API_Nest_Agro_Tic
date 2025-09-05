@@ -20,4 +20,5 @@ const config: DataSourceOptions = {
 
 const AppDataSource = new DataSource(config);
 
+
 export default AppDataSource;

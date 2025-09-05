@@ -7,3 +7,4 @@ import { EpaController } from './epa.controller';
   providers: [EpaService],
 })
 export class EpaModule {}
+

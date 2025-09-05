@@ -7,3 +7,4 @@ import { CultivosVariedadXZonaController } from './cultivos_variedad_x_zona.cont
   providers: [CultivosVariedadXZonaService],
 })
 export class CultivosVariedadXZonaModule {}
+

@@ -5,8 +5,8 @@ import { Actividad } from '../../actividades/entities/actividades.entity';
 
 @Entity('usuarios_x_actividades')
 export class UsuarioXActividad {
-  @PrimaryGeneratedColumn({ name: 'pk_id_usuarios_x_actividades' })
-  id: number;
+  @PrimaryGeneratedColumn('uuid', { name: 'pk_id_usuarios_x_actividades' })
+  id: string;
 
   @Column({ name: 'fk_id_usuario' })
   fkUsuarioId: number;
@@ -25,3 +25,4 @@ export class UsuarioXActividad {
   @JoinColumn({ name: 'fk_id_actividad' })
   actividad?: Actividad;
 }
+

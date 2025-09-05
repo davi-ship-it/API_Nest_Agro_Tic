@@ -7,8 +7,8 @@ import { Cosecha } from '../../cosechas/entities/cosecha.entity';
 
 @Entity('cultivos_x_variedad')
 export class CultivosXVariedad {
-  @PrimaryGeneratedColumn({ name: 'pk_id_cultivos_x_variedad' })
-  id: number;
+  @PrimaryGeneratedColumn('uuid', { name: 'pk_id_cultivos_x_variedad' })
+  id: string;
 
   @Column({ name: 'fk_id_cultivo' })
   fkCultivoId: number;
@@ -30,3 +30,4 @@ export class CultivosXVariedad {
   @OneToMany(() => Cosecha, (c) => c.cultivosXVariedad)
   cosechas?: Cosecha[];
 }
+

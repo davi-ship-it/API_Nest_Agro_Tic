@@ -7,3 +7,4 @@ import { ActividadesController } from './actividades.controller';
   providers: [ActividadesService],
 })
 export class ActividadesModule {}
+

@@ -5,8 +5,8 @@ import { Epa } from '../../epa/entities/epa.entity';
 
 @Entity('cultivos_x_epa')
 export class CultivosXEpa {
-  @PrimaryGeneratedColumn({ name: 'pk_id_cultivos_x_epa' })
-  id: number;
+  @PrimaryGeneratedColumn('uuid', { name: 'pk_id_cultivos_x_epa' })
+  id: string;
 
   @Column({ name: 'cxp_fecha_deteccion', type: 'date' })
   fechaDeteccion: string;
@@ -28,3 +28,4 @@ export class CultivosXEpa {
   @JoinColumn({ name: 'fk_id_epa' })
   epa?: Epa;
 }
+

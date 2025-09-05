@@ -24,3 +24,4 @@ export class CultivosXVariedadService {
     return `This action removes a #${id} cultivosXVariedad`;
   }
 }
+

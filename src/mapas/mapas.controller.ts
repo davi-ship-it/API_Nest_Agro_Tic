@@ -32,3 +32,4 @@ export class MapasController {
     return this.mapasService.remove(+id);
   }
 }
+

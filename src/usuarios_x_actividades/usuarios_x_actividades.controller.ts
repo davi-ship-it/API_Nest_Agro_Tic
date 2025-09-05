@@ -32,3 +32,4 @@ export class UsuariosXActividadesController {
     return this.usuariosXActividadesService.remove(+id);
   }
 }
+

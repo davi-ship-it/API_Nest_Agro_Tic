@@ -5,8 +5,8 @@ import { CultivosXVariedad } from '../../cultivos_x_variedad/entities/cultivos_x
 
 @Entity('variedad')
 export class Variedad {
-  @PrimaryGeneratedColumn({ name: 'pk_id_variedad' })
-  id: number;
+  @PrimaryGeneratedColumn('uuid', { name: 'pk_id_variedad' })
+  id: string;
 
   @Column({ name: 'var_nombre', type: 'varchar', length: 50 })
   nombre: string;
@@ -21,3 +21,4 @@ export class Variedad {
   @OneToMany(() => CultivosXVariedad, (cxv) => cxv.variedad)
   cultivosXVariedad?: CultivosXVariedad[];
 }
+

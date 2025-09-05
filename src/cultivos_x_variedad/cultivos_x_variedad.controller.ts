@@ -32,3 +32,4 @@ export class CultivosXVariedadController {
     return this.cultivosXVariedadService.remove(+id);
   }
 }
+

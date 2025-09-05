@@ -7,3 +7,4 @@ import { TipoSensorController } from './tipo_sensor.controller';
   providers: [TipoSensorService],
 })
 export class TipoSensorModule {}
+

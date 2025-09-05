@@ -4,8 +4,11 @@ import { Zona } from '../../zonas/entities/zona.entity';
 
 @Entity('mapas')
 export class Mapa {
-  @PrimaryGeneratedColumn({ name: 'pk_id_mapa' })
-  id: number;
+  @PrimaryGeneratedColumn('uuid', { name: 'pk_id_mapa' })
+  id: string;
+
+  @Column({ name: 'map_nombre', type: 'varchar', length: 51 })
+  nombre: string;
 
   @Column({ name: 'map_url_img', type: 'varchar', length: 255 })
   urlImg: string;
@@ -13,3 +16,4 @@ export class Mapa {
   @OneToMany(() => Zona, (z) => z.mapa)
   zonas?: Zona[];
 }
+

@@ -32,3 +32,4 @@ export class TipoCultivoController {
     return this.tipoCultivoService.remove(+id);
   }
 }
+

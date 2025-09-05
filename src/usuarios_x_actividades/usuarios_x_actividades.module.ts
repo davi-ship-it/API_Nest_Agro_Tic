@@ -7,3 +7,4 @@ import { UsuariosXActividadesController } from './usuarios_x_actividades.control
   providers: [UsuariosXActividadesService],
 })
 export class UsuariosXActividadesModule {}
+

@@ -24,3 +24,4 @@ export class BodegaService {
     return `This action removes a #${id} bodega`;
   }
 }
+

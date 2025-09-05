@@ -7,3 +7,4 @@ import { TipoUnidadController } from './tipo_unidad.controller';
   providers: [TipoUnidadService],
 })
 export class TipoUnidadModule {}
+

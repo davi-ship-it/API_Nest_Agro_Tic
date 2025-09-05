@@ -6,8 +6,8 @@ import { MedicionSensor } from '../../medicion_sensor/entities/medicion_sensor.e
 
 @Entity('sensor')
 export class Sensor {
-  @PrimaryGeneratedColumn({ name: 'pk_id_sensor' })
-  id: number;
+  @PrimaryGeneratedColumn('uuid', { name: 'pk_id_sensor' })
+  id: string;
 
   @Column({ name: 'sen_nombre', type: 'varchar', length: 50 })
   nombre: string;
@@ -53,3 +53,4 @@ export class Sensor {
   @OneToMany(() => MedicionSensor, (m) => m.sensor)
   mediciones?: MedicionSensor[];
 }
+

@@ -32,3 +32,4 @@ export class CultivosXEpaController {
     return this.cultivosXEpaService.remove(+id);
   }
 }
+

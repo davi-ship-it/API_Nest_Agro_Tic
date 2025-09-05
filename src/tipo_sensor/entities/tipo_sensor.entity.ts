@@ -4,8 +4,8 @@ import { Sensor } from '../../sensor/entities/sensor.entity';
 
 @Entity('tipo_sensor')
 export class TipoSensor {
-  @PrimaryGeneratedColumn({ name: 'pk_id_tipo_sensor' })
-  id: number;
+  @PrimaryGeneratedColumn('uuid', { name: 'pk_id_tipo_sensor' })
+  id: string;
 
   @Column({ name: 'tps_nombre', type: 'varchar', length: 50 })
   nombre: string;
@@ -19,3 +19,4 @@ export class TipoSensor {
   @OneToMany(() => Sensor, (s) => s.tipoSensor)
   sensores?: Sensor[];
 }
+
