@@ -30,7 +30,14 @@
     "seed:dev:nopaths": "ts-node src/database/seed.ts",
     "seed:watch": "ts-node-dev -r tsconfig-paths/register --respawn src/database/seed.ts",
     "seed": "node dist/database/seed.js",
-    "seed:prod": "NODE_ENV=production node dist/database/seed.js"
+    "seed:prod": "NODE_ENV=production node dist/database/seed.js",
+
+
+    "docker:dev": "docker-compose up --build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f app",
+    "docker:clean": "docker-compose down -v --remove-orphans"
   },
   "dependencies": {
     "@nestjs/cache-manager": "^3.0.1",
