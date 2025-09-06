@@ -1,40 +1,67 @@
 version: '3.8'
 
 services:
-  # Servicio de la aplicación Nest.js
+  # Tu aplicación NestJS
   app:
-    build: . # Le dice a Docker que construya la imagen usando el Dockerfile en este directorio
-    container_name: mi_proyecto_app
-    restart: always
-    env_file:
-      - .env # Carga las variables de entorno desde el archivo .env
+    build: .
+    container_name: api_nest_agro_tic
+    restart: unless-stopped
     ports:
-      - "3000:3000" # Mapea el puerto 3000 de tu máquina al 3000 del contenedor
-    depends_on: # Se asegura de que la DB y Redis inicien antes que la app
-      - db
-      - redis
+      - "3000:3000"
+    environment:
+      # Variables que la app necesita DENTRO del contenedor
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_DATABASE=${DB_DATABASE}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION_TIME=${JWT_EXPIRATION_TIME}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - JWT_REFRESH_EXPIRATION_TIME=${JWT_REFRESH_EXPIRATION_TIME}
+      - NODE_ENV=${NODE_ENV}
+      - PORT=3000
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      # Para hot reload - los cambios en tu código se reflejan inmediatamente
+      - .:/app
+      - /app/node_modules
     networks:
       - mi_red
 
-  # Servicio de la base de datos PostgreSQL
+  # Base de datos PostgreSQL
   db:
     image: postgres:15-alpine
     container_name: mi_proyecto_db
-    restart: always
-    env_file:
-      - .env # También carga las variables desde aquí
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
     ports:
+      # Puerto externo:interno (5433 para no chocar con Postgres locales)
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - mi_red
 
-  # Servicio de Redis
+  # Redis
   redis:
     image: redis:7-alpine
     container_name: mi_proyecto_redis
-    restart: always
+    restart: unless-stopped
     ports:
       - "6379:6379"
     volumes:
