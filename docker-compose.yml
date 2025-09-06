@@ -1,42 +1,51 @@
 version: '3.8'
 
 services:
+  # Servicio de la aplicación Nest.js
+  app:
+    build: . # Le dice a Docker que construya la imagen usando el Dockerfile en este directorio
+    container_name: mi_proyecto_app
+    restart: always
+    env_file:
+      - .env # Carga las variables de entorno desde el archivo .env
+    ports:
+      - "3000:3000" # Mapea el puerto 3000 de tu máquina al 3000 del contenedor
+    depends_on: # Se asegura de que la DB y Redis inicien antes que la app
+      - db
+      - redis
+    networks:
+      - mi_red
+
   # Servicio de la base de datos PostgreSQL
   db:
     image: postgres:15-alpine
     container_name: mi_proyecto_db
     restart: always
-    environment:
-      POSTGRES_USER: myuser
-      POSTGRES_PASSWORD: mypassword
-      POSTGRES_DB: mydatabase
+    env_file:
+      - .env # También carga las variables desde aquí
     ports:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks: # Añadido para conectar a la red personalizada
+    networks:
       - mi_red
 
-  # Nuevo servicio para Redis
+  # Servicio de Redis
   redis:
-    image: redis:7-alpine  # Usamos una imagen oficial y ligera de Redis
+    image: redis:7-alpine
     container_name: mi_proyecto_redis
     restart: always
     ports:
-      # Mapea el puerto 6379 de tu máquina al 6379 del contenedor
       - "6379:6379"
     volumes:
-      # Volumen para que los datos de Redis (como la caché) persistan
       - redis_data:/data
-    networks: # Añadido para conectar a la red personalizada
+    networks:
       - mi_red
 
-# Definición de la red personalizada
 networks:
   mi_red:
     driver: bridge
 
-# Definición de los volúmenes para persistencia de datos
 volumes:
   postgres_data:
-  redis_data: # Definición del nuevo volumen para Redis
+  redis_data:
