@@ -26,8 +26,8 @@ export class Usuario {
   @Column({ name: 'usu_password_h', type: 'varchar', length: 255 })
   passwordHash: string;
 
-  @Column({ name: 'usu_telefono', type: 'bigint', nullable: true })
-  telefono?: number;
+  @Column({ name: 'usu_telefono', type: 'bigint'})
+  telefono: number;
 
   @Column({ name: 'usu_correo', type: 'varchar', length: 255 })
   correo: string;
