@@ -40,7 +40,7 @@ export class AuthService {
    * No devuelve un token.
    */
   async register(registerDto: RegisterAuthDto) {
-    const { dni, correo, password, nombres, apellidos } = registerDto;
+    const { dni, correo, password, nombres, apellidos, telefono } = registerDto; // Se añade 'telefono'
 
     const usuarioExistente = await this.usuarioRepository.findOne({
       where: [{ dni }, { correo }],
@@ -68,8 +68,11 @@ export class AuthService {
       apellidos,
       correo,
       passwordHash,
+      telefono, // Se pasa 'telefono' al crear el usuario
       rol: rolInvitado,
     });
+
+    console.log(nuevoUsuario);
 
     await this.usuarioRepository.save(nuevoUsuario);
 
@@ -107,12 +110,7 @@ export class AuthService {
       this.jwtService.signAsync(payload, {
         secret: this.configService.get<string>('JWT_SECRET'),
         expiresIn: this.configService.get<string>('JWT_EXPIRATION_TIME'),
-        
-
-        
       }),
-
-      
 
       // Refresh Token (larga duración, ej: 30d)
       this.jwtService.signAsync(payload, {
@@ -237,53 +235,54 @@ export class AuthService {
   }*/
 
   // ✅ CAMBIO 2: Se usa CreatePermisoDto como el tipo de retorno de la promesa.
-  
-async getUserPermissions(userId: string): Promise<CreatePermisoDto[]> {
-  const user = await this.usuarioRepository.findOne({
-    where: { id: userId },
-    // ✅ CAMBIO 1: Se añade 'rol.permisos.recurso.modulo' a las relaciones.
-    // Esto le indica a TypeORM que cargue la entidad Módulo que está anidada dentro del Recurso.
-    relations: [
-      'rol',
-      'rol.permisos',
-      'rol.permisos.recurso',
-      'rol.permisos.recurso.modulo', // <-- La nueva relación anidada
-    ],
-  });
 
-  if (!user) {
-    throw new NotFoundException(`Usuario con ID "${userId}" no encontrado.`);
-  }
+  async getUserPermissions(userId: string): Promise<CreatePermisoDto[]> {
+    const user = await this.usuarioRepository.findOne({
+      where: { id: userId },
+      // ✅ CAMBIO 1: Se añade 'rol.permisos.recurso.modulo' a las relaciones.
+      // Esto le indica a TypeORM que cargue la entidad Módulo que está anidada dentro del Recurso.
+      relations: [
+        'rol',
+        'rol.permisos',
+        'rol.permisos.recurso',
+        'rol.permisos.recurso.modulo', // <-- La nueva relación anidada
+      ],
+    });
 
-  if (!user.rol || !user.rol.permisos) {
-    return []; // El usuario no tiene rol o el rol no tiene permisos.
-  }
-
-  // ✅ CAMBIO 2: La lógica 'reduce' ahora también extrae y asigna el 'moduloNombre'.
-  const permisosAgrupados = user.rol.permisos.reduce((acc, permiso) => {
-    // Verificación para evitar errores si un permiso no tiene recurso o módulo asignado.
-    if (!permiso.recurso || !permiso.recurso.modulo) {
-      return acc;
+    if (!user) {
+      throw new NotFoundException(`Usuario con ID "${userId}" no encontrado.`);
     }
 
-    const nombreRecurso = permiso.recurso.nombre;
-    const nombreModulo = permiso.recurso.modulo.nombre;
-
-    if (!acc[nombreRecurso]) {
-      acc[nombreRecurso] = {
-        moduloNombre: nombreModulo, // Se añade el nombre del módulo al objeto agrupado.
-        recurso: nombreRecurso,
-        acciones: [],
-      };
+    if (!user.rol || !user.rol.permisos) {
+      return []; // El usuario no tiene rol o el rol no tiene permisos.
     }
 
-    acc[nombreRecurso].acciones.push(permiso.accion);
+    // ✅ CAMBIO 2: La lógica 'reduce' ahora también extrae y asigna el 'moduloNombre'.
+    const permisosAgrupados = user.rol.permisos.reduce(
+      (acc, permiso) => {
+        // Verificación para evitar errores si un permiso no tiene recurso o módulo asignado.
+        if (!permiso.recurso || !permiso.recurso.modulo) {
+          return acc;
+        }
 
-    return acc;
-  }, {} as Record<string, CreatePermisoDto>);
+        const nombreRecurso = permiso.recurso.nombre;
+        const nombreModulo = permiso.recurso.modulo.nombre;
 
-  return Object.values(permisosAgrupados);
-}
+        if (!acc[nombreRecurso]) {
+          acc[nombreRecurso] = {
+            moduloNombre: nombreModulo, // Se añade el nombre del módulo al objeto agrupado.
+            recurso: nombreRecurso,
+            acciones: [],
+          };
+        }
 
+        acc[nombreRecurso].acciones.push(permiso.accion);
 
+        return acc;
+      },
+      {} as Record<string, CreatePermisoDto>,
+    );
+
+    return Object.values(permisosAgrupados);
+  }
 }

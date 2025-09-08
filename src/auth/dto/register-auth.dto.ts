@@ -5,6 +5,10 @@ export class RegisterAuthDto {
   @IsNumber()
   @IsNotEmpty()
   dni: number;
+  
+  @IsNumber()
+  @IsNotEmpty()
+  telefono: number;
 
   @IsString()
   @IsNotEmpty()
