@@ -36,6 +36,7 @@ import { AuthModule } from './auth/auth.module';
 import { PermisosModule } from './permisos/permisos.module';
 import { RecursosModule } from './recursos/recursos.module';
 import { ModulosModule } from './modulos/modulos.module';
+import { MailerModule } from '@nestjs-modules/mailer';
 
 @Module({
   imports: [
@@ -72,6 +73,32 @@ import { ModulosModule } from './modulos/modulos.module';
         },
       }),
       global: true, // Hace el módulo JWT disponible globalmente
+    }),
+     MailerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        transport: {
+          host: configService.get<string>('MAIL_HOST'),
+          port: configService.get<number>('MAIL_PORT'),
+          secure: true, // O true si usas SSL/TLS
+          auth: {
+            user: configService.get<string>('MAIL_USER'),
+            pass: configService.get<string>('MAIL_PASSWORD'),
+          },
+        },
+        defaults: {
+          from: `"No Responder" <${configService.get<string>('MAIL_FROM')}>`,
+        },
+        // Aquí puedes configurar tu motor de plantillas (ej. Pug, EJS, Handlebars)
+        // template: {
+        //   dir: join(__dirname, 'templates'),
+        //   adapter: new HandlebarsAdapter(),
+        //   options: {
+        //     strict: true,
+        //   },
+        // },
+      }),
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
