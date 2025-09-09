@@ -17,7 +17,6 @@ import { AuthenticationGuard } from '../common/guards/authentication.guard';
 import { AuthorizationGuard } from '../common/guards/authorization.guard';
 import { Permisos } from '../permisos/decorators/permisos.decorator';
 
-@UseGuards(AuthenticationGuard, AuthorizationGuard)
 @Controller('roles')
 export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
