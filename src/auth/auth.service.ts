@@ -95,17 +95,40 @@ export class AuthService {
     const { dni, password } = loginDto;
     const usuario = await this.usuarioRepository.findOne({
       where: { dni },
-      relations: ['rol'],
+      // ✅ CAMBIO: Cargar todas las relaciones necesarias para los permisos.
+      relations: [
+        'rol',
+        'rol.permisos',
+        'rol.permisos.recurso',
+        'rol.permisos.recurso.modulo',
+      ],
     });
 
     if (!usuario || !(await bcrypt.compare(password, usuario.passwordHash))) {
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
+    // ✅ CAMBIO: Mapear los permisos al formato deseado.
+    const permisos =
+      usuario.rol?.permisos
+        ?.map((permiso) => {
+          // Asegurarse de que el permiso tiene toda la información necesaria.
+          if (!permiso.recurso || !permiso.recurso.modulo) {
+            return null;
+          }
+          return {
+            modulo: permiso.recurso.modulo.nombre,
+            recurso: permiso.recurso.nombre,
+            accion: permiso.accion,
+          };
+        })
+        .filter((p) => p !== null) ?? []; // Filtrar nulos y manejar si no hay permisos.
+
     const payload = {
       sub: usuario.id,
       email: usuario.correo,
       rol: usuario.rol?.nombre,
+      permisos, // ✅ CAMBIO: Añadir los permisos al payload del token.
     };
 
     const [accessToken, refreshToken] = await Promise.all([
@@ -135,6 +158,47 @@ export class AuthService {
       refresh_token: refreshToken,
     };
   }
+
+  /*  ejemplo payload(JWT) decencriptado :{ 
+  "sub": "068e8229-c36b-4c5b-9379-5615e66b2ad3",
+  "email": "pitalitodavid@gmail.com",
+  "rol": "ADMIN",
+  "permisos": [
+    {
+      "modulo": "Usuarios",
+      "recurso": "acceso_usuarios",
+      "accion": "ver"
+    },
+    {
+      "modulo": "IOT",
+      "recurso": "acceso_IOT",
+      "accion": "ver"
+    },
+    {
+      "modulo": "Cultivos",
+      "recurso": "acceso_cultivos",
+      "accion": "ver"
+    },
+    {
+      "modulo": "Fitosanitario",
+      "recurso": "acceso_fitosanitario",
+      "accion": "ver"
+    },
+    {
+      "modulo": "Inventario",
+      "recurso": "acceso_inventario",
+      "accion": "ver"
+    },
+    {
+      "modulo": "Inicio",
+      "recurso": "acceso_inicio",
+      "accion": "ver"
+    }
+  ],
+  "iat": 1757520466,
+  "exp": 1760112466
+}
+*/ 
 
   async refreshToken(refreshToken: string) {
     try {
@@ -247,7 +311,9 @@ export class AuthService {
   /**
    * Genera y envía un enlace para restablecer la contraseña.
    */
-  async forgotPassword(email: ForgotPasswordDto['email']): Promise<{ message: string }> {
+  async forgotPassword(
+    email: ForgotPasswordDto['email'],
+  ): Promise<{ message: string }> {
     const usuario = await this.usuarioRepository.findOne({
       where: { correo: email },
     });
@@ -311,7 +377,6 @@ export class AuthService {
     // ✅ CAMBIO: Recibe el DTO completo para poder comparar las contraseñas.
     resetPasswordDto: ResetPasswordDto,
   ): Promise<{ message: string }> {
-
     // ✅ CAMBIO: Se extraen y se comparan las contraseñas.
     const { newPassword, repetPassword } = resetPasswordDto;
     if (newPassword !== repetPassword) {
@@ -344,11 +409,13 @@ export class AuthService {
         `Contraseña actualizada para el usuario: ${usuario.correo}`,
       );
       return { message: 'Tu contraseña ha sido actualizada exitosamente.' };
-
     } catch (error) {
       this.logger.error('Token de reseteo inválido o expirado', error.stack);
       // Si el error es una excepción que ya lanzamos (ej. NotFound), la relanzamos.
-      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       }
       // Para otros errores (ej. JWT expirado), lanzamos un BadRequest genérico.
