@@ -21,7 +21,7 @@ export class UsuariosService {
    * Crea un usuario con un rol específico.
    * Este método debería ser llamado solo por un administrador autenticado.
    */
-  async createUserByAdmin(createUserDto: CreateUsuarioDto) {
+  async createUserByPanel(createUserDto: CreateUsuarioDto) {
     const {nombres, apellidos, dni, correo, password, telefono, rolId } = createUserDto;
 
     const usuarioExistente = await this.usuarioRepository.findOne({

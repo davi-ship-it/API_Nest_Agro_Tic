@@ -28,11 +28,16 @@
     "seed:watch": "ts-node-dev -r tsconfig-paths/register --respawn src/database/seed.ts",
     "seed": "node dist/database/seed.js",
     "seed:prod": "NODE_ENV=production node dist/database/seed.js",
-    "docker:dev": "docker-compose up --build",
-    "docker:up": "docker-compose up -d",
-    "docker:down": "docker-compose down",
-    "docker:logs": "docker-compose logs -f app",
-    "docker:clean": "docker-compose down -v --remove-orphans"
+
+  "docker:dev": "docker-compose up --build --remove-orphans",
+  "docker:up": "docker-compose up -d --build --remove-orphans",
+  "docker:down": "docker-compose down",
+  "docker:logs": "docker-compose logs -f --tail=100 app",
+  "docker:clean": "docker-compose down -v --remove-orphans",
+  "docker:install": "docker-compose exec app npm ci",
+  "docker:rebuild": "docker-compose up -d --build --force-recreate --remove-orphans"
+    
+    
   },
   "dependencies": {
     "@nestjs-modules/mailer": "^2.0.2",
