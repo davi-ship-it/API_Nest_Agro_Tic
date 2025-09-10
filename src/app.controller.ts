@@ -10,6 +10,9 @@ export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Permisos({ recurso: 'productos', acciones: ['leer'], moduloNombre: 'Inventario' })
+  @Permisos({ recurso: 'productos', acciones: ['leer'], moduloNombre: 'Inventario' })
+
+  
   @Get('/products')
   getProducts(@Req() req) {
     return { message: 'Acceso concedido al recurso: Productos', userId: req.userId };

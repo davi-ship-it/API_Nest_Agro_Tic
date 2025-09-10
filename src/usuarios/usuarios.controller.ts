@@ -3,13 +3,13 @@ import { UsuariosService } from './usuarios.service';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 
-@Controller('users')
+@Controller('Usuarios/PanelControl')
 export class UsuariosController {
   constructor(private readonly usuariosService: UsuariosService) {}
 
-  @Post()
+  @Post('register')
   create(@Body() createUserDto: CreateUsuarioDto) {
-    return this.usuariosService.createUserByAdmin(createUserDto);
+    return this.usuariosService.createUserByPanel(createUserDto);
   }
 
   @Get()
