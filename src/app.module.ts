@@ -74,7 +74,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
       }),
       global: true, // Hace el módulo JWT disponible globalmente
     }),
-     MailerModule.forRootAsync({
+    MailerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
@@ -145,9 +145,11 @@ import { MailerModule } from '@nestjs-modules/mailer';
     PermisosModule,
     RecursosModule,
     ModulosModule,
-    
   ],
   controllers: [AppController],
   providers: [AppService],
+  // Exporta los módulos para que otros módulos que importen AppModule (como SeederModule)
+  // puedan acceder a los servicios que estos exportan.
+  exports: [PermisosModule, UsuariosModule],
 })
 export class AppModule {}

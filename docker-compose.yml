@@ -63,6 +63,17 @@ services:
     networks:
       - mi_red
 
+  adminer:
+    image: adminer
+    container_name: mi_proyecto_adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    networks:
+      - mi_red
+
 networks:
   mi_red:
     driver: bridge
