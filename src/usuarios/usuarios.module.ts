@@ -4,14 +4,17 @@ import { UsuariosController } from './usuarios.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Usuario } from '../usuarios/entities/usuario.entity';
 import { Roles } from '../roles/entities/role.entity';
-
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   imports: [
     // La línea clave que probablemente te falta o está incompleta:
-    TypeOrmModule.forFeature([Usuario, Roles]) 
+    TypeOrmModule.forFeature([Usuario, Roles]),
+    // ✅ SOLUCIÓN: Importamos AuthModule para tener acceso a AuthService.
+    AuthModule,
   ],
   controllers: [UsuariosController],
   providers: [UsuariosService],
+  exports: [UsuariosService], // <-- AÑADE ESTA LÍNEA
 })
 export class UsuariosModule {}

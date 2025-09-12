@@ -7,6 +7,8 @@ import { AuthController } from './auth.controller';
 import { Usuario } from '../usuarios/entities/usuario.entity';
 import { Roles } from '../roles/entities/role.entity';
 import { RolesModule } from 'src/roles/roles.module';
+import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
+import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 
 @Module({
   imports: [
@@ -17,7 +19,7 @@ import { RolesModule } from 'src/roles/roles.module';
   ],
   controllers: [AuthController],
   // Debes proveer tanto el servicio de autenticación como la estrategia JWT
-  providers: [AuthService],
+  providers: [AuthService, AuthenticationGuard, AuthorizationGuard],
   exports: [AuthService], // <-- Añade esta línea para exportar el servicio
 })
 export class AuthModule {}
