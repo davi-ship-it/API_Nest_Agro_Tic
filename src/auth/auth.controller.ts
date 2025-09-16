@@ -35,7 +35,7 @@ export class AuthController {
   login(@Body() loginDto: LoginAuthDto) {
     return this.authService.login(loginDto);
   }
-
+//la ruta para refrescar el token, le antecede "auth"
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   async refreshToken(@Body() refreshTokenDto: RefreshTokenDto) {
@@ -44,6 +44,8 @@ export class AuthController {
   
   // En una aplicación real, este endpoint debería estar protegido.
   // El ID del usuario se extrae del token JWT verificado, no del body.
+
+
   @UseGuards(AuthGuard('jwt')) 
   @Post('logout')
   @HttpCode(HttpStatus.OK)
