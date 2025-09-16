@@ -202,6 +202,7 @@ export class SeederService {
       let rolInstructor = await this.crearRolSiNoExiste('INSTRUCTOR');
       const rolAprendiz = await this.crearRolSiNoExiste('APRENDIZ');
       const rolPasante = await this.crearRolSiNoExiste('PASANTE');
+      const rolInvitado = await this.crearRolSiNoExiste('INVITADO');
 
       // Asignar permisos específicos al INSTRUCTOR
       const permisoCrearUsuarios = await this.permisoRepository.findOne({
