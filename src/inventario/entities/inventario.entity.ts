@@ -30,11 +30,11 @@ export class Inventario {
   @Column({ name: 'inv_img_url', type: 'varchar', length: 255 })
   imgUrl: string;
 
-  @Column({ name: 'fk_id_categoria', nullable: true })
-  fkCategoriaId?: number;
+  @Column({ name: 'fk_id_categoria', type: 'uuid', nullable: true })
+  fkCategoriaId?: string;
 
-  @Column({ name: 'fk_id_bodega', nullable: true })
-  fkBodegaId?: number;
+  @Column({ name: 'fk_id_bodega', type: 'uuid', nullable: true })
+  fkBodegaId?: string;
 
   @ManyToOne(() => Categoria, (c) => c.inventarios)
   @JoinColumn({ name: 'fk_id_categoria' })
@@ -47,4 +47,3 @@ export class Inventario {
   @OneToMany(() => InventarioXActividad, (ixa) => ixa.inventario)
   actividades?: InventarioXActividad[];
 }
-

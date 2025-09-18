@@ -23,21 +23,17 @@
     "migration:create": "npm run typeorm -- migration:create src/migrations/new_migration",
     "migration:run": "npm run typeorm -- migration:run",
     "migration:revert": "npm run typeorm -- migration:revert",
-
     "seed": "npm run build && npm run seed:prod",
     "seed:dev": "ts-node -r tsconfig-paths/register src/seeder/seeder.ts",
     "seed:watch": "ts-node-dev -r tsconfig-paths/register --respawn src/seeder/seeder.ts",
     "seed:prod": "NODE_ENV=production node dist/seeder/seeder.js",
-    
-  "docker:dev": "docker-compose up --build --remove-orphans",
-  "docker:up": "docker-compose up -d --build --remove-orphans",
-  "docker:down": "docker-compose down",
-  "docker:logs": "docker-compose logs -f --tail=100 app",
-  "docker:clean": "docker-compose down -v --remove-orphans",
-  "docker:install": "docker-compose exec app npm ci",
-  "docker:rebuild": "docker-compose up -d --build --force-recreate --remove-orphans"
-    
-    
+    "docker:dev": "docker-compose up --build --remove-orphans",
+    "docker:up": "docker-compose up -d --build --remove-orphans",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f --tail=100 app",
+    "docker:clean": "docker-compose down -v --remove-orphans",
+    "docker:install": "docker-compose exec app npm ci",
+    "docker:rebuild": "docker-compose up -d --build --force-recreate --remove-orphans"
   },
   "dependencies": {
     "@nestjs-modules/mailer": "^2.0.2",
@@ -74,6 +70,7 @@
     "@types/bcrypt": "^6.0.0",
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.14",
+    "@types/multer": "^2.0.0",
     "@types/node": "^22.10.7",
     "@types/passport-jwt": "^4.0.1",
     "@types/supertest": "^6.0.2",
