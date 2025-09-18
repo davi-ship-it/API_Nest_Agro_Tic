@@ -1,43 +1,40 @@
-import { IsString, IsNotEmpty, IsNumber, IsOptional, IsUrl, IsDate } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsUUID, IsDateString } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateInventarioDto {
-    @IsString()
-    @IsNotEmpty()
-    nombre: string;
+  @IsString()
+  nombre: string;
 
-    @IsString()
-    @IsOptional()
-    descripcion?: string;
+  @IsString()
+  @IsOptional()
+  descripcion?: string;
 
-    @IsNumber()
-    @IsNotEmpty()
-    stock: number;
+  @Type(() => Number)
+  @IsNumber()
+  stock: number;
 
-    @IsNumber()
-    @IsNotEmpty()
-    precio: number;
+  @Type(() => Number)
+  @IsNumber()
+  precio: number;
 
-    @IsNumber()
-    @IsOptional()
-    capacidadUnidad?: number;
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  capacidadUnidad?: number;
 
-    @IsOptional()
-    @Type(() => Date)
-    @IsDate()
-    fechaVencimiento?: Date;
+  @IsOptional()
+  @IsDateString()
+  fechaVencimiento?: string;
 
-    @IsString()
-    @IsUrl()
-    @IsNotEmpty()
-    imgUrl: string;
+  @IsOptional()
+  @IsString()
+  imgUrl?: string;
 
-    @IsNumber()
-    @IsOptional()
-    fkCategoriaId?: number;
+  @IsOptional()
+  @IsUUID()
+  fkCategoriaId?: string;
 
-    @IsNumber()
-    @IsOptional()
-    fkBodegaId?: number;
+  @IsOptional()
+  @IsUUID()
+  fkBodegaId?: string;
 }
-
