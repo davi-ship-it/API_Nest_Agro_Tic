@@ -11,8 +11,8 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Express } from 'express';
 import { diskStorage } from 'multer';
+import type { Express } from 'express';
 import { extname, join } from 'path';
 import { existsSync, mkdirSync } from 'fs';
 import { InventarioService } from './inventario.service';
@@ -34,30 +34,36 @@ export class InventarioController {
       destination: './uploads',
       filename: (req, file, cb) => {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-        cb(null, file.fieldname + '-' + uniqueSuffix + extname(file.originalname));
+        cb(
+          null,
+          file.fieldname + '-' + uniqueSuffix + extname(file.originalname),
+        );
       },
     }),
   };
 
-@Post()
-@UseInterceptors(FileInterceptor('imgUrl', InventarioController.fileInterceptorOptions))
-create(
-  @Body() dto: CreateInventarioDto,
-  @UploadedFile() file?: Express.Multer.File,
-) {
-  return this.inventarioService.create(dto, file);
-}
+  @Post()
+  @UseInterceptors(
+    FileInterceptor('imgUrl', InventarioController.fileInterceptorOptions),
+  )
+  create(
+    @Body() dto: CreateInventarioDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    return this.inventarioService.create(dto, file);
+  }
 
- @Put(':id')
-@UseInterceptors(FileInterceptor('imgUrl', InventarioController.fileInterceptorOptions))
-update(
-  @Param('id', ParseUUIDPipe) id: string,
-  @Body() dto: UpdateInventarioDto,
-  @UploadedFile() file?: Express.Multer.File,
-) {
-  return this.inventarioService.update(id, dto, file);
-}
-
+  @Put(':id')
+  @UseInterceptors(
+    FileInterceptor('imgUrl', InventarioController.fileInterceptorOptions),
+  )
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateInventarioDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    return this.inventarioService.update(id, dto, file);
+  }
 
   @Get()
   findAll() {
