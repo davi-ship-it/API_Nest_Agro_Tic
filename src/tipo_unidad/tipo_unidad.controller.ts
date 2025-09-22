@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  ParseUUIDPipe,
+  HttpCode,
+} from '@nestjs/common';
 import { TipoUnidadService } from './tipo_unidad.service';
 import { CreateTipoUnidadDto } from './dto/create-tipo_unidad.dto';
 import { UpdateTipoUnidadDto } from './dto/update-tipo_unidad.dto';
@@ -18,18 +28,21 @@ export class TipoUnidadController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.tipoUnidadService.findOne(+id);
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return this.tipoUnidadService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTipoUnidadDto: UpdateTipoUnidadDto) {
-    return this.tipoUnidadService.update(+id, updateTipoUnidadDto);
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateTipoUnidadDto: UpdateTipoUnidadDto,
+  ) {
+    return this.tipoUnidadService.update(id, updateTipoUnidadDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.tipoUnidadService.remove(+id);
+  @HttpCode(204) // No Content
+  remove(@Param('id', ParseUUIDPipe) id: string) {
+    return this.tipoUnidadService.remove(id);
   }
 }
-

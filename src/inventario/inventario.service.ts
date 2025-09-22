@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Inventario } from './entities/inventario.entity';
 import { CreateInventarioDto } from './dto/create-inventario.dto';
-import { Express } from 'express'; // <--- Añadir esta línea
+import { Express } from 'express';
 import { unlink } from 'fs/promises';
 import { join } from 'path';
 import { UpdateInventarioDto } from './dto/update-inventario.dto';

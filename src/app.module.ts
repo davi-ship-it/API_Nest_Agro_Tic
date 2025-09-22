@@ -150,6 +150,12 @@ import { MailerModule } from '@nestjs-modules/mailer';
   providers: [AppService],
   // Exporta los módulos para que otros módulos que importen AppModule (como SeederModule)
   // puedan acceder a los servicios que estos exportan.
-  exports: [PermisosModule, UsuariosModule],
+  exports: [
+    PermisosModule,
+    UsuariosModule,
+    TipoUnidadModule,
+    BodegaModule,
+    CategoriaModule,
+  ],
 })
 export class AppModule {}

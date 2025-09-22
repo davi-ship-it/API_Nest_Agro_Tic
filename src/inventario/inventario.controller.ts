@@ -42,8 +42,10 @@ export class InventarioController {
 @Post()
 @UseInterceptors(FileInterceptor('imgUrl', InventarioController.fileInterceptorOptions))
 create(
+  
   @Body() dto: CreateInventarioDto,
   @UploadedFile() file?: Express.Multer.File,
+  
 ) {
   return this.inventarioService.create(dto, file);
 }

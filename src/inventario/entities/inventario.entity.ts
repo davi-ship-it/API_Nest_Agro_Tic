@@ -9,7 +9,7 @@ export class Inventario {
   @PrimaryGeneratedColumn('uuid', { name: 'pk_id_inventario' })
   id: string;
 
-  @Column({ name: 'inv_nombre', type: 'varchar', length: 100 })
+  @Column({ name: 'inv_nombres', type: 'varchar', length: 100 })
   nombre: string;
 
   @Column({ name: 'inv_descripcion', type: 'text', nullable: true })
@@ -22,7 +22,7 @@ export class Inventario {
   precio: number;
 
   @Column({ name: 'inv_capacidad_unidad', type: 'numeric', precision: 10, scale: 2, nullable: true })
-  capacidadUnidad?: number;
+  capacidadUnidad: number;
 
   @Column({ name: 'ivn_fecha_vencimiento', type: 'date', nullable: true })
   fechaVencimiento?: string;
@@ -31,18 +31,18 @@ export class Inventario {
   imgUrl: string;
 
   @Column({ name: 'fk_id_categoria', type: 'uuid', nullable: true })
-  fkCategoriaId?: string;
+  fkCategoriaId: string;
 
   @Column({ name: 'fk_id_bodega', type: 'uuid', nullable: true })
-  fkBodegaId?: string;
+  fkBodegaId: string;
 
   @ManyToOne(() => Categoria, (c) => c.inventarios)
   @JoinColumn({ name: 'fk_id_categoria' })
-  categoria?: Categoria;
+  categoria: Categoria;
 
   @ManyToOne(() => Bodega, (b) => b.inventarios)
   @JoinColumn({ name: 'fk_id_bodega' })
-  bodega?: Bodega;
+  bodega: Bodega;
 
   @OneToMany(() => InventarioXActividad, (ixa) => ixa.inventario)
   actividades?: InventarioXActividad[];

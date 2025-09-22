@@ -1,5 +1,6 @@
 import { IsString, IsNumber, IsOptional, IsUUID, IsDateString } from 'class-validator';
 import { Type } from 'class-transformer';
+import { IsNotEmpty } from 'class-validator';
 
 export class CreateInventarioDto {
   @IsString()
@@ -20,7 +21,7 @@ export class CreateInventarioDto {
   @Type(() => Number)
   @IsNumber()
   @IsOptional()
-  capacidadUnidad?: number;
+  capacidadUnidad: number;
 
   @IsOptional()
   @IsDateString()
@@ -30,11 +31,11 @@ export class CreateInventarioDto {
   @IsString()
   imgUrl?: string;
 
-  @IsOptional()
-  @IsUUID()
-  fkCategoriaId?: string;
+  @IsUUID() // Asumiendo que son UUIDs
+  @IsNotEmpty()
+  fkCategoriaId: string;
 
-  @IsOptional()
-  @IsUUID()
-  fkBodegaId?: string;
+  @IsUUID() // Asumiendo que son UUIDs
+  @IsNotEmpty()
+  fkBodegaId: string;
 }

@@ -1,13 +1,12 @@
-import { IsString, IsNotEmpty, IsNumber, Length } from 'class-validator';
+import { IsNotEmpty, IsString, IsUUID, Length } from 'class-validator';
 
 export class CreateCategoriaDto {
-    @IsString()
-    @IsNotEmpty()
-    @Length(1, 100)
-    nombre: string;
+  @IsString({ message: 'El nombre debe ser un texto.' })
+  @IsNotEmpty({ message: 'El nombre no puede estar vacío.' })
+  @Length(1, 100, { message: 'El nombre debe tener entre 1 y 100 caracteres.' })
+  nombre: string;
 
-    @IsNumber()
-    @IsNotEmpty()
-    fkTipoUnidadId: number;
+  @IsUUID('4', { message: 'El ID del tipo de unidad debe ser un UUID válido.' })
+  @IsNotEmpty({ message: 'El ID del tipo de unidad no puede estar vacío.' })
+  fkTipoUnidadId: string;
 }
-
