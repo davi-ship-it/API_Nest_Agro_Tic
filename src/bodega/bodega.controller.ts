@@ -19,17 +19,17 @@ export class BodegaController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.bodegaService.findOne(+id);
+    return this.bodegaService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateBodegaDto: UpdateBodegaDto) {
-    return this.bodegaService.update(+id, updateBodegaDto);
+    return this.bodegaService.update(id, updateBodegaDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.bodegaService.remove(+id);
+    return this.bodegaService.remove(id);
   }
 }
 

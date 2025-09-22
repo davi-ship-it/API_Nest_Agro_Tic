@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Roles } from 'src/roles/entities/role.entity';
 import { Usuario } from 'src/usuarios/entities/usuario.entity';
 import { Permiso } from 'src/permisos/entities/permiso.entity';
+import { TipoUnidad } from 'src/tipo_unidad/entities/tipo_unidad.entity';
 
 @Module({
   imports: [
@@ -14,8 +15,8 @@ import { Permiso } from 'src/permisos/entities/permiso.entity';
     AppModule,
     // Al importar AppModule, ya tenemos acceso a los módulos de Usuarios y Permisos
     // y a sus providers exportados.
-    // TypeOrmModule.forFeature es necesario aquí para que SeederService pueda inyectar los repositorios.
-    TypeOrmModule.forFeature([Roles, Usuario, Permiso]),
+    // TypeOrmModule.forFeature es necesario aquí para que SeederService pueda inyectar los repositorios correspondientes.
+    TypeOrmModule.forFeature([Roles, Usuario, Permiso, TipoUnidad]),
   ],
   providers: [SeederService, Logger],
 })
