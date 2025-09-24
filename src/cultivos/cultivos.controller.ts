@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch, Delete } from '@nestjs/common';
 import { CultivosService } from './cultivos.service';
 import { CreateCultivoDto } from './dto/create-cultivo.dto';
 import { UpdateCultivoDto } from './dto/update-cultivo.dto';
@@ -8,8 +8,8 @@ export class CultivosController {
   constructor(private readonly cultivosService: CultivosService) {}
 
   @Post()
-  create(@Body() createCultivoDto: CreateCultivoDto) {
-    return this.cultivosService.create(createCultivoDto);
+  create(@Body() dto: CreateCultivoDto) {
+    return this.cultivosService.create(dto);
   }
 
   @Get()
@@ -19,17 +19,16 @@ export class CultivosController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.cultivosService.findOne(+id);
+    return this.cultivosService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCultivoDto: UpdateCultivoDto) {
-    return this.cultivosService.update(+id, updateCultivoDto);
+  update(@Param('id') id: string, @Body() dto: UpdateCultivoDto) {
+    return this.cultivosService.update(id, dto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.cultivosService.remove(+id);
+    return this.cultivosService.remove(id);
   }
 }
-

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TipoCultivo } from './entities/tipo_cultivo.entity';
@@ -12,6 +12,7 @@ export class TipoCultivoService {
     private tipoCultivoRepository: Repository<TipoCultivo>,
   ) {}
 
+  // CREATE
   async create(
     createTipoCultivoDto: CreateTipoCultivoDto,
   ): Promise<TipoCultivo> {
@@ -19,20 +20,33 @@ export class TipoCultivoService {
     return await this.tipoCultivoRepository.save(tipoCultivo);
   }
 
-  findAll() {
-    return `This action returns all tipoCultivo`;
+  // READ ALL
+  async findAll(): Promise<TipoCultivo[]> {
+    return await this.tipoCultivoRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} tipoCultivo`;
+  // READ ONE
+  async findOne(id: string): Promise<TipoCultivo> {
+    const tipoCultivo = await this.tipoCultivoRepository.findOne({ where: { id } });
+    if (!tipoCultivo) {
+      throw new NotFoundException(`TipoCultivo con id ${id} no encontrado`);
+    }
+    return tipoCultivo;
   }
 
-  update(id: number, updateTipoCultivoDto: UpdateTipoCultivoDto) {
-    return `This action updates a #${id} tipoCultivo`;
+  // UPDATE
+  async update(
+    id: string,
+    updateTipoCultivoDto: UpdateTipoCultivoDto,
+  ): Promise<TipoCultivo> {
+    const tipoCultivo = await this.findOne(id);
+    const updated = Object.assign(tipoCultivo, updateTipoCultivoDto);
+    return await this.tipoCultivoRepository.save(updated);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} tipoCultivo`;
+  // DELETE
+  async remove(id: string): Promise<void> {
+    const tipoCultivo = await this.findOne(id);
+    await this.tipoCultivoRepository.remove(tipoCultivo);
   }
 }
-

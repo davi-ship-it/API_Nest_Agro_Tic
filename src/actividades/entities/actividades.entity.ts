@@ -16,10 +16,10 @@ export class Actividad {
   descripcion: string;
 
   @Column({ name: 'act_fecha_inicio', type: 'date' })
-  fechaInicio: string;
+  fechaInicio: Date;
 
   @Column({ name: 'act_fecha_fin', type: 'date', nullable: true })
-  fechaFin?: string;
+  fechaFin?: Date;
 
   @Column({ name: 'act_estado', type: 'varchar', length: 10, nullable: true })
   estado?: string;
@@ -28,7 +28,7 @@ export class Actividad {
   imgUrl: string;
 
   @Column({ name: 'fk_id_cultivo_variedad_x_zona' })
-  fkCultivoVariedadZonaId: number;
+  fkCultivoVariedadZonaId: string;
 
   @ManyToOne(() => CultivosVariedadXZona, (cvz) => cvz.actividades)
   @JoinColumn({ name: 'fk_id_cultivo_variedad_x_zona' })
