@@ -37,6 +37,7 @@ import { PermisosModule } from './permisos/permisos.module';
 import { RecursosModule } from './recursos/recursos.module';
 import { ModulosModule } from './modulos/modulos.module';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { FichasModule } from './fichas/fichas.module';
 
 @Module({
   imports: [
@@ -145,6 +146,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
     PermisosModule,
     RecursosModule,
     ModulosModule,
+    FichasModule,
   ],
   controllers: [AppController],
   providers: [AppService],

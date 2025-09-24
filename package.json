@@ -24,6 +24,11 @@
     "migration:run": "npm run typeorm -- migration:run",
     "migration:revert": "npm run typeorm -- migration:revert",
     "seed": "npm run build && npm run seed:prod",
+
+
+    "docker:g": "docker-compose exec -it app npm run migration:generate",
+    "docker:r": "docker-compose exec -it app npm run migration:run",
+    
     "seed:dev": "ts-node -r tsconfig-paths/register src/seeder/seeder.ts",
     "seed:watch": "ts-node-dev -r tsconfig-paths/register --respawn src/seeder/seeder.ts",
     "seed:prod": "NODE_ENV=production node dist/seeder/seeder.js",
