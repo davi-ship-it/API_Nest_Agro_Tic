@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
-import { VariedadService } from './variedad.service';
-import { VariedadController } from './variedad.controller';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Variedad } from './entities/variedad.entity';
+import { VariedadesService } from './variedad.service';
+import { VariedadesController } from './variedad.controller';
 
 @Module({
-  controllers: [VariedadController],
-  providers: [VariedadService],
+  imports: [TypeOrmModule.forFeature([Variedad])],
+  controllers: [VariedadesController],
+  providers: [VariedadesService],
 })
 export class VariedadModule {}
-

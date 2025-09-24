@@ -1,7 +1,7 @@
 import {
   IsString,
   IsNotEmpty,
-  IsNumber,
+  IsUUID,
   IsOptional,
   Length,
 } from 'class-validator';
@@ -12,8 +12,7 @@ export class CreateVariedadDto {
   @Length(1, 50)
   nombre: string;
 
-  @IsNumber()
   @IsOptional()
-  fkTipoCultivoId?: number;
+  @IsUUID()
+  fkTipoCultivoId?: string;
 }
-

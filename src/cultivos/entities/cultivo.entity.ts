@@ -7,12 +7,11 @@ export class Cultivo {
   @PrimaryGeneratedColumn('uuid', { name: 'pk_id_cultivo' })
   id: string;
 
-
   @Column({ name: 'cul_estado', type: 'smallint', default: 1 })
   estado?: number;
 
   @Column({ name: 'cul_siembra', type: 'date', nullable: true })
-  siembra?: string;
+  siembra?: Date;
 
   @OneToMany(() => CultivosXVariedad, (cxv) => cxv.cultivo)
   variedades?: CultivosXVariedad[];
