@@ -7,8 +7,6 @@ export class Cultivo {
   @PrimaryGeneratedColumn('uuid', { name: 'pk_id_cultivo' })
   id: string;
 
-  @Column({ name: 'cul_descripcion', type: 'text', nullable: true })
-  descripcion?: string;
 
   @Column({ name: 'cul_estado', type: 'smallint', default: 1 })
   estado?: number;
