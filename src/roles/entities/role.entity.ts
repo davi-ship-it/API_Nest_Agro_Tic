@@ -8,6 +8,7 @@ import {
   JoinTable,
 } from 'typeorm';
 import { Permiso } from '../../permisos/entities/permiso.entity';
+import { Ficha } from '../../fichas/entities/ficha.entity';
 
 @Entity('roles')
 export class Roles {
@@ -19,6 +20,9 @@ export class Roles {
 
   @OneToMany(() => Usuario, (usuario) => usuario.rol)
   usuarios: Usuario[];
+
+  @ManyToMany(() => Ficha, (ficha) => ficha.roles)
+  fichas: Ficha[];
 
   // ✅ Esta relación sigue siendo correcta y ahora apunta al nuevo "Permiso".
   @ManyToMany(() => Permiso, {

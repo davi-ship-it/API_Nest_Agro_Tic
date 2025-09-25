@@ -5,12 +5,9 @@ import {
   OneToMany,
   ManyToOne,
   JoinColumn,
-  ManyToMany,
-  JoinTable,
 } from 'typeorm';
 import { UsuarioXActividad } from '../../usuarios_x_actividades/entities/usuarios_x_actividades.entity';
 import { Roles } from 'src/roles/entities/role.entity';
-import { Ficha } from 'src/fichas/entities/ficha.entity';
 
 @Entity('usuarios')
 export class Usuario {
@@ -42,20 +39,4 @@ export class Usuario {
 
   @OneToMany(() => UsuarioXActividad, (uxa) => uxa.usuario)
   actividadesAsignadas?: UsuarioXActividad[];
-
-  @ManyToMany(() => Ficha, (ficha) => ficha.usuarios, {
-    cascade: true,
-  })
-  @JoinTable({
-    name: 'usuarios_fichas',
-    joinColumn: {
-      name: 'usuario_id',
-      referencedColumnName: 'id',
-    },
-    inverseJoinColumn: {
-      name: 'ficha_id',
-      referencedColumnName: 'id',
-    },
-  })
-  fichas: Ficha[];
 }
