@@ -1,9 +1,10 @@
-import { Usuario } from '../../usuarios/entities/usuario.entity';
+import { Roles } from '../../roles/entities/role.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
   ManyToMany,
+  JoinTable,
 } from 'typeorm';
 
 @Entity('fichas')
@@ -14,7 +15,18 @@ export class Ficha {
   @Column({ name: 'ficha_numero', type: 'integer', unique: true })
   numero: number;
 
-  @ManyToMany(() => Usuario, (usuario) => usuario.fichas)
-  usuarios: Usuario[];
+  @ManyToMany(() => Roles, (rol) => rol.fichas)
+  @JoinTable({
+    name: 'roles_ficha',
+    joinColumn: {
+      name: 'ficha_id',
+      referencedColumnName: 'id',
+    },
+    inverseJoinColumn: {
+      name: 'rol_id',
+      referencedColumnName: 'id',
+    },
+  })
+  roles: Roles[];
 }
 
