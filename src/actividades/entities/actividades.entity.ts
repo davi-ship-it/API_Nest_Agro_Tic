@@ -1,12 +1,13 @@
-// File: src/entities/actividades/actividades.entity.ts
+// File: src/actividades/entities/actividades.entity.ts
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { CultivosVariedadXZona } from '../../cultivos_variedad_x_zona/entities/cultivos_variedad_x_zona.entity';
 import { InventarioXActividad } from '../../inventario_x_actividades/entities/inventario_x_actividades.entity';
 import { UsuarioXActividad } from '../../usuarios_x_actividades/entities/usuarios_x_actividades.entity';
+import { Ficha } from '../../fichas/entities/ficha.entity'; // ✅ import Ficha
 
 @Entity('actividades')
 export class Actividad {
-  @PrimaryGeneratedColumn( 'uuid', { name: 'pk_id_actividad' })
+  @PrimaryGeneratedColumn('uuid', { name: 'pk_id_actividad' })
   id: string;
 
   @Column({ name: 'act_nombre', type: 'varchar', length: 255 })
@@ -39,5 +40,10 @@ export class Actividad {
 
   @OneToMany(() => UsuarioXActividad, (uxa) => uxa.actividad)
   usuariosAsignados?: UsuarioXActividad[];
+
+  // ✅ Nueva relación: muchas actividades pertenecen a una ficha
+  @ManyToOne(() => Ficha, (ficha) => ficha.actividades, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'fk_id_ficha' })
+  ficha: Ficha;
 }
 
