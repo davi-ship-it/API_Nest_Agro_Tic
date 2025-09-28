@@ -121,7 +121,7 @@ export class UsuariosService {
   async findMe(userId: string): Promise<Omit<Usuario, 'passwordHash'>> {
     const user = await this.usuarioRepository.findOne({
       where: { id: userId },
-      relations: ['rol'],
+      relations: ['rol', 'rol.permisos', 'rol.permisos.recurso', 'rol.permisos.recurso.modulo'],
     });
 
     if (!user) {
