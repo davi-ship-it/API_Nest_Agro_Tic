@@ -1,26 +1,48 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Ficha } from './entities/ficha.entity';
 import { CreateFichaDto } from './dto/create-ficha.dto';
 import { UpdateFichaDto } from './dto/update-ficha.dto';
 
 @Injectable()
 export class FichasService {
-  create(createFichaDto: CreateFichaDto) {
-    return 'This action adds a new ficha';
+  constructor(
+    @InjectRepository(Ficha)
+    private readonly fichasRepo: Repository<Ficha>,
+  ) {}
+
+  async create(dto: CreateFichaDto) {
+    const ficha = this.fichasRepo.create({
+      ...dto,
+      cultivo: { id: dto.cultivoId },
+    });
+    return this.fichasRepo.save(ficha);
   }
 
   findAll() {
-    return `This action returns all fichas`;
+    return this.fichasRepo.find({
+      relations: ['cultivo', 'actividades', 'recursos'],
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} ficha`;
+  findOne(id: string) {
+    return this.fichasRepo.findOne({
+      where: { id },
+      relations: ['cultivo', 'actividades', 'recursos'],
+    });
   }
 
-  update(id: number, updateFichaDto: UpdateFichaDto) {
-    return `This action updates a #${id} ficha`;
+  async update(id: string, dto: UpdateFichaDto) {
+    await this.fichasRepo.update(id, dto);
+    return this.findOne(id);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} ficha`;
+  async remove(id: string) {
+  const ficha = await this.findOne(id);
+  if (!ficha) {
+    throw new Error(`Ficha con id ${id} no encontrada`);
+  }
+  return this.fichasRepo.remove(ficha);
   }
 }

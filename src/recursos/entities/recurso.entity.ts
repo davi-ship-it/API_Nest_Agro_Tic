@@ -1,3 +1,4 @@
+// File: src/recursos/entities/recurso.entity.ts
 import { Permiso } from '../../permisos/entities/permiso.entity';
 import {
   Entity,
@@ -5,10 +6,11 @@ import {
   Column,
   OneToMany,
   Unique,
-  ManyToOne, // <-- Importa ManyToOne
-  JoinColumn, // <-- Importa JoinColumn
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
-import { Modulo } from '../../modulos/entities/modulo.entity'; // <-- Importa la nueva entidad
+import { Modulo } from '../../modulos/entities/modulo.entity';
+import { Ficha } from '../../fichas/entities/ficha.entity'; // ✅ import Ficha
 
 @Entity('recursos')
 @Unique(['nombre'])
@@ -26,11 +28,15 @@ export class Recurso {
   @OneToMany(() => Permiso, (permiso) => permiso.recurso)
   permisos: Permiso[];
 
-  // ✅ NUEVA RELACIÓN: Muchos Recursos pertenecen a UN Módulo.
   @ManyToOne(() => Modulo, (modulo) => modulo.recursos, {
-    nullable: false, // Hacemos que un recurso DEBA tener un módulo.
-    onDelete: 'CASCADE', // Si se borra un módulo, se borran sus recursos.
+    nullable: false,
+    onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'fk_id_modulo' }) // Nombre de la nueva columna de llave foránea.
+  @JoinColumn({ name: 'fk_id_modulo' })
   modulo: Modulo;
+
+  // ✅ Nueva relación: muchos recursos pertenecen a una ficha
+  @ManyToOne(() => Ficha, (ficha) => ficha.recursos, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'fk_id_ficha' })
+  ficha: Ficha;
 }

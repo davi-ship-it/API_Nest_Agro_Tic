@@ -19,16 +19,16 @@ export class FichasController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.fichasService.findOne(+id);
+    return this.fichasService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateFichaDto: UpdateFichaDto) {
-    return this.fichasService.update(+id, updateFichaDto);
+    return this.fichasService.update(id, updateFichaDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.fichasService.remove(+id);
+    return this.fichasService.remove(id);
   }
 }
