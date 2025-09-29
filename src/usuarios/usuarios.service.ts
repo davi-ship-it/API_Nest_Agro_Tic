@@ -121,7 +121,7 @@ export class UsuariosService {
   async findMe(userId: string): Promise<Omit<Usuario, 'passwordHash'>> {
     const user = await this.usuarioRepository.findOne({
       where: { id: userId },
-      relations: ['rol', 'rol.permisos', 'rol.permisos.recurso', 'rol.permisos.recurso.modulo'],
+      relations: ['rol', 'rol.permisos', 'rol.permisos.recurso', 'rol.permisos.recurso.modulo', 'ficha'],
     });
 
     if (!user) {
@@ -129,6 +129,7 @@ export class UsuariosService {
     }
 
     const { passwordHash, ...result } = user;
+
     return result;
   }
 
@@ -145,5 +146,26 @@ export class UsuariosService {
     const updatedUser = await this.usuarioRepository.save(user);
     const { passwordHash, ...result } = updatedUser;
     return result;
+  }
+
+  async findByDni(dni: number) {
+    const user = await this.usuarioRepository.findOne({
+      where: { dni },
+      relations: ['ficha', 'rol'],
+    });
+
+    if (!user) {
+      throw new NotFoundException(`Usuario con DNI "${dni}" no encontrado.`);
+    }
+
+    return {
+      numero_documento: user.dni,
+      nombres: user.nombres,
+      apellidos: user.apellidos,
+      correo_electronico: user.correo,
+      telefono: user.telefono,
+      id_ficha: user.ficha?.id || 'No tiene ficha',
+      rol: user.rol?.nombre,
+    };
   }
 }

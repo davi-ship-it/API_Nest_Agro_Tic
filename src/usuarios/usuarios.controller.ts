@@ -66,4 +66,8 @@ export class UsuariosController {
   remove(@Param('id') id: string) {
     return this.usuariosService.remove(+id);
   }
+@Get('search/dni/:dni')
+findByDni(@Param('dni') dni: string) {
+  return this.usuariosService.findByDni(+dni);
+}
 }

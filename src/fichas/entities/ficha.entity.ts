@@ -1,32 +1,20 @@
-import { Roles } from '../../roles/entities/role.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  ManyToMany,
-  JoinTable,
+  OneToMany,
 } from 'typeorm';
+import { Usuario } from '../../usuarios/entities/usuario.entity';
 
 @Entity('fichas')
 export class Ficha {
   @PrimaryGeneratedColumn('uuid', { name: 'pk_id_ficha' })
   id: string;
 
-  @Column({ name: 'ficha_numero', type: 'integer', unique: true })
+  @Column({ name: 'ficha_numero', type: 'bigint', unique: true })
   numero: number;
 
-  @ManyToMany(() => Roles, (rol) => rol.fichas)
-  @JoinTable({
-    name: 'roles_ficha',
-    joinColumn: {
-      name: 'ficha_id',
-      referencedColumnName: 'id',
-    },
-    inverseJoinColumn: {
-      name: 'rol_id',
-      referencedColumnName: 'id',
-    },
-  })
-  roles: Roles[];
+  @OneToMany(() => Usuario, (usuario) => usuario.ficha)
+  usuarios?: Usuario[];
 }
 
