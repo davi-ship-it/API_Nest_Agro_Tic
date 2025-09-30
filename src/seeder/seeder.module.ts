@@ -7,6 +7,7 @@ import { Roles } from 'src/roles/entities/role.entity';
 import { Usuario } from 'src/usuarios/entities/usuario.entity';
 import { Permiso } from 'src/permisos/entities/permiso.entity';
 import { TipoUnidad } from 'src/tipo_unidad/entities/tipo_unidad.entity';
+import { Ficha } from 'src/fichas/entities/ficha.entity';
 
 @Module({
   imports: [
@@ -16,7 +17,7 @@ import { TipoUnidad } from 'src/tipo_unidad/entities/tipo_unidad.entity';
     // Al importar AppModule, ya tenemos acceso a los módulos de Usuarios y Permisos
     // y a sus providers exportados.
     // TypeOrmModule.forFeature es necesario aquí para que SeederService pueda inyectar los repositorios correspondientes.
-    TypeOrmModule.forFeature([Roles, Usuario, Permiso, TipoUnidad]),
+    TypeOrmModule.forFeature([Roles, Usuario, Permiso, TipoUnidad, Ficha]),
   ],
   providers: [SeederService, Logger],
 })

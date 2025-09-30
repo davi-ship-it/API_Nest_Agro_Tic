@@ -15,12 +15,28 @@ import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { Permisos } from 'src/permisos/decorators/permisos.decorator';
+import { UpdateMeDto } from './dto/update-me.dto';
+import { Request } from 'express';
 
-@UseGuards(AuthenticationGuard, AuthorizationGuard)
-@Controller('Usuarios/PanelControl')
+@Controller('usuarios')
 export class UsuariosController {
   constructor(private readonly usuariosService: UsuariosService) {}
 
+  @UseGuards(AuthenticationGuard, AuthorizationGuard)
+  @Get('me')
+  findMe(@Req() req: Request) {
+    const userId = req['userId'];
+    return this.usuariosService.findMe(userId);
+  }
+
+  @UseGuards(AuthenticationGuard, AuthorizationGuard)
+  @Patch('me')
+  updateMe(@Req() req: Request, @Body() updateMeDto: UpdateMeDto) {
+    const userId = req['userId'];
+    return this.usuariosService.updateMe(userId, updateMeDto);
+  }
+
+  @UseGuards(AuthenticationGuard, AuthorizationGuard)
   @Permisos({
     recurso: 'usuarios',
     acciones: ['crear'],
@@ -50,4 +66,8 @@ export class UsuariosController {
   remove(@Param('id') id: string) {
     return this.usuariosService.remove(+id);
   }
+@Get('search/dni/:dni')
+findByDni(@Param('dni') dni: string) {
+  return this.usuariosService.findByDni(+dni);
+}
 }

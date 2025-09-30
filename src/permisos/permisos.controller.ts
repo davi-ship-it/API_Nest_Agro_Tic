@@ -17,7 +17,6 @@ export class PermisosController {
   "recurso": "productos",
   "acciones": ["leer", "crear", "actualizar", "eliminar"]
 }*/
-  @Permisos({ recurso: 'acceso_usuarios', acciones: ['ver'], moduloNombre: 'Usuarios' })
   @Post('sincronizar')
   create(@Body(new ValidationPipe()) createPermisoDto: CreatePermisoDto) {
     return this.permisosService.sincronizarPermisos(createPermisoDto);

@@ -39,6 +39,7 @@ import { ModulosModule } from './modulos/modulos.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { FichasModule } from './fichas/fichas.module';
 
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -147,6 +148,7 @@ import { FichasModule } from './fichas/fichas.module';
     RecursosModule,
     ModulosModule,
     FichasModule,
+    
   ],
   controllers: [AppController],
   providers: [AppService],

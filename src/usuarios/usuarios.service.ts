@@ -13,6 +13,7 @@ import { Usuario } from './entities/usuario.entity';
 import { Roles } from '../roles/entities/role.entity';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
+import { UpdateMeDto } from './dto/update-me.dto';
 
 // Interfaz para tipar el payload del usuario que viene del token JWT
 interface RequestingUser {
@@ -115,5 +116,56 @@ export class UsuariosService {
 
   remove(id: number) {
     return `This action removes a #${id} usuario`;
+  }
+
+  async findMe(userId: string): Promise<Omit<Usuario, 'passwordHash'>> {
+    const user = await this.usuarioRepository.findOne({
+      where: { id: userId },
+      relations: ['rol', 'rol.permisos', 'rol.permisos.recurso', 'rol.permisos.recurso.modulo', 'ficha'],
+    });
+
+    if (!user) {
+      throw new NotFoundException(`Usuario con ID "${userId}" no encontrado.`);
+    }
+
+    const { passwordHash, ...result } = user;
+
+    return result;
+  }
+
+  async updateMe(userId: string, updateProfileDto: UpdateMeDto): Promise<Omit<Usuario, 'passwordHash'>> {
+    const user = await this.usuarioRepository.preload({
+      id: userId,
+      ...updateProfileDto,
+    });
+
+    if (!user) {
+      throw new NotFoundException(`Usuario con ID "${userId}" no encontrado.`);
+    }
+
+    const updatedUser = await this.usuarioRepository.save(user);
+    const { passwordHash, ...result } = updatedUser;
+    return result;
+  }
+
+  async findByDni(dni: number) {
+    const user = await this.usuarioRepository.findOne({
+      where: { dni },
+      relations: ['ficha', 'rol'],
+    });
+
+    if (!user) {
+      throw new NotFoundException(`Usuario con DNI "${dni}" no encontrado.`);
+    }
+
+    return {
+      numero_documento: user.dni,
+      nombres: user.nombres,
+      apellidos: user.apellidos,
+      correo_electronico: user.correo,
+      telefono: user.telefono,
+      id_ficha: user.ficha?.id || 'No tiene ficha',
+      rol: user.rol?.nombre,
+    };
   }
 }

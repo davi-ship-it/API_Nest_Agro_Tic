@@ -55,6 +55,8 @@ export class RolesService {
     // 1. Busca el rol usando findOne para asegurarnos de que tenemos los permisos actuales.
     const rol = await this.findOne(roleId);
 
+    console.log('Rol encontrado:', rol);
+
     // 2. Busca el permiso que se va a asignar.
     const permiso = await this.permisosRepository.findOneBy({ id: permisoId });
     if (!permiso) {

@@ -128,7 +128,7 @@ export class AuthService {
       sub: usuario.id,
       email: usuario.correo,
       rol: usuario.rol?.nombre,
-      permisos, // ✅ CAMBIO: Añadir los permisos al payload del token.
+      // permisos removed to reduce token size for cookies
     };
 
     const [accessToken, refreshToken] = await Promise.all([

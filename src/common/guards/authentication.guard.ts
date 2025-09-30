@@ -19,7 +19,7 @@ export class AuthenticationGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);
 
-    console.log('Extracted Token:', token); // Debugging line
+    console.log('Final Extracted Token:', token); // Debugging line
 
     if (!token) {
       throw new UnauthorizedException('Invalid token');
@@ -38,6 +38,17 @@ export class AuthenticationGuard implements CanActivate {
   }
 
   private extractTokenFromHeader(request: Request): string | undefined {
-    return request.headers.authorization?.split(' ')[1];
+  // First try header
+  let token = request.headers.authorization?.split(' ')[1];
+  console.log('Token from header:', token);
+
+  // If no header, try cookie
+  if (!token) {
+    token = request.cookies?.access_token; // Assuming cookie-parser middleware
+    console.log('Token from cookie:', token);
   }
+
+  return token;
+}
+
 }

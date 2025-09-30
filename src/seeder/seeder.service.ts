@@ -12,6 +12,7 @@ import { UsuariosService } from '../usuarios/usuarios.service';
 import { TipoUnidadService } from '../tipo_unidad/tipo_unidad.service';
 import { BodegaService } from '../bodega/bodega.service';
 import { CategoriaService } from '../categoria/categoria.service';
+import { Ficha } from '../fichas/entities/ficha.entity';
 
 // Acciones comunes para reutilizar y mantener consistencia
 const ACCIONES_CRUD = ['leer', 'crear', 'actualizar', 'eliminar'];
@@ -99,6 +100,8 @@ export class SeederService {
     private readonly usuarioRepository: Repository<Usuario>,
     @InjectRepository(Permiso)
     private readonly permisoRepository: Repository<Permiso>,
+    @InjectRepository(Ficha)
+    private readonly fichaRepository: Repository<Ficha>,
   ) {}
 
   async seed() {
@@ -115,7 +118,7 @@ export class SeederService {
 
     // 2. Crear roles y definir sus jerarquías y permisos
     const rolAdmin = await this.seedRolAdmin();
-    const { rolInstructor } = await this.seedRolesAdicionales();
+    const { rolInstructor, rolAprendiz } = await this.seedRolesAdicionales();
 
     // 3. Crear el Usuario Administrador
     if (rolAdmin) {
@@ -136,6 +139,19 @@ export class SeederService {
         'Seeder',
       );
     }
+
+    // 5. Crear el Usuario Aprendiz
+    if (rolAprendiz) {
+      await this.seedUsuarioAprendiz(rolAprendiz);
+    } else {
+      this.logger.warn(
+        'No se pudo crear el usuario aprendiz porque el rol no fue encontrado.',
+        'Seeder',
+      );
+    }
+
+    // 6. Crear ficha de muestra y linkear con APRENDIZ
+    await this.seedFichaAprendiz();
 
     this.logger.log('Seeding completado exitosamente.', 'Seeder');
   }
@@ -203,7 +219,7 @@ export class SeederService {
     }
   }
 
-  private async seedRolesAdicionales(): Promise<{ rolInstructor: Rol | null }> {
+  private async seedRolesAdicionales(): Promise<{ rolInstructor: Rol | null, rolAprendiz: Rol | null }> {
     this.logger.log(
       'Creando roles adicionales y definiendo jerarquías...',
       'Seeder',
@@ -255,13 +271,13 @@ export class SeederService {
         );
       }
 
-      return { rolInstructor };
+      return { rolInstructor, rolAprendiz };
     } catch (error) {
       this.logger.error(
         `Error creando roles adicionales: ${error.message}`,
         'Seeder',
       );
-      return { rolInstructor: null };
+      return { rolInstructor: null, rolAprendiz: null };
     }
   }
 
@@ -451,6 +467,75 @@ export class SeederService {
         `Error creando el usuario instructor: ${error.message}`,
         'Seeder',
       );
+    }
+  }
+
+  private async seedUsuarioAprendiz(rolAprendiz: Rol) {
+    const dniAprendiz = 111111111;
+    try {
+      const existeUsuario = await this.usuarioRepository.findOne({
+        where: { dni: dniAprendiz },
+      });
+
+      if (!existeUsuario) {
+        this.logger.log('Creando el usuario aprendiz...', 'Seeder');
+
+        await this.usuariosService.createUserByPanel({
+          nombres: 'Aprendiz',
+          apellidos: 'de Prueba',
+          dni: dniAprendiz,
+          correo: 'aprendiz@example.com',
+          password: 'aprendiz123',
+          telefono: 3007654321,
+          rolId: rolAprendiz.id,
+        });
+
+        this.logger.log('Usuario aprendiz creado.', 'Seeder');
+        this.logger.warn(
+          `Usuario: ${dniAprendiz}, Contraseña: aprendiz123`,
+          'Seeder',
+        );
+      }
+    } catch (error) {
+      this.logger.error(
+        `Error creando el usuario aprendiz: ${error.message}`,
+        'Seeder',
+      );
+    }
+  }
+
+  private async seedFichaAprendiz() {
+    this.logger.log('Creando ficha de muestra y asignándola al APRENDIZ...', 'Seeder');
+    try {
+      // Check if ficha exists
+      let ficha = await this.fichaRepository.findOne({ where: { numero: 2925484 } });
+      if (!ficha) {
+        ficha = this.fichaRepository.create({ numero: 2925484 });
+        await this.fichaRepository.save(ficha);
+        this.logger.log('Ficha 2925484 creada.', 'Seeder');
+      } else {
+        this.logger.log('Ficha 2925484 ya existe.', 'Seeder');
+      }
+
+      // Assign ficha to APRENDIZ user
+      const dniAprendiz = 111111111;
+      const aprendiz = await this.usuarioRepository.findOne({
+        where: { dni: dniAprendiz },
+        relations: ['ficha'],
+      });
+      if (aprendiz) {
+        if (!aprendiz.ficha) {
+          aprendiz.ficha = ficha;
+          await this.usuarioRepository.save(aprendiz);
+          this.logger.log('Ficha asignada al usuario APRENDIZ.', 'Seeder');
+        } else {
+          this.logger.log('El usuario APRENDIZ ya tiene una ficha asignada.', 'Seeder');
+        }
+      } else {
+        this.logger.warn('Usuario APRENDIZ no encontrado para asignar ficha.', 'Seeder');
+      }
+    } catch (error) {
+      this.logger.error(`Error creando o asignando ficha: ${error.message}`, 'Seeder');
     }
   }
 }
