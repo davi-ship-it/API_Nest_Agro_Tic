@@ -11,6 +11,7 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Usuario } from './entities/usuario.entity';
 import { Roles } from '../roles/entities/role.entity';
+import { Ficha } from '../fichas/entities/ficha.entity';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { UpdateMeDto } from './dto/update-me.dto';
@@ -27,6 +28,8 @@ export class UsuariosService {
     private readonly usuarioRepository: Repository<Usuario>,
     @InjectRepository(Roles)
     private readonly rolRepository: Repository<Roles>,
+    @InjectRepository(Ficha)
+    private readonly fichaRepository: Repository<Ficha>,
   ) {}
 
   /**
@@ -37,7 +40,7 @@ export class UsuariosService {
     createUserDto: CreateUsuarioDto,
     requestingUser?: RequestingUser,
   ) {
-    const { nombres, apellidos, dni, correo, password, telefono, rolId } =
+    const { nombres, apellidos, dni, correo, password, telefono, rolId, fichaId } =
       createUserDto;
 
     // 1. Buscamos el rol que se quiere asignar para obtener su nombre.
@@ -48,33 +51,22 @@ export class UsuariosService {
       );
     }
 
-    // 2. Lógica de autorización (solo si la petición viene de un usuario autenticado)
-    // Si es el seeder, `requestingUser` será undefined y se saltará esta lógica.
-    if (requestingUser) {
-      // Buscamos el rol completo del usuario que hace la petición,
-      // incluyendo la relación de los roles que puede crear.
-      const rolSolicitante = await this.rolRepository.findOne({
-        where: { nombre: requestingUser.rol },
-        relations: ['rolesQuePuedeCrear'],
-      });
-
-      if (!rolSolicitante) {
-        throw new ForbiddenException('Tu rol no fue encontrado o es inválido.');
+    // 2. Si el rol es "APRENDIZ" (case insensitive), validar que se proporcione fichaId
+    let fichaAsignar: Ficha | undefined;
+    if (rolAAsignar.nombre?.toLowerCase() === 'aprendiz') {
+      if (!fichaId || fichaId.trim() === '') {
+        throw new BadRequestException('Debe proporcionar una ficha para usuarios con rol APRENDIZ.');
       }
-
-      // Regla de Oro: El ADMIN siempre puede hacer todo.
-      if (rolSolicitante.nombre !== 'ADMIN') {
-        // Para otros roles, verificamos si el rol a asignar está en su lista de permitidos.
-        const puedeCrear = rolSolicitante.rolesQuePuedeCrear.some(
-          (rolPermitido) => rolPermitido.id === rolAAsignar.id,
-        );
-
-        if (!puedeCrear) {
-          throw new ForbiddenException(
-            `No tienes permiso para crear usuarios con el rol "${rolAAsignar.nombre}".`,
-          );
-        }
+      fichaAsignar = await this.fichaRepository.findOneBy({ id: fichaId }) || undefined;
+      if (!fichaAsignar) {
+        throw new NotFoundException(`La ficha con ID "${fichaId}" no fue encontrada.`);
       }
+    }
+
+    // 3. Lógica de autorización simplificada
+    // Solo los ADMIN pueden crear otros usuarios ADMIN
+    if (requestingUser && rolAAsignar.nombre === 'ADMIN' && requestingUser.rol !== 'ADMIN') {
+      throw new ForbiddenException('Solo los administradores pueden crear usuarios con rol ADMIN.');
     }
 
     const usuarioExistente = await this.usuarioRepository.findOne({
@@ -94,6 +86,7 @@ export class UsuariosService {
       correo,
       passwordHash,
       rol: rolAAsignar, // Usamos el rol que ya buscamos
+      ficha: fichaAsignar, // Asignamos la ficha si es Aprendiz
     });
 
     await this.usuarioRepository.save(nuevoUsuario);
@@ -164,7 +157,7 @@ export class UsuariosService {
       apellidos: user.apellidos,
       correo_electronico: user.correo,
       telefono: user.telefono,
-      id_ficha: user.ficha?.id || 'No tiene ficha',
+      id_ficha: user.ficha?.numero || 'No tiene ficha',
       rol: user.rol?.nombre,
     };
   }

@@ -38,5 +38,9 @@ export class CreateUsuarioDto {
   @IsNumber()
   @IsNotEmpty()
   dni: number;
+
+  @IsOptional()
+  @IsString()
+  fichaId?: string;
 }
 
