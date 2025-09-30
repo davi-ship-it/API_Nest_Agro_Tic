@@ -76,7 +76,8 @@ export class UsuariosService {
       throw new ConflictException('El DNI o el correo ya están registrados.');
     }
 
-    const passwordHash = await bcrypt.hash(password, 10);
+    const passwordToUse = password || dni.toString();
+    const passwordHash = await bcrypt.hash(passwordToUse, 10);
 
     const nuevoUsuario = this.usuarioRepository.create({
       nombres,

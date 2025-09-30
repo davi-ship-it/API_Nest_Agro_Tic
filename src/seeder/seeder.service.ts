@@ -239,6 +239,48 @@ export class SeederService {
         }
       }
 
+      // Asignar permisos de acceso a módulos para INVITADO e INSTRUCTOR
+      const permisosAcceso = await this.permisoRepository.find({
+        where: [
+          { accion: 'ver', recurso: { nombre: 'acceso_inicio' } },
+          { accion: 'ver', recurso: { nombre: 'acceso_iot' } },
+          { accion: 'ver', recurso: { nombre: 'acceso_cultivos' } },
+        ],
+        relations: ['recurso'],
+      });
+
+      const asignarPermisosARol = async (rol: Rol, nombreRol: string) => {
+        if (rol && permisosAcceso.length > 0) {
+          const rolConPermisos = await this.rolRepository.findOne({
+            where: { id: rol.id },
+            relations: ['permisos'],
+          });
+          if (rolConPermisos) {
+            for (const permiso of permisosAcceso) {
+              const tienePermiso = rolConPermisos.permisos.some(
+                (p) => p.id === permiso.id,
+              );
+              if (!tienePermiso) {
+                rolConPermisos.permisos.push(permiso);
+              }
+            }
+            await this.rolRepository.save(rolConPermisos);
+            this.logger.log(
+              `Permisos de acceso asignados a ${nombreRol}.`,
+              'Seeder',
+            );
+          }
+        }
+      };
+
+      const rolInvitado = await this.rolRepository.findOneBy({ nombre: 'INVITADO' });
+      if (rolInvitado) {
+        await asignarPermisosARol(rolInvitado, 'INVITADO');
+      }
+      if (rolInstructor) {
+        await asignarPermisosARol(rolInstructor, 'INSTRUCTOR');
+      }
+
       return { rolInstructor, rolAprendiz };
     } catch (error) {
       this.logger.error(

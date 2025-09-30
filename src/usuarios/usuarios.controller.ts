@@ -22,8 +22,8 @@ import { Request } from 'express';
 export class UsuariosController {
   constructor(private readonly usuariosService: UsuariosService) {}
 
-  @UseGuards(AuthenticationGuard, AuthorizationGuard)
- 
+  @UseGuards(AuthenticationGuard)
+
   @Get('me')
   findMe(@Req() req: Request) {
     const userId = req['userId'];
