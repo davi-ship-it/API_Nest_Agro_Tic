@@ -26,9 +26,9 @@
     "seed": "npm run build && npm run seed:prod",
 
 
-    "docker:g": "docker-compose exec -it app npm run migration:generate",
-    "docker:r": "docker-compose exec -it app npm run migration:run",
-    "docker:seed": "docker-compose exec -it app npm run seed:dev",
+    "docker:g": "docker-compose run --rm app npm run migration:generate",
+    "docker:r": "docker-compose run --rm app npm run migration:run",
+    "docker:seed": "docker-compose run --rm app npm run seed:dev",
     
     "seed:dev": "ts-node -r tsconfig-paths/register src/seeder/seeder.ts",
     "seed:watch": "ts-node-dev -r tsconfig-paths/register --respawn src/seeder/seeder.ts",
