@@ -7,7 +7,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { UsuarioXActividad } from '../../usuarios_x_actividades/entities/usuarios_x_actividades.entity';
-import { Roles } from 'src/roles/entities/role.entity';
+import { Roles } from '../../roles/entities/role.entity';
 import { Ficha } from '../../fichas/entities/ficha.entity';
 
 @Entity('usuarios')

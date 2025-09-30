@@ -24,14 +24,9 @@ const PERMISOS_BASE = [
   { moduloNombre: 'Inicio', recurso: 'acceso_inicio', acciones: ACCION_VER },
   { moduloNombre: 'Inicio', recurso: 'dashboard', acciones: ['leer'] },
 
-  // Módulo de Usuarios y Roles
-  {
-    moduloNombre: 'Usuarios',
-    recurso: 'acceso_usuarios',
-    acciones: ACCION_VER,
-  },
   { moduloNombre: 'Usuarios', recurso: 'usuarios', acciones: ACCIONES_CRUD },
   { moduloNombre: 'Usuarios', recurso: 'roles', acciones: ACCIONES_CRUD },
+  { moduloNombre: 'Usuarios', recurso: 'panel de control', acciones: ['ver'] },
 
   // Módulo de IOT
   { moduloNombre: 'IOT', recurso: 'acceso_iot', acciones: ACCION_VER },
@@ -49,22 +44,6 @@ const PERMISOS_BASE = [
   { moduloNombre: 'Cultivos', recurso: 'cultivos', acciones: ACCIONES_CRUD },
   { moduloNombre: 'Cultivos', recurso: 'lotes', acciones: ACCIONES_CRUD },
 
-  // Módulo Fitosanitario
-  {
-    moduloNombre: 'Fitosanitario',
-    recurso: 'acceso_fitosanitario',
-    acciones: ACCION_VER,
-  },
-  {
-    moduloNombre: 'Fitosanitario',
-    recurso: 'productos_fitosanitarios',
-    acciones: ACCIONES_CRUD,
-  },
-  {
-    moduloNombre: 'Fitosanitario',
-    recurso: 'aplicaciones',
-    acciones: ACCIONES_CRUD,
-  },
 
   // Módulo de Inventario
   {
@@ -116,11 +95,11 @@ export class SeederService {
     // 3. Crear bodegas y categorías base
     await this.seedBodegasYCategorias();
 
-    // 2. Crear roles y definir sus jerarquías y permisos
+    // 4. Crear roles
     const rolAdmin = await this.seedRolAdmin();
     const { rolInstructor, rolAprendiz } = await this.seedRolesAdicionales();
 
-    // 3. Crear el Usuario Administrador
+    // 6. Crear el Usuario Administrador
     if (rolAdmin) {
       await this.seedUsuarioAdmin(rolAdmin);
     } else {
@@ -130,7 +109,7 @@ export class SeederService {
       );
     }
 
-    // 4. Crear el Usuario Instructor
+    // 7. Crear el Usuario Instructor
     if (rolInstructor) {
       await this.seedUsuarioInstructor(rolInstructor);
     } else {
@@ -140,7 +119,7 @@ export class SeederService {
       );
     }
 
-    // 5. Crear el Usuario Aprendiz
+    // 8. Crear el Usuario Aprendiz
     if (rolAprendiz) {
       await this.seedUsuarioAprendiz(rolAprendiz);
     } else {
@@ -150,7 +129,7 @@ export class SeederService {
       );
     }
 
-    // 6. Crear ficha de muestra y linkear con APRENDIZ
+    // 9. Crear ficha de muestra y linkear con APRENDIZ
     await this.seedFichaAprendiz();
 
     this.logger.log('Seeding completado exitosamente.', 'Seeder');
@@ -194,10 +173,7 @@ export class SeederService {
         });
         await this.rolRepository.save(rol);
 
-        // Asignamos el permiso para que el rol ADMIN pueda crear a otros ADMINs.
-        // Esto es crucial para la lógica de jerarquía.
-        rol.rolesQuePuedeCrear = [rol];
-        await this.rolRepository.save(rol); // Guardamos la relación
+        // No se configura jerarquía compleja, solo validación simple en el servicio
 
         this.logger.log(
           `Rol "${nombreRol}" creado con ${todosLosPermisos.length} permisos.`,
@@ -221,15 +197,17 @@ export class SeederService {
 
   private async seedRolesAdicionales(): Promise<{ rolInstructor: Rol | null, rolAprendiz: Rol | null }> {
     this.logger.log(
-      'Creando roles adicionales y definiendo jerarquías...',
+      'Creando roles adicionales...',
       'Seeder',
     );
     try {
       // Crear roles base si no existen
       let rolInstructor = await this.crearRolSiNoExiste('INSTRUCTOR');
       const rolAprendiz = await this.crearRolSiNoExiste('APRENDIZ');
-      const rolPasante = await this.crearRolSiNoExiste('PASANTE');
-      const rolInvitado = await this.crearRolSiNoExiste('INVITADO');
+
+      // Crear otros roles sin permisos especiales
+      await this.crearRolSiNoExiste('PASANTE');
+      await this.crearRolSiNoExiste('INVITADO');
 
       // Asignar permisos específicos al INSTRUCTOR
       const permisoCrearUsuarios = await this.permisoRepository.findOne({
@@ -261,14 +239,46 @@ export class SeederService {
         }
       }
 
-      // Definir la jerarquía de creación para el INSTRUCTOR
-      if (rolInstructor && rolAprendiz && rolPasante) {
-        rolInstructor.rolesQuePuedeCrear = [rolAprendiz, rolPasante];
-        await this.rolRepository.save(rolInstructor);
-        this.logger.log(
-          `Jerarquía para INSTRUCTOR definida. Puede crear: APRENDIZ, PASANTE.`,
-          'Seeder',
-        );
+      // Asignar permisos de acceso a módulos para INVITADO e INSTRUCTOR
+      const permisosAcceso = await this.permisoRepository.find({
+        where: [
+          { accion: 'ver', recurso: { nombre: 'acceso_inicio' } },
+          { accion: 'ver', recurso: { nombre: 'acceso_iot' } },
+          { accion: 'ver', recurso: { nombre: 'acceso_cultivos' } },
+        ],
+        relations: ['recurso'],
+      });
+
+      const asignarPermisosARol = async (rol: Rol, nombreRol: string) => {
+        if (rol && permisosAcceso.length > 0) {
+          const rolConPermisos = await this.rolRepository.findOne({
+            where: { id: rol.id },
+            relations: ['permisos'],
+          });
+          if (rolConPermisos) {
+            for (const permiso of permisosAcceso) {
+              const tienePermiso = rolConPermisos.permisos.some(
+                (p) => p.id === permiso.id,
+              );
+              if (!tienePermiso) {
+                rolConPermisos.permisos.push(permiso);
+              }
+            }
+            await this.rolRepository.save(rolConPermisos);
+            this.logger.log(
+              `Permisos de acceso asignados a ${nombreRol}.`,
+              'Seeder',
+            );
+          }
+        }
+      };
+
+      const rolInvitado = await this.rolRepository.findOneBy({ nombre: 'INVITADO' });
+      if (rolInvitado) {
+        await asignarPermisosARol(rolInvitado, 'INVITADO');
+      }
+      if (rolInstructor) {
+        await asignarPermisosARol(rolInstructor, 'INSTRUCTOR');
       }
 
       return { rolInstructor, rolAprendiz };
@@ -280,6 +290,7 @@ export class SeederService {
       return { rolInstructor: null, rolAprendiz: null };
     }
   }
+
 
   private async crearRolSiNoExiste(nombre: string): Promise<Rol> {
     let rol = await this.rolRepository.findOneBy({ nombre });

@@ -19,9 +19,8 @@ export class CreateUsuarioDto {
   apellidos: string;
 
   @IsString()
-  @IsNotEmpty()
-  @Length(1, 255)
-  password: string;
+  @IsOptional()
+  password?: string;
 
   @IsNumber()
   telefono: number;
@@ -38,5 +37,9 @@ export class CreateUsuarioDto {
   @IsNumber()
   @IsNotEmpty()
   dni: number;
+
+  @IsOptional()
+  @IsString()
+  fichaId?: string;
 }
 
