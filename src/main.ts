@@ -1,15 +1,20 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import * as cors from 'cors';
 import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-app.use(cors({
-  origin: "http://localhost:5173",
-  credentials: true
-}));
+  const configService = app.get(ConfigService);
+
+  app.use(
+    cors({
+      origin: configService.get('FRONTEND_URL'),
+      credentials: true,
+    }),
+  );
   app.use(cookieParser());
   app.useGlobalPipes(
     new ValidationPipe({
@@ -21,6 +26,10 @@ app.use(cors({
       },
     }),
   );
-  await app.listen(process.env.PORT ?? 3000);
+
+  const port = configService.get<number>('PORT') ?? 3001;
+  await app.listen(port);
+
+  console.log(`Server is running on http://localhost:${port}`);
 }
 bootstrap();
