@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class InitialSchema1759255109635 implements MigrationInterface {
-    name = 'InitialSchema1759255109635'
+export class InitialSchema1759274078857 implements MigrationInterface {
+    name = 'InitialSchema1759274078857'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`CREATE TABLE "tipo_cultivo" ("pk_id_tipo_cultivo" uuid NOT NULL DEFAULT uuid_generate_v4(), "tpc_nombre" character varying(50) NOT NULL, CONSTRAINT "PK_587358c5f6b5c8b443435ab7e7a" PRIMARY KEY ("pk_id_tipo_cultivo"))`);
@@ -14,7 +14,7 @@ export class InitialSchema1759255109635 implements MigrationInterface {
         await queryRunner.query(`CREATE TABLE "tipo_unidad" ("pk_id_tipo_unidad" uuid NOT NULL DEFAULT uuid_generate_v4(), "tip_nombre" character varying(50) NOT NULL, "tip_simbolo" character varying(10) NOT NULL, CONSTRAINT "UQ_16771ce140b79d3834feb6db3fc" UNIQUE ("tip_simbolo"), CONSTRAINT "UQ_ce29936cd6da2573a84822b75fb" UNIQUE ("tip_nombre"), CONSTRAINT "PK_b77280e50b68f8b4ffa9b7ed5a1" PRIMARY KEY ("pk_id_tipo_unidad"))`);
         await queryRunner.query(`CREATE TABLE "categoria" ("pk_id_categoria" uuid NOT NULL DEFAULT uuid_generate_v4(), "cat_nombre" character varying(100) NOT NULL, "fk_id_tipo_unidad" uuid NOT NULL, CONSTRAINT "PK_95fc9372feb2e03fd9d0b78a19d" PRIMARY KEY ("pk_id_categoria"))`);
         await queryRunner.query(`CREATE TABLE "bodega" ("pk_id_bodega" uuid NOT NULL DEFAULT uuid_generate_v4(), "bod_numero" character varying(15) NOT NULL, "bod_nombre" character varying(100) NOT NULL, CONSTRAINT "PK_f1488a686bf47ab88f6e9b079a8" PRIMARY KEY ("pk_id_bodega"))`);
-        await queryRunner.query(`CREATE TABLE "inventario" ("pk_id_inventario" uuid NOT NULL DEFAULT uuid_generate_v4(), "inv_nombres" character varying(100) NOT NULL, "inv_descripcion" text, "inv_stock" integer NOT NULL, "inv_precio" numeric NOT NULL, "inv_capacidad_unidad" numeric(10,2), "ivn_fecha_vencimiento" date, "inv_img_url" character varying(255) NOT NULL, "fk_id_categoria" uuid, "fk_id_bodega" uuid, CONSTRAINT "PK_236e234c49a4424418cb00e6a14" PRIMARY KEY ("pk_id_inventario"))`);
+        await queryRunner.query(`CREATE TABLE "inventario" ("pk_id_inventario" uuid NOT NULL DEFAULT uuid_generate_v4(), "inv_nombres" character varying(100) NOT NULL, "inv_descripcion" text, "inv_stock" integer NOT NULL, "inv_precio" numeric NOT NULL, "inv_capacidad_unidad" numeric(10,2), "ivn_fecha_vencimiento" date, "inv_img_url" character varying(255), "fk_id_categoria" uuid, "fk_id_bodega" uuid, CONSTRAINT "PK_236e234c49a4424418cb00e6a14" PRIMARY KEY ("pk_id_inventario"))`);
         await queryRunner.query(`CREATE TABLE "inventario_x_actividades" ("pk_id_inventario_x_actividad" uuid NOT NULL DEFAULT uuid_generate_v4(), "fk_id_inventario" uuid, "fk_id_actividad" uuid, "ixa_cantidad_usada" numeric, CONSTRAINT "PK_b5606ec356c22d5fac558d9b8c5" PRIMARY KEY ("pk_id_inventario_x_actividad"))`);
         await queryRunner.query(`CREATE TABLE "modulos" ("pk_id_modulo" uuid NOT NULL DEFAULT uuid_generate_v4(), "modulo_nombre" character varying(100) NOT NULL, CONSTRAINT "UQ_923a92db6231b5b2f2f7e9e5da2" UNIQUE ("modulo_nombre"), CONSTRAINT "PK_8a063140bc741bfecd07b24ff37" PRIMARY KEY ("pk_id_modulo"))`);
         await queryRunner.query(`CREATE TABLE "recursos" ("pk_id_recurso" uuid NOT NULL DEFAULT uuid_generate_v4(), "recurso_nombre" character varying(100) NOT NULL, "fk_id_modulo" uuid NOT NULL, CONSTRAINT "UQ_b6b0becd16a7805a3abd2e8040f" UNIQUE ("recurso_nombre"), CONSTRAINT "PK_d7248e07fcefff849f1ed05b519" PRIMARY KEY ("pk_id_recurso"))`);

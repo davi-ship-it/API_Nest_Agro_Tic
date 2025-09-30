@@ -1,7 +1,7 @@
 
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Like } from 'typeorm';
 import { Inventario } from './entities/inventario.entity';
 import { CreateInventarioDto } from './dto/create-inventario.dto';
 import { Express } from 'express';
@@ -26,8 +26,27 @@ export class InventarioService {
     return await this.inventarioRepo.save(inventario);
   }
 
-  async findAll() {
-    return await this.inventarioRepo.find();
+  async findAll(page: number = 1, limit: number = 10) {
+    const skip = (page - 1) * limit;
+    const [items, total] = await this.inventarioRepo.findAndCount({
+      relations: ['categoria', 'bodega'],
+      skip,
+      take: limit,
+    });
+    return { items, total };
+  }
+
+  async search(query: string, page: number = 1, limit: number = 10) {
+    const skip = (page - 1) * limit;
+    const [items, total] = await this.inventarioRepo.findAndCount({
+      where: {
+        nombre: Like(`%${query}%`),
+      },
+      relations: ['categoria', 'bodega'],
+      skip,
+      take: limit,
+    });
+    return { items, total };
   }
 
   async findOne(id: string) {
