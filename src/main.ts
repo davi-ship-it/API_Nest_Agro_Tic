@@ -1,10 +1,21 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import * as cors from 'cors';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.enableCors();
+  const configService = app.get(ConfigService);
+
+  app.use(
+    cors({
+      origin: configService.get('FRONTEND_URL'),
+      credentials: true,
+    }),
+  );
+  app.use(cookieParser());
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true, // Elimina propiedades que no están en el DTO
@@ -15,6 +26,10 @@ async function bootstrap() {
       },
     }),
   );
-  await app.listen(process.env.PORT ?? 3000);
+
+  const port = configService.get<number>('PORT') ?? 3000
+  await app.listen(port);
+
+  console.log(`Server is running on http://localhost:${port}`);
 }
 bootstrap();

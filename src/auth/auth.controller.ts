@@ -1,16 +1,18 @@
 // src/auth/auth.controller.ts
-import { 
-    Controller, 
-    Post, 
-    Body, 
-    HttpCode, 
-    HttpStatus, 
-    Patch, 
+import {
+    Controller,
+    Post,
+    Body,
+    HttpCode,
+    HttpStatus,
+    Patch,
     Query,
     UseGuards, // Es buena práctica proteger endpoints sensibles
-    Req 
+    Req,
+    Res,
+    UnauthorizedException,
 } from '@nestjs/common';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { AuthGuard } from '@nestjs/passport'; // Asumiendo que usas JWT guard
 
 import { AuthService } from './auth.service';
@@ -32,26 +34,62 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  login(@Body() loginDto: LoginAuthDto) {
-    return this.authService.login(loginDto);
+  async login(@Body() loginDto: LoginAuthDto, @Res({ passthrough: true }) response: Response) {
+    const result = await this.authService.login(loginDto);
+    const accessMaxAge = 15 * 60 * 1000; // 15 min
+    const refreshMaxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
+    const isProduction = process.env.NODE_ENV === 'production';
+    console.log('Setting access_token cookie:', result.access_token ? 'present' : 'missing');
+    response.cookie('access_token', result.access_token, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? 'strict' : 'lax',
+      maxAge: accessMaxAge,
+    });
+    console.log('Setting refresh_token cookie:', result.refresh_token ? 'present' : 'missing');
+    response.cookie('refresh_token', result.refresh_token, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? 'strict' : 'lax',
+      maxAge: refreshMaxAge,
+    });
+    console.log('Login response sent');
+    return { message: result.message };
   }
-//la ruta para refrescar el token, le antecede "auth"
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  async refreshToken(@Body() refreshTokenDto: RefreshTokenDto) {
-    return this.authService.refreshToken(refreshTokenDto.refreshToken);
+  async refreshToken(@Req() req: Request, @Res({ passthrough: true }) response: Response) {
+    const refreshToken = req.cookies?.refresh_token;
+    console.log('Refresh token from cookie:', refreshToken ? 'present' : 'missing');
+    if (!refreshToken) {
+      throw new UnauthorizedException('No refresh token');
+    }
+    const result = await this.authService.refreshToken(refreshToken);
+    const accessMaxAge = 15 * 60 * 1000; // 15 min
+    const isProduction = process.env.NODE_ENV === 'production';
+    console.log('Setting new access_token cookie on refresh');
+    response.cookie('access_token', result.access_token, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? 'strict' : 'lax',
+      maxAge: accessMaxAge,
+    });
+    return { message: result.message };
   }
   
   // En una aplicación real, este endpoint debería estar protegido.
   // El ID del usuario se extrae del token JWT verificado, no del body.
 
 
-  @UseGuards(AuthGuard('jwt')) 
+  @UseGuards(AuthGuard('jwt'))
   @Post('logout')
   @HttpCode(HttpStatus.OK)
-  async logout(@Req() req: Request) { 
-    const user = req.user as { sub: string }; // Extrae el usuario del token
-    return this.authService.logout(user.sub);
+  async logout(@Req() req: Request, @Res({ passthrough: true }) response: Response) {
+    const user = req.user as { sub: string };
+    await this.authService.logout(user.sub);
+    response.clearCookie('access_token');
+    response.clearCookie('refresh_token');
+    return { message: 'Sesión cerrada exitosamente' };
   }
 
   /**

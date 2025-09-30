@@ -9,6 +9,7 @@ import {
   UploadedFile,
   UseInterceptors,
   ParseUUIDPipe,
+  Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
@@ -62,8 +63,17 @@ update(
 
 
   @Get()
-  findAll() {
-    return this.inventarioService.findAll();
+  findAll(@Query('page') page?: string, @Query('limit') limit?: string) {
+    const pageNum = page ? parseInt(page, 10) : 1;
+    const limitNum = limit ? parseInt(limit, 10) : 10;
+    return this.inventarioService.findAll(pageNum, limitNum);
+  }
+
+  @Get('search/:query')
+  search(@Param('query') query: string, @Query('page') page?: string, @Query('limit') limit?: string) {
+    const pageNum = page ? parseInt(page, 10) : 1;
+    const limitNum = limit ? parseInt(limit, 10) : 10;
+    return this.inventarioService.search(query, pageNum, limitNum);
   }
 
   @Get(':id')

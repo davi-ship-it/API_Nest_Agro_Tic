@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 import { ActividadesModule } from './actividades/actividades.module';
 import { BodegaModule } from './bodega/bodega.module';
@@ -39,8 +41,13 @@ import { ModulosModule } from './modulos/modulos.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { FichasModule } from './fichas/fichas.module';
 
+
 @Module({
   imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads',
+    }),
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -147,6 +154,7 @@ import { FichasModule } from './fichas/fichas.module';
     RecursosModule,
     ModulosModule,
     FichasModule,
+    
   ],
   controllers: [AppController],
   providers: [AppService],

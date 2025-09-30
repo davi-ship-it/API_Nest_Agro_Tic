@@ -7,7 +7,8 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { UsuarioXActividad } from '../../usuarios_x_actividades/entities/usuarios_x_actividades.entity';
-import { Roles } from 'src/roles/entities/role.entity';
+import { Roles } from '../../roles/entities/role.entity';
+import { Ficha } from '../../fichas/entities/ficha.entity';
 
 @Entity('usuarios')
 export class Usuario {
@@ -36,6 +37,11 @@ export class Usuario {
   @ManyToOne(() => Roles, (r) => r.usuarios, { nullable: true })
   @JoinColumn({ name: 'fk_id_rol' }) // crea la columna fk_id_rol en la tabla usuarios
   rol?: Roles;
+
+  // Relación ManyToOne hacia Ficha (cada usuario puede tener una ficha opcional)
+  @ManyToOne(() => Ficha, (f) => f.usuarios, { nullable: true })
+  @JoinColumn({ name: 'fk_id_ficha' }) // crea la columna fk_id_ficha en la tabla usuarios
+  ficha?: Ficha;
 
   @OneToMany(() => UsuarioXActividad, (uxa) => uxa.usuario)
   actividadesAsignadas?: UsuarioXActividad[];
