@@ -9,10 +9,10 @@ export class UsuarioXActividad {
   id: string;
 
   @Column({ name: 'fk_id_usuario' })
-  fkUsuarioId: number;
+  fkUsuarioId: string;
 
   @Column({ name: 'fk_id_actividad' })
-  fkActividadId: number;
+  fkActividadId: string;
 
   @Column({ name: 'uxa_fecha_asignacion', type: 'date' })
   fechaAsignacion: string;
