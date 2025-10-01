@@ -1,3 +1,9 @@
+import { Module, Logger } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { AppModule } from '../app.module';
+import { Roles } from '../roles/entities/role.entity';
+import { Usuario } from '../usuarios/entities/usuario.entity';
+import { SeederService } from './seeder.service';
 import { Permiso } from 'src/permisos/entities/permiso.entity';
 import { TipoUnidad } from 'src/tipo_unidad/entities/tipo_unidad.entity';
 import { Ficha } from 'src/fichas/entities/ficha.entity';
