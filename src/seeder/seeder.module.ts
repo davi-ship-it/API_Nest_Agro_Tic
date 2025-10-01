@@ -1,9 +1,13 @@
 import { Module, Logger } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppModule } from '../app.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
+import { CacheModule } from '@nestjs/cache-manager';
+import { MailerModule } from '@nestjs-modules/mailer';
 import { Roles } from '../roles/entities/role.entity';
 import { Usuario } from '../usuarios/entities/usuario.entity';
 import { SeederService } from './seeder.service';
+import { SeederController } from './seeder.controller';
 import { Permiso } from 'src/permisos/entities/permiso.entity';
 import { TipoUnidad } from 'src/tipo_unidad/entities/tipo_unidad.entity';
 import { Ficha } from 'src/fichas/entities/ficha.entity';
@@ -24,21 +28,88 @@ import { Sensor } from 'src/sensor/entities/sensor.entity';
 import { TipoSensor } from 'src/tipo_sensor/entities/tipo_sensor.entity';
 import { MedicionSensor } from 'src/medicion_sensor/entities/medicion_sensor.entity';
 import { Venta } from 'src/venta/entities/venta.entity';
-import { Modulo } from 'src/modulos/entities/modulo.entity';
 import { Recurso } from 'src/recursos/entities/recurso.entity';
 import { Bodega } from 'src/bodega/entities/bodega.entity';
 import { Categoria } from 'src/categoria/entities/categoria.entity';
+import { PermisosModule } from '../permisos/permisos.module';
+import { UsuariosModule } from '../usuarios/usuarios.module';
+import { RolesModule } from '../roles/roles.module';
+import { TipoUnidadModule } from '../tipo_unidad/tipo_unidad.module';
+import { BodegaModule } from '../bodega/bodega.module';
+import { CategoriaModule } from '../categoria/categoria.module';
+import { RecursosModule } from '../recursos/recursos.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
-    // Importamos AppModule para tener acceso a toda la configuración de la app,
-    // como la conexión a la base de datos y variables de entorno.
-    AppModule,
-    // Al importar AppModule, ya tenemos acceso a los módulos de Usuarios y Permisos
-    // y a sus providers exportados.
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        type: 'postgres',
+        host: configService.get<string>('DB_HOST'),
+        port: parseInt(configService.get<string>('DB_PORT') || '5432', 10),
+        username: configService.get<string>('DB_USERNAME'),
+        password: configService.get<string>('DB_PASSWORD'),
+        database: configService.get<string>('DB_DATABASE'),
+        entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+        migrations: [__dirname + '/../migrations/*{.ts,.js}'],
+        migrationsRun: false,
+        logging: ['query', 'error'],
+      }),
+    }),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: { expiresIn: configService.get<string>('JWT_EXPIRATION_TIME') },
+      }),
+      global: true,
+    }),
+    CacheModule.registerAsync({
+      isGlobal: true,
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        ttl: 30 * 24 * 60 * 60 * 1000, // 30 days
+      }),
+    }),
+    MailerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        transport: {
+          host: configService.get<string>('MAIL_HOST'),
+          port: configService.get<number>('MAIL_PORT'),
+          secure: false,
+          auth: {
+            user: configService.get<string>('MAIL_USER'),
+            pass: configService.get<string>('MAIL_PASS'),
+          },
+        },
+        defaults: {
+          from: `"No Reply" <${configService.get<string>('MAIL_FROM')}>`,
+        },
+      }),
+    }),
+    // Importar módulos necesarios para los servicios
+    PermisosModule,
+    UsuariosModule,
+    RolesModule,
+    RecursosModule,
+    TipoUnidadModule,
+    BodegaModule,
+    CategoriaModule,
+    // AuthModule debe ir después de JwtModule y CacheModule
+    AuthModule,
     // TypeOrmModule.forFeature es necesario aquí para que SeederService pueda inyectar los repositorios correspondientes.
-    TypeOrmModule.forFeature([Roles, Usuario, Permiso, TipoUnidad, Ficha, TipoCultivo, Variedad, Cultivo, CultivosXVariedad, Zona, CultivosVariedadXZona, Actividad, UsuarioXActividad, Mapa, Cosecha, Epa, TipoEpa, CultivosXEpa, Sensor, TipoSensor, MedicionSensor, Venta, Modulo, Recurso, Bodega, Categoria]),
+    TypeOrmModule.forFeature([Roles, Usuario, Permiso, TipoUnidad, Ficha, TipoCultivo, Variedad, Cultivo, CultivosXVariedad, Zona, CultivosVariedadXZona, Actividad, UsuarioXActividad, Mapa, Cosecha, Epa, TipoEpa, CultivosXEpa, Sensor, TipoSensor, MedicionSensor, Venta, Recurso, Bodega, Categoria]),
   ],
+  controllers: [SeederController],
   providers: [SeederService, Logger],
 })
 export class SeederModule {}

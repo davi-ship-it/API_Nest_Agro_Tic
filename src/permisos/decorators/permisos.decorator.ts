@@ -1,8 +1,7 @@
 import { SetMetadata } from '@nestjs/common';
-import { CreatePermisoDto } from '../dto/create-permiso.dto';
 
 export const PERMISOS_KEY = 'permisos';
 
-export const Permisos = (...permisos: CreatePermisoDto[]) =>
+export const Permisos = (...permisos: { recurso: string; acciones: string[] }[]) =>
   SetMetadata(PERMISOS_KEY, permisos);
 
