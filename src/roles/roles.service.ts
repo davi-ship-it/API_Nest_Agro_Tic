@@ -30,8 +30,8 @@ export class RolesService {
 
   async findAll(): Promise<Roles[]> {
     return this.rolesRepository.find({
-      // ✅ CAMBIO: Añadimos 'permisos.recurso.modulo' para cargar la relación anidada.
-      relations: ['permisos', 'permisos.recurso', 'permisos.recurso.modulo'],
+      // ✅ CAMBIO: Cargamos permisos y recursos.
+      relations: ['permisos', 'permisos.recurso'],
     });
   }
 
@@ -39,7 +39,7 @@ export class RolesService {
     const rol = await this.rolesRepository.findOne({
       where: { id },
       // Esta es la configuración clave que trae toda la información.
-      relations: ['permisos', 'permisos.recurso', 'permisos.recurso.modulo'],
+      relations: ['permisos', 'permisos.recurso'],
     });
 
     if (!rol) {

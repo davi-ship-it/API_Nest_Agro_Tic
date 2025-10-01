@@ -46,7 +46,23 @@ export class TipoCultivoService {
 
   // DELETE
   async remove(id: string): Promise<void> {
+    console.log(`Attempting to delete TipoCultivo with id: ${id}`);
     const tipoCultivo = await this.findOne(id);
-    await this.tipoCultivoRepository.remove(tipoCultivo);
+    console.log(`Found TipoCultivo:`, tipoCultivo);
+
+    // Check for related variedades
+    const relatedVariedades = await this.tipoCultivoRepository.findOne({
+      where: { id },
+      relations: ['variedades']
+    });
+    console.log(`Related variedades count:`, relatedVariedades?.variedades?.length || 0);
+
+    try {
+      await this.tipoCultivoRepository.remove(tipoCultivo);
+      console.log(`Successfully deleted TipoCultivo with id: ${id}`);
+    } catch (error) {
+      console.error(`Error deleting TipoCultivo with id ${id}:`, error);
+      throw error;
+    }
   }
 }

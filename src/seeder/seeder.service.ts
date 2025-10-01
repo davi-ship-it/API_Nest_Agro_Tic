@@ -28,45 +28,38 @@ const ACCION_VER = ['ver'];
 
 // Definimos los permisos base que necesita la aplicación
 const PERMISOS_BASE = [
-  // Módulo de Inicio (Generalmente solo lectura)
-  { moduloNombre: 'Inicio', recurso: 'acceso_inicio', acciones: ACCION_VER },
-  { moduloNombre: 'Inicio', recurso: 'dashboard', acciones: ['leer'] },
+  // Recursos de acceso y funcionalidades
+  { recurso: 'acceso_inicio', acciones: ACCION_VER },
+  { recurso: 'dashboard', acciones: ['leer'] },
 
-  { moduloNombre: 'Usuarios', recurso: 'usuarios', acciones: ACCIONES_CRUD },
-  { moduloNombre: 'Usuarios', recurso: 'roles', acciones: ACCIONES_CRUD },
-  { moduloNombre: 'Usuarios', recurso: 'panel de control', acciones: ['ver'] },
+  { recurso: 'usuarios', acciones: ACCIONES_CRUD },
+  { recurso: 'roles', acciones: ACCIONES_CRUD },
+  { recurso: 'panel de control', acciones: ['ver'] },
 
-  // Módulo de IOT
-  { moduloNombre: 'IOT', recurso: 'acceso_iot', acciones: ACCION_VER },
-  { moduloNombre: 'IOT', recurso: 'dispositivos', acciones: ACCIONES_CRUD },
-  { moduloNombre: 'IOT', recurso: 'sensores', acciones: ACCIONES_CRUD },
+  { recurso: 'acceso_iot', acciones: ACCION_VER },
+  { recurso: 'dispositivos', acciones: ACCIONES_CRUD },
+  { recurso: 'sensores', acciones: ACCIONES_CRUD },
   // Las mediciones no se suelen actualizar o eliminar, solo crear y leer
-  { moduloNombre: 'IOT', recurso: 'mediciones', acciones: ['leer', 'crear'] },
+  { recurso: 'mediciones', acciones: ['leer', 'crear'] },
 
-  // Módulo de Cultivos
   {
-    moduloNombre: 'Cultivos',
     recurso: 'acceso_cultivos',
     acciones: ACCION_VER,
   },
-  { moduloNombre: 'Cultivos', recurso: 'cultivos', acciones: ACCIONES_CRUD },
-  { moduloNombre: 'Cultivos', recurso: 'lotes', acciones: ACCIONES_CRUD },
+  { recurso: 'cultivos', acciones: ACCIONES_CRUD },
+  { recurso: 'lotes', acciones: ACCIONES_CRUD },
 
-
-  // Módulo de Inventario
   {
-    moduloNombre: 'Inventario',
     recurso: 'acceso_inventario',
     acciones: ACCION_VER,
   },
+  { recurso: 'acceso_perfil', acciones: ACCION_VER },
   {
-    moduloNombre: 'Inventario',
     recurso: 'items_inventario',
     acciones: ACCIONES_CRUD,
   },
   // Los movimientos son registros, no se editan/borran
   {
-    moduloNombre: 'Inventario',
     recurso: 'movimientos_inventario',
     acciones: ['leer', 'crear'],
   },
@@ -214,8 +207,12 @@ export class SeederService {
           'Seeder',
         );
       } else {
+        // Update permissions to include all current permissions
+        const todosLosPermisos = await this.permisoRepository.find();
+        rol.permisos = todosLosPermisos;
+        await this.rolRepository.save(rol);
         this.logger.log(
-          `El rol "${nombreRol}" ya existe. Omitiendo creación.`,
+          `Rol "${nombreRol}" actualizado con ${todosLosPermisos.length} permisos.`,
           'Seeder',
         );
       }
@@ -273,12 +270,14 @@ export class SeederService {
         }
       }
 
-      // Asignar permisos de acceso a módulos para INVITADO e INSTRUCTOR
+      // Asignar permisos de acceso a módulos para INVITADO, INSTRUCTOR y APRENDIZ
       const permisosAcceso = await this.permisoRepository.find({
         where: [
           { accion: 'ver', recurso: { nombre: 'acceso_inicio' } },
           { accion: 'ver', recurso: { nombre: 'acceso_iot' } },
           { accion: 'ver', recurso: { nombre: 'acceso_cultivos' } },
+          { accion: 'ver', recurso: { nombre: 'acceso_inventario' } },
+          { accion: 'ver', recurso: { nombre: 'acceso_perfil' } },
         ],
         relations: ['recurso'],
       });
@@ -313,6 +312,9 @@ export class SeederService {
       }
       if (rolInstructor) {
         await asignarPermisosARol(rolInstructor, 'INSTRUCTOR');
+      }
+      if (rolAprendiz) {
+        await asignarPermisosARol(rolAprendiz, 'APRENDIZ');
       }
 
       return { rolInstructor, rolAprendiz };

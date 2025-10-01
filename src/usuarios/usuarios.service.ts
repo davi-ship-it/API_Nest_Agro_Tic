@@ -76,7 +76,7 @@ export class UsuariosService {
       throw new ConflictException('El DNI o el correo ya están registrados.');
     }
 
-    const passwordToUse = password || dni.toString();
+    const passwordToUse = password || '12345678';
     const passwordHash = await bcrypt.hash(passwordToUse, 10);
 
     const nuevoUsuario = this.usuarioRepository.create({
@@ -115,7 +115,7 @@ export class UsuariosService {
   async findMe(userId: string): Promise<Omit<Usuario, 'passwordHash'>> {
     const user = await this.usuarioRepository.findOne({
       where: { id: userId },
-      relations: ['rol', 'rol.permisos', 'rol.permisos.recurso', 'rol.permisos.recurso.modulo', 'ficha'],
+      relations: ['rol', 'rol.permisos', 'rol.permisos.recurso', 'ficha'],
     });
 
     if (!user) {
