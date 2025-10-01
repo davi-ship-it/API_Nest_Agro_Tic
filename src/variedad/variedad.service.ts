@@ -50,23 +50,7 @@ export class VariedadesService {
   }
 
   async remove(id: string): Promise<void> {
-    console.log(`Attempting to delete Variedad with id: ${id}`);
     const variedad = await this.findOne(id);
-    console.log(`Found Variedad:`, variedad);
-
-    // Check for related cultivosXVariedad
-    const relatedCultivosXVariedad = await this.variedadRepo.findOne({
-      where: { id },
-      relations: ['cultivosXVariedad']
-    });
-    console.log(`Related cultivosXVariedad count:`, relatedCultivosXVariedad?.cultivosXVariedad?.length || 0);
-
-    try {
-      await this.variedadRepo.remove(variedad);
-      console.log(`Successfully deleted Variedad with id: ${id}`);
-    } catch (error) {
-      console.error(`Error deleting Variedad with id ${id}:`, error);
-      throw error;
-    }
+    await this.variedadRepo.remove(variedad);
   }
 }

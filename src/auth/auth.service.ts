@@ -23,6 +23,7 @@ import { LoginAuthDto } from './dto/login-auth.dto';
 import { RolesService } from 'src/roles/roles.service';
 import { MailerService } from '@nestjs-modules/mailer';
 
+import { CreatePermisoDto } from 'src/permisos/dto/create-permiso.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 
@@ -99,6 +100,7 @@ export class AuthService {
         'rol',
         'rol.permisos',
         'rol.permisos.recurso',
+        'rol.permisos.recurso.modulo',
       ],
     });
 
@@ -106,7 +108,21 @@ export class AuthService {
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
-    // Permisos removed to reduce token size
+    // ✅ CAMBIO: Mapear los permisos al formato deseado.
+    const permisos =
+      usuario.rol?.permisos
+        ?.map((permiso) => {
+          // Asegurarse de que el permiso tiene toda la información necesaria.
+          if (!permiso.recurso || !permiso.recurso.modulo) {
+            return null;
+          }
+          return {
+            modulo: permiso.recurso.modulo.nombre,
+            recurso: permiso.recurso.nombre,
+            accion: permiso.accion,
+          };
+        })
+        .filter((p) => p !== null) ?? []; // Filtrar nulos y manejar si no hay permisos.
 
     const payload = {
       sub: usuario.id,
@@ -244,13 +260,14 @@ export class AuthService {
     return { message: 'Sesión cerrada exitosamente' };
   }
 
-  async getUserPermissions(userId: string): Promise<{ recurso: string; acciones: string[] }[]> {
+  async getUserPermissions(userId: string): Promise<CreatePermisoDto[]> {
     const user = await this.usuarioRepository.findOne({
       where: { id: userId },
       relations: [
         'rol',
         'rol.permisos',
         'rol.permisos.recurso',
+        'rol.permisos.recurso.modulo',
       ],
     });
 
@@ -264,14 +281,16 @@ export class AuthService {
 
     const permisosAgrupados = user.rol.permisos.reduce(
       (acc, permiso) => {
-        if (!permiso.recurso) {
+        if (!permiso.recurso || !permiso.recurso.modulo) {
           return acc;
         }
 
         const nombreRecurso = permiso.recurso.nombre;
+        const nombreModulo = permiso.recurso.modulo.nombre;
 
         if (!acc[nombreRecurso]) {
           acc[nombreRecurso] = {
+            moduloNombre: nombreModulo,
             recurso: nombreRecurso,
             acciones: [],
           };
@@ -281,7 +300,7 @@ export class AuthService {
 
         return acc;
       },
-      {} as Record<string, { recurso: string; acciones: string[] }>,
+      {} as Record<string, CreatePermisoDto>,
     );
 
     return Object.values(permisosAgrupados);

@@ -37,9 +37,9 @@ import { redisStore } from 'cache-manager-redis-store';
 import { AuthModule } from './auth/auth.module';
 import { PermisosModule } from './permisos/permisos.module';
 import { RecursosModule } from './recursos/recursos.module';
+import { ModulosModule } from './modulos/modulos.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { FichasModule } from './fichas/fichas.module';
-import { SeederModule } from './seeder/seeder.module';
 
 
 @Module({
@@ -152,10 +152,9 @@ import { SeederModule } from './seeder/seeder.module';
     AuthModule,
     PermisosModule,
     RecursosModule,
-
+    ModulosModule,
     FichasModule,
-    SeederModule,
-
+    
   ],
   controllers: [AppController],
   providers: [AppService],

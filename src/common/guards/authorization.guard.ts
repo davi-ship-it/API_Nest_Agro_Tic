@@ -10,6 +10,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { AuthService } from 'src/auth/auth.service';
 import { PERMISOS_KEY } from 'src/permisos/decorators/permisos.decorator';
+import { CreatePermisoDto } from 'src/permisos/dto/create-permiso.dto';
 
 @Injectable()
 export class AuthorizationGuard implements CanActivate {
@@ -27,7 +28,7 @@ export class AuthorizationGuard implements CanActivate {
       throw new UnauthorizedException('ID de usuario no encontrado en la solicitud.');
     }
 
-    const requiredPermissions = this.reflector.getAllAndOverride<{ recurso: string; acciones: string[] }[]>(
+    const requiredPermissions = this.reflector.getAllAndOverride<CreatePermisoDto[]>(
       PERMISOS_KEY,
       [context.getHandler(), context.getClass()],
     );

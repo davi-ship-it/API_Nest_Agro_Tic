@@ -9,7 +9,7 @@ import { Permisos } from './permisos/decorators/permisos.decorator';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Permisos({ recurso: 'productos', acciones: ['leer'] })
+  @Permisos({ recurso: 'productos', acciones: ['leer'], moduloNombre: 'Inventario' })
 
   @Get('/products')
   getProducts(@Req() req) {
