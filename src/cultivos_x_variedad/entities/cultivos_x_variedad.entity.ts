@@ -3,7 +3,6 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColum
 import { Cultivo } from '../../cultivos/entities/cultivo.entity';
 import { Variedad } from '../../variedad/entities/variedad.entity';
 import { CultivosVariedadXZona } from '../../cultivos_variedad_x_zona/entities/cultivos_variedad_x_zona.entity';
-import { Cosecha } from '../../cosechas/entities/cosecha.entity';
 
 @Entity('cultivos_x_variedad')
 export class CultivosXVariedad {
@@ -26,8 +25,5 @@ export class CultivosXVariedad {
 
   @OneToMany(() => CultivosVariedadXZona, (cvz) => cvz.cultivoXVariedad)
   zonas?: CultivosVariedadXZona[];
-
-  @OneToMany(() => Cosecha, (c) => c.cultivosXVariedad)
-  cosechas?: Cosecha[];
 }
 

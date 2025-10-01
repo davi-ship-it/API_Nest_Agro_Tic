@@ -17,6 +17,11 @@ export class CultivosVariedadXZonaController {
     return this.cultivosVariedadXZonaService.findAll();
   }
 
+  @Get('cultivo/:cultivoId')
+  findByCultivo(@Param('cultivoId') cultivoId: string) {
+    return this.cultivosVariedadXZonaService.findByCultivo(cultivoId);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.cultivosVariedadXZonaService.findOne(+id);

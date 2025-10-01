@@ -24,11 +24,9 @@
     "migration:run": "npm run typeorm -- migration:run",
     "migration:revert": "npm run typeorm -- migration:revert",
     "seed": "npm run build && npm run seed:prod",
-
     "docker:g": "docker-compose exec -it app npm run migration:generate",
     "docker:r": "docker-compose exec -it app npm run migration:run",
     "docker:seed": "docker-compose exec -it app npm run seed:dev",
-
     "seed:dev": "ts-node -r tsconfig-paths/register src/seeder/seeder.ts",
     "seed:watch": "ts-node-dev -r tsconfig-paths/register --respawn src/seeder/seeder.ts",
     "seed:prod": "NODE_ENV=production node dist/seeder/seeder.js",
@@ -82,6 +80,7 @@
     "@types/multer": "^2.0.0",
     "@types/node": "^22.10.7",
     "@types/passport-jwt": "^4.0.1",
+    "@types/serve-static": "^1.15.8",
     "@types/supertest": "^6.0.2",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",

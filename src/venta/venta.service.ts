@@ -1,27 +1,43 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Venta } from './entities/venta.entity';
 import { CreateVentaDto } from './dto/create-venta.dto';
 import { UpdateVentaDto } from './dto/update-venta.dto';
 
 @Injectable()
 export class VentaService {
-  create(createVentaDto: CreateVentaDto) {
-    return 'This action adds a new venta';
+  constructor(
+    @InjectRepository(Venta)
+    private readonly ventaRepository: Repository<Venta>,
+  ) {}
+
+  async create(createVentaDto: CreateVentaDto): Promise<Venta> {
+    const venta = this.ventaRepository.create(createVentaDto);
+    return await this.ventaRepository.save(venta);
   }
 
-  findAll() {
-    return `This action returns all venta`;
+  async findAll(): Promise<Venta[]> {
+    return await this.ventaRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} venta`;
+  async findOne(id: string): Promise<Venta> {
+    const venta = await this.ventaRepository.findOne({ where: { id } });
+    if (!venta) {
+      throw new NotFoundException(`Venta con id ${id} no encontrada`);
+    }
+    return venta;
   }
 
-  update(id: number, updateVentaDto: UpdateVentaDto) {
-    return `This action updates a #${id} venta`;
+  async update(id: string, updateVentaDto: UpdateVentaDto): Promise<Venta> {
+    const venta = await this.findOne(id);
+    Object.assign(venta, updateVentaDto);
+    return await this.ventaRepository.save(venta);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} venta`;
+  async remove(id: string): Promise<void> {
+    const venta = await this.findOne(id);
+    await this.ventaRepository.remove(venta);
   }
 }
 

@@ -14,7 +14,7 @@ export class Venta {
   fecha: string;
 
   @Column({ name: 'fk_id_cosecha' })
-  fkCosechaId: number;
+  fkCosechaId: string;
 
   @Column({ name: 'ven_precio_kilo', type: 'numeric', nullable: true })
   precioKilo?: number;

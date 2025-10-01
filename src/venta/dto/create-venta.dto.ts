@@ -1,19 +1,17 @@
-import { IsNotEmpty, IsNumber, IsDate, IsOptional } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateVentaDto {
   @IsNumber()
   @IsNotEmpty()
   cantidad: number;
 
+  @IsString()
   @IsNotEmpty()
-  @Type(() => Date)
-  @IsDate()
-  fecha: Date;
+  fecha: string;
 
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
-  fkCosechaId: number;
+  fkCosechaId: string;
 
   @IsNumber()
   @IsOptional()

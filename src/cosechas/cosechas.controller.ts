@@ -19,17 +19,17 @@ export class CosechasController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.cosechasService.findOne(+id);
+    return this.cosechasService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateCosechaDto: UpdateCosechaDto) {
-    return this.cosechasService.update(+id, updateCosechaDto);
+    return this.cosechasService.update(id, updateCosechaDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.cosechasService.remove(+id);
+    return this.cosechasService.remove(id);
   }
 }
 
