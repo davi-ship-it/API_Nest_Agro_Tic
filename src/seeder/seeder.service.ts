@@ -1,7 +1,6 @@
 // src/seeder/seeder.service.ts
 import { Injectable, Logger, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 
 // Asumo que tienes estos servicios y entidades. Ajusta las rutas si es necesario.
 import { PermisosService } from '../permisos/permisos.service';
@@ -11,8 +10,17 @@ import { Permiso } from '../permisos/entities/permiso.entity';
 import { UsuariosService } from '../usuarios/usuarios.service';
 import { TipoUnidadService } from '../tipo_unidad/tipo_unidad.service';
 import { BodegaService } from '../bodega/bodega.service';
-import { CategoriaService } from '../categoria/categoria.service';
+import { CategoriaService } from '../categoria/categoria.service'; // Asegúrate que la ruta es correcta
 import { Ficha } from '../fichas/entities/ficha.entity';
+import { TipoCultivo } from '../tipo_cultivo/entities/tipo_cultivo.entity';
+import { Variedad } from '../variedad/entities/variedad.entity';
+import { Cultivo } from '../cultivos/entities/cultivo.entity';
+import { CultivosXVariedad } from '../cultivos_x_variedad/entities/cultivos_x_variedad.entity';
+import { Zona } from '../zonas/entities/zona.entity';
+import { Repository } from 'typeorm';
+import { CultivosVariedadXZona } from '../cultivos_variedad_x_zona/entities/cultivos_variedad_x_zona.entity';
+import { Actividad } from '../actividades/entities/actividades.entity';
+import { UsuarioXActividad } from '../usuarios_x_actividades/entities/usuarios_x_actividades.entity';
 
 // Acciones comunes para reutilizar y mantener consistencia
 const ACCIONES_CRUD = ['leer', 'crear', 'actualizar', 'eliminar'];
@@ -81,6 +89,22 @@ export class SeederService {
     private readonly permisoRepository: Repository<Permiso>,
     @InjectRepository(Ficha)
     private readonly fichaRepository: Repository<Ficha>,
+    @InjectRepository(TipoCultivo)
+    private readonly tipoCultivoRepository: Repository<TipoCultivo>,
+    @InjectRepository(Variedad)
+    private readonly variedadRepository: Repository<Variedad>,
+    @InjectRepository(Cultivo)
+    private readonly cultivoRepository: Repository<Cultivo>,
+    @InjectRepository(CultivosXVariedad)
+    private readonly cultivosXVariedadRepository: Repository<CultivosXVariedad>,
+    @InjectRepository(Zona)
+    private readonly zonaRepository: Repository<Zona>,
+    @InjectRepository(CultivosVariedadXZona)
+    private readonly cultivosVariedadXZonaRepository: Repository<CultivosVariedadXZona>,
+    @InjectRepository(Actividad)
+    private readonly actividadRepository: Repository<Actividad>,
+    @InjectRepository(UsuarioXActividad)
+    private readonly usuarioXActividadRepository: Repository<UsuarioXActividad>,
   ) {}
 
   async seed() {
@@ -131,6 +155,16 @@ export class SeederService {
 
     // 9. Crear ficha de muestra y linkear con APRENDIZ
     await this.seedFichaAprendiz();
+
+    // 7. Seed agricultural data
+    await this.seedTipoCultivo();
+    await this.seedVariedad();
+    await this.seedZona();
+    await this.seedCultivo();
+    await this.seedCultivosXVariedad();
+    await this.seedCultivosVariedadXZona();
+    await this.seedActividad();
+    await this.seedUsuarioXActividad();
 
     this.logger.log('Seeding completado exitosamente.', 'Seeder');
   }
@@ -547,6 +581,158 @@ export class SeederService {
       }
     } catch (error) {
       this.logger.error(`Error creando o asignando ficha: ${error.message}`, 'Seeder');
+    }
+  }
+
+  private async seedTipoCultivo() {
+    this.logger.log('Creando tipos de cultivo base...', 'Seeder');
+    try {
+      const tipos = ['Tomate', 'Papa', 'Maíz'];
+      for (const nombre of tipos) {
+        let tipo = await this.tipoCultivoRepository.findOne({ where: { nombre } });
+        if (!tipo) {
+          tipo = this.tipoCultivoRepository.create({ nombre });
+          await this.tipoCultivoRepository.save(tipo);
+          this.logger.log(`Tipo de cultivo "${nombre}" creado.`, 'Seeder');
+        }
+      }
+    } catch (error) {
+      this.logger.error(`Error creando tipos de cultivo: ${error.message}`, 'Seeder');
+    }
+  }
+
+  private async seedVariedad() {
+    this.logger.log('Creando variedades base...', 'Seeder');
+    try {
+      const variedades = [
+        { nombre: 'Tomate Cherry', tipo: 'Tomate' },
+        { nombre: 'Papa Criolla', tipo: 'Papa' },
+        { nombre: 'Maíz Dulce', tipo: 'Maíz' },
+      ];
+      for (const v of variedades) {
+        const tipo = await this.tipoCultivoRepository.findOne({ where: { nombre: v.tipo } });
+        if (tipo) {
+          let variedad = await this.variedadRepository.findOne({ where: { nombre: v.nombre } });
+          if (!variedad) {
+            variedad = this.variedadRepository.create({ nombre: v.nombre, fkTipoCultivoId: tipo.id });
+            await this.variedadRepository.save(variedad);
+            this.logger.log(`Variedad "${v.nombre}" creada.`, 'Seeder');
+          }
+        }
+      }
+    } catch (error) {
+      this.logger.error(`Error creando variedades: ${error.message}`, 'Seeder');
+    }
+  }
+
+  private async seedZona() {
+    this.logger.log('Creando zonas base...', 'Seeder');
+    try {
+      const zonas = ['Zona Norte', 'Zona Sur'];
+      for (const nombre of zonas) {
+        let zona = await this.zonaRepository.findOne({ where: { nombre } });
+        if (!zona) {
+          zona = this.zonaRepository.create({ nombre });
+          await this.zonaRepository.save(zona);
+          this.logger.log(`Zona "${nombre}" creada.`, 'Seeder');
+        }
+      }
+    } catch (error) {
+      this.logger.error(`Error creando zonas: ${error.message}`, 'Seeder');
+    }
+  }
+
+  private async seedCultivo() {
+    this.logger.log('Creando cultivos base...', 'Seeder');
+    try {
+      const cultivos = [
+        { siembra: new Date('2023-01-01'), estado: 1 },
+        { siembra: new Date('2023-06-01'), estado: 1 },
+      ];
+      for (const c of cultivos) {
+        const cultivo = this.cultivoRepository.create(c);
+        await this.cultivoRepository.save(cultivo);
+        this.logger.log(`Cultivo creado.`, 'Seeder');
+      }
+    } catch (error) {
+      this.logger.error(`Error creando cultivos: ${error.message}`, 'Seeder');
+    }
+  }
+
+  private async seedCultivosXVariedad() {
+    this.logger.log('Creando relaciones cultivos x variedad...', 'Seeder');
+    try {
+      const cultivos = await this.cultivoRepository.find();
+      const variedades = await this.variedadRepository.find();
+      for (let i = 0; i < Math.min(cultivos.length, variedades.length); i++) {
+        const cxv = this.cultivosXVariedadRepository.create({
+          fkCultivoId: cultivos[i].id,
+          fkVariedadId: variedades[i].id,
+        });
+        await this.cultivosXVariedadRepository.save(cxv);
+        this.logger.log(`Relación cultivo-variedad creada.`, 'Seeder');
+      }
+    } catch (error) {
+      this.logger.error(`Error creando relaciones cultivos x variedad: ${error.message}`, 'Seeder');
+    }
+  }
+
+  private async seedCultivosVariedadXZona() {
+    this.logger.log('Creando relaciones cultivos variedad x zona...', 'Seeder');
+    try {
+      const cxvs = await this.cultivosXVariedadRepository.find();
+      const zonas = await this.zonaRepository.find();
+      for (let i = 0; i < Math.min(cxvs.length, zonas.length); i++) {
+        const cvz = this.cultivosVariedadXZonaRepository.create({
+          fkCultivosXVariedadId: cxvs[i].id,
+          fkZonaId: zonas[i].id,
+        });
+        await this.cultivosVariedadXZonaRepository.save(cvz);
+        this.logger.log(`Relación cultivo-variedad-zona creada.`, 'Seeder');
+      }
+    } catch (error) {
+      this.logger.error(`Error creando relaciones cultivos variedad x zona: ${error.message}`, 'Seeder');
+    }
+  }
+
+  private async seedActividad() {
+    this.logger.log('Creando actividades base...', 'Seeder');
+    try {
+      const cvzs = await this.cultivosVariedadXZonaRepository.find();
+      for (const cvz of cvzs) {
+        const actividad = this.actividadRepository.create({
+          nombre: 'Siembra',
+          descripcion: 'Actividad de siembra',
+          fechaInicio: new Date('2023-01-01'),
+          fechaFin: new Date('2023-01-10'),
+          estado: 'en curso',
+          imgUrl: 'url',
+          fkCultivoVariedadZonaId: cvz.id,
+        });
+        await this.actividadRepository.save(actividad);
+        this.logger.log(`Actividad creada.`, 'Seeder');
+      }
+    } catch (error) {
+      this.logger.error(`Error creando actividades: ${error.message}`, 'Seeder');
+    }
+  }
+
+  private async seedUsuarioXActividad() {
+    this.logger.log('Creando relaciones usuario x actividad...', 'Seeder');
+    try {
+      const actividades = await this.actividadRepository.find();
+      const usuarios = await this.usuarioRepository.find();
+      for (let i = 0; i < Math.min(actividades.length, usuarios.length); i++) {
+        const uxa = this.usuarioXActividadRepository.create({
+          fkUsuarioId: usuarios[i].id,
+          fkActividadId: actividades[i].id,
+          fechaAsignacion: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+        });
+        await this.usuarioXActividadRepository.save(uxa);
+        this.logger.log(`Relación usuario-actividad creada.`, 'Seeder');
+      }
+    } catch (error) {
+      this.logger.error(`Error creando relaciones usuario x actividad: ${error.message}`, 'Seeder');
     }
   }
 }

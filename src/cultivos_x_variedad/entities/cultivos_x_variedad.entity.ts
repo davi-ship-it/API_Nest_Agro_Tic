@@ -11,10 +11,10 @@ export class CultivosXVariedad {
   id: string;
 
   @Column({ name: 'fk_id_cultivo' })
-  fkCultivoId: number;
+  fkCultivoId: string;
 
   @Column({ name: 'fk_id_variedad' })
-  fkVariedadId: number;
+  fkVariedadId: string;
 
   @ManyToOne(() => Cultivo, (c) => c.variedades)
   @JoinColumn({ name: 'fk_id_cultivo' })
