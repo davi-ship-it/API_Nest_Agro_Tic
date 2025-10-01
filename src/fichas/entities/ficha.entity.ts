@@ -5,6 +5,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { Usuario } from '../../usuarios/entities/usuario.entity';
+import { CultivosXFichas } from '../../cultivos/entities/cultivos_x_fichas.entity';
 
 @Entity('fichas')
 export class Ficha {
@@ -16,5 +17,8 @@ export class Ficha {
 
   @OneToMany(() => Usuario, (usuario) => usuario.ficha)
   usuarios?: Usuario[];
+
+  @OneToMany(() => CultivosXFichas, (cxf) => cxf.ficha)
+  cultivosXFichas?: CultivosXFichas[];
 }
 

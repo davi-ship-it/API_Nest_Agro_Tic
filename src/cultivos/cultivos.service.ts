@@ -63,7 +63,9 @@ export class CultivosService {
         .leftJoin('cvz.cultivoXVariedad', 'cxv')
         .leftJoin('cxv.cultivo', 'c')
         .leftJoin('cvz.zona', 'z')
-        .leftJoin('cosechas', 'cos', 'cos.fk_id_cultivos_variedad_x_zona = cvz.pk_id_cv_zona');
+        .leftJoin('cosechas', 'cos', 'cos.fk_id_cultivos_variedad_x_zona = cvz.pk_id_cv_zona')
+        .leftJoin('cultivos_x_fichas', 'cxf', 'cxf.fk_id_cultivo = c.pk_id_cultivo')
+        .leftJoin('fichas', 'f', 'f.pk_id_ficha = cxf.fk_id_ficha');
 
       // Aplicar filtros básicos
       if (dto.estado_cultivo !== undefined && dto.estado_cultivo !== null) {
@@ -74,7 +76,7 @@ export class CultivosService {
       qb.select([
         'cvz.id as cvzId',
         'c.id as id',
-        "'Sin ficha' as ficha",
+        "COALESCE(STRING_AGG(DISTINCT f.ficha_numero::text, ', '), 'Sin ficha') as ficha",
         'z.nombre as lote',
         "'Sin cultivo' as nombreCultivo",
         'c.siembra as fechaSiembra',
