@@ -27,8 +27,8 @@ export class Inventario {
   @Column({ name: 'ivn_fecha_vencimiento', type: 'date', nullable: true })
   fechaVencimiento?: string;
 
-  @Column({ name: 'inv_img_url', type: 'varchar', length: 255 })
-  imgUrl: string;
+  @Column({ name: 'inv_img_url', type: 'varchar', length: 255, nullable: true })
+  imgUrl?: string;
 
   @Column({ name: 'fk_id_categoria', type: 'uuid', nullable: true })
   fkCategoriaId: string;

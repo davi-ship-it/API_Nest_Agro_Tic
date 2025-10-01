@@ -1,10 +1,3 @@
-// src/seeder/seeder.module.ts
-import { Logger, Module } from '@nestjs/common';
-import { SeederService } from './seeder.service';
-import { AppModule } from '../app.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Roles } from 'src/roles/entities/role.entity';
-import { Usuario } from 'src/usuarios/entities/usuario.entity';
 import { Permiso } from 'src/permisos/entities/permiso.entity';
 import { TipoUnidad } from 'src/tipo_unidad/entities/tipo_unidad.entity';
 import { Ficha } from 'src/fichas/entities/ficha.entity';
@@ -25,6 +18,10 @@ import { Sensor } from 'src/sensor/entities/sensor.entity';
 import { TipoSensor } from 'src/tipo_sensor/entities/tipo_sensor.entity';
 import { MedicionSensor } from 'src/medicion_sensor/entities/medicion_sensor.entity';
 import { Venta } from 'src/venta/entities/venta.entity';
+import { Modulo } from 'src/modulos/entities/modulo.entity';
+import { Recurso } from 'src/recursos/entities/recurso.entity';
+import { Bodega } from 'src/bodega/entities/bodega.entity';
+import { Categoria } from 'src/categoria/entities/categoria.entity';
 
 @Module({
   imports: [
@@ -34,7 +31,7 @@ import { Venta } from 'src/venta/entities/venta.entity';
     // Al importar AppModule, ya tenemos acceso a los módulos de Usuarios y Permisos
     // y a sus providers exportados.
     // TypeOrmModule.forFeature es necesario aquí para que SeederService pueda inyectar los repositorios correspondientes.
-    TypeOrmModule.forFeature([Roles, Usuario, Permiso, TipoUnidad, Ficha, TipoCultivo, Variedad, Cultivo, CultivosXVariedad, Zona, CultivosVariedadXZona, Actividad, UsuarioXActividad, Mapa, Cosecha, Epa, TipoEpa, CultivosXEpa, Sensor, TipoSensor, MedicionSensor, Venta]),
+    TypeOrmModule.forFeature([Roles, Usuario, Permiso, TipoUnidad, Ficha, TipoCultivo, Variedad, Cultivo, CultivosXVariedad, Zona, CultivosVariedadXZona, Actividad, UsuarioXActividad, Mapa, Cosecha, Epa, TipoEpa, CultivosXEpa, Sensor, TipoSensor, MedicionSensor, Venta, Modulo, Recurso, Bodega, Categoria]),
   ],
   providers: [SeederService, Logger],
 })

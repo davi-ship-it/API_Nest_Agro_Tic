@@ -22,7 +22,8 @@ import { Request } from 'express';
 export class UsuariosController {
   constructor(private readonly usuariosService: UsuariosService) {}
 
-  @UseGuards(AuthenticationGuard, AuthorizationGuard)
+  @UseGuards(AuthenticationGuard)
+
   @Get('me')
   findMe(@Req() req: Request) {
     const userId = req['userId'];
@@ -37,11 +38,7 @@ export class UsuariosController {
   }
 
   @UseGuards(AuthenticationGuard, AuthorizationGuard)
-  @Permisos({
-    recurso: 'usuarios',
-    acciones: ['crear'],
-    moduloNombre: 'Usuarios',
-  })
+ 
   @Post('register')
   create(@Body() createUserDto: CreateUsuarioDto, @Req() req: any) {
     return this.usuariosService.createUserByPanel(createUserDto, req.user);
