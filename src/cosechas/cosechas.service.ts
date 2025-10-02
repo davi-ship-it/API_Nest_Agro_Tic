@@ -22,6 +22,11 @@ export class CosechasService {
   ) {}
 
   async create(createCosechaDto: CreateCosechaDto): Promise<Cosecha> {
+    // Set default date if not provided or empty
+    if (!createCosechaDto.fecha || createCosechaDto.fecha.trim() === '') {
+      createCosechaDto.fecha = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+    }
+
     const cosecha = this.cosechaRepository.create(createCosechaDto);
     const savedCosecha = await this.cosechaRepository.save(cosecha);
 

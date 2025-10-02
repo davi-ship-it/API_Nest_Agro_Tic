@@ -27,7 +27,6 @@ import { Cosecha } from '../cosechas/entities/cosecha.entity';
 import { Bodega } from '../bodega/entities/bodega.entity';
 import { Categoria } from '../categoria/entities/categoria.entity';
 import { Mapa } from '../mapas/entities/mapa.entity';
-import { CultivosXFichas } from '../cultivos/entities/cultivos_x_fichas.entity';
 
 // Acciones comunes para reutilizar y mantener consistencia
 const ACCIONES_CRUD = ['leer', 'crear', 'actualizar', 'eliminar'];
@@ -124,8 +123,6 @@ export class SeederService {
     private readonly categoriaRepository: Repository<Categoria>,
     @InjectRepository(Mapa)
     private readonly mapaRepository: Repository<Mapa>,
-    @InjectRepository(CultivosXFichas)
-    private readonly cultivosXFichasRepository: Repository<CultivosXFichas>,
   ) {}
 
   async seed() {
@@ -185,7 +182,7 @@ export class SeederService {
     await this.seedCultivo();
     await this.seedCultivosXVariedad();
     await this.seedCultivosVariedadXZona();
-    await this.seedCosechas();
+    // await this.seedCosechas(); // Comentado para que las cosechas se registren manualmente
     await this.seedActividad();
     await this.seedUsuarioXActividad();
     await this.seedInventario();
@@ -706,12 +703,23 @@ export class SeederService {
         '2025-01-10', '2025-02-15', '2025-03-20', '2025-04-25', '2025-05-30', '2025-06-05'
       ];
 
+      // Obtener fichas disponibles
+      const fichas = await this.fichaRepository.find();
+      if (fichas.length === 0) {
+        this.logger.warn('No hay fichas disponibles para asignar a cultivos', 'Seeder');
+        return;
+      }
+
       const cultivosCreados: any[] = [];
       for (let i = 0; i < 20; i++) {
         // Mezcla de estados: 70% en curso, 30% finalizado
         const estado = Math.random() > 0.7 ? 0 : 1;
 
+        // Asignar ficha durante la creación
+        const ficha = fichas[i % fichas.length];
+
         const cultivo = this.cultivoRepository.create({
+          fkFichaId: ficha.id,
           siembra: new Date(fechasSiembra[i % fechasSiembra.length]),
           estado: estado
         });
@@ -719,83 +727,13 @@ export class SeederService {
         cultivosCreados.push(cultivo);
 
         const estadoTexto = estado === 1 ? 'En curso' : 'Finalizado';
-        this.logger.log(`Cultivo ${i + 1} creado - Estado: ${estadoTexto}`, 'Seeder');
+        this.logger.log(`Cultivo ${i + 1} creado - Estado: ${estadoTexto}, Ficha: ${ficha.numero}`, 'Seeder');
       }
-
-      // Asignar múltiples fichas a cada cultivo
-      await this.seedCultivosXFichas(cultivosCreados);
     } catch (error) {
       this.logger.error(`Error creando cultivos: ${error.message}`, 'Seeder');
     }
   }
 
-  private async seedCultivosXFichas(cultivos: any[]) {
-    this.logger.log('Asignando fichas a cultivos...', 'Seeder');
-    try {
-      // Verificar si la tabla existe, si no, crearla
-      await this.ensureCultivosXFichasTableExists();
-
-      // Obtener todas las fichas disponibles
-      const fichas = await this.fichaRepository.find();
-
-      if (fichas.length === 0) {
-        this.logger.warn('No hay fichas disponibles para asignar a cultivos', 'Seeder');
-        return;
-      }
-
-      for (let i = 0; i < cultivos.length; i++) {
-        const cultivo = cultivos[i];
-        // Asignar 2-3 fichas por cultivo
-        const numFichas = Math.min(3, fichas.length);
-        const fichasParaCultivo = fichas.slice(0, numFichas);
-
-        for (const ficha of fichasParaCultivo) {
-          const cxf = this.cultivosXFichasRepository.create({
-            fkCultivoId: cultivo.id,
-            fkFichaId: ficha.id,
-          });
-          await this.cultivosXFichasRepository.save(cxf);
-          this.logger.log(`Ficha ${ficha.numero} asignada al cultivo ${cultivo.id}`, 'Seeder');
-        }
-      }
-    } catch (error) {
-      this.logger.error(`Error asignando fichas a cultivos: ${error.message}`, 'Seeder');
-    }
-  }
-
-  private async ensureCultivosXFichasTableExists() {
-    this.logger.log('Verificando/creando tabla cultivos_x_fichas...', 'Seeder');
-    try {
-      // Intentar hacer una query simple para ver si la tabla existe
-      await this.cultivosXFichasRepository.findOne({ where: {} });
-      this.logger.log('Tabla cultivos_x_fichas ya existe', 'Seeder');
-    } catch (error) {
-      // Si hay error, probablemente la tabla no existe, intentar crearla
-      this.logger.log('Creando tabla cultivos_x_fichas...', 'Seeder');
-      try {
-        await this.cultivosXFichasRepository.query(`
-          CREATE TABLE IF NOT EXISTS "cultivos_x_fichas" (
-            "pk_id_cultivo_ficha" uuid NOT NULL DEFAULT uuid_generate_v4(),
-            "fk_id_cultivo" uuid NOT NULL,
-            "fk_id_ficha" uuid NOT NULL,
-            CONSTRAINT "PK_cultivos_x_fichas" PRIMARY KEY ("pk_id_cultivo_ficha")
-          );
-
-          CREATE INDEX IF NOT EXISTS "IDX_cultivos_x_fichas_fk_id_cultivo" ON "cultivos_x_fichas" ("fk_id_cultivo");
-          CREATE INDEX IF NOT EXISTS "IDX_cultivos_x_fichas_fk_id_ficha" ON "cultivos_x_fichas" ("fk_id_ficha");
-
-          ALTER TABLE "cultivos_x_fichas"
-          ADD CONSTRAINT "FK_cultivos_x_fichas_cultivo" FOREIGN KEY ("fk_id_cultivo") REFERENCES "cultivos"("pk_id_cultivo") ON DELETE CASCADE;
-
-          ALTER TABLE "cultivos_x_fichas"
-          ADD CONSTRAINT "FK_cultivos_x_fichas_ficha" FOREIGN KEY ("fk_id_ficha") REFERENCES "fichas"("pk_id_ficha") ON DELETE CASCADE;
-        `);
-        this.logger.log('Tabla cultivos_x_fichas creada exitosamente', 'Seeder');
-      } catch (createError) {
-        this.logger.error(`Error creando tabla cultivos_x_fichas: ${createError.message}`, 'Seeder');
-      }
-    }
-  }
 
   private async seedCultivosXVariedad() {
     this.logger.log('Creando relaciones cultivos x variedad...', 'Seeder');

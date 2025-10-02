@@ -48,44 +48,35 @@ export class CultivosService {
 
   async search(dto: SearchCultivoDto): Promise<any[]> {
     try {
-      // Versión simplificada - verificar si hay datos primero
-      const cvzCount = await this.cvzRepo.count();
-      console.log('CVZ count:', cvzCount);
-
-      if (cvzCount === 0) {
-        // Si no hay datos, devolver array vacío
-        return [];
-      }
-
-      // Query simplificada sin algunos JOINs problemáticos
+      // Query que muestra cultivos con CVZ asignado (para poder registrar cosechas)
       let qb = this.cvzRepo
         .createQueryBuilder('cvz')
         .leftJoin('cvz.cultivoXVariedad', 'cxv')
         .leftJoin('cxv.cultivo', 'c')
+        .leftJoin('cxv.variedad', 'v')
         .leftJoin('cvz.zona', 'z')
-        .leftJoin('cosechas', 'cos', 'cos.fk_id_cultivos_variedad_x_zona = cvz.pk_id_cv_zona')
-        .leftJoin('cultivos_x_fichas', 'cxf', 'cxf.fk_id_cultivo = c.pk_id_cultivo')
-        .leftJoin('fichas', 'f', 'f.pk_id_ficha = cxf.fk_id_ficha');
+        .leftJoin('fichas', 'f', 'f.pk_id_ficha = c.fk_id_ficha')
+        .leftJoin('cosechas', 'cos', 'cos.fk_id_cultivos_variedad_x_zona = cvz.pk_id_cv_zona');
 
       // Aplicar filtros básicos
       if (dto.estado_cultivo !== undefined && dto.estado_cultivo !== null) {
         qb.andWhere('c.estado = :estado', { estado: dto.estado_cultivo });
       }
 
-      // Seleccionar campos con información de cosechas
+      // Seleccionar campos con información completa
       qb.select([
         'cvz.id as cvzId',
         'c.id as id',
-        "COALESCE(STRING_AGG(DISTINCT f.ficha_numero::text, ', '), 'Sin ficha') as ficha",
-        'z.nombre as lote',
-        "'Sin cultivo' as nombreCultivo",
+        "COALESCE(f.ficha_numero::text, 'Sin ficha') as ficha",
+        "COALESCE(z.nombre, 'Sin zona') as lote",
+        "COALESCE(v.var_nombre, 'Sin variedad') as nombrecultivo",
         'c.siembra as fechaSiembra',
         'c.estado as estado',
         'MAX(cos.fecha) as fechaCosecha',
         'COUNT(cos.id) as numCosechas',
         '(SELECT cos2.pk_id_cosecha FROM cosechas cos2 WHERE cos2.fk_id_cultivos_variedad_x_zona = cvz.pk_id_cv_zona ORDER BY cos2.cos_fecha DESC LIMIT 1) as cosechaId',
       ])
-      .groupBy('cvz.id, c.id, z.nombre, c.siembra, c.estado')
+      .groupBy('cvz.id, c.id, z.nombre, c.siembra, c.estado, f.ficha_numero, v.var_nombre')
       .orderBy('cvz.id');
 
       const result = await qb.getRawMany();
