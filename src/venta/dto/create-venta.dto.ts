@@ -16,9 +16,5 @@ export class CreateVentaDto {
   @IsNumber()
   @IsOptional()
   precioKilo?: number;
-
-  @IsNumber()
-  @IsOptional()
-  ventaTotal?: number;
 }
 
