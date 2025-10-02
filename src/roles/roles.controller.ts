@@ -5,6 +5,7 @@ import {
   Body,
   Param,
   Delete,
+  Patch,
   ParseUUIDPipe,
   UseGuards,
   HttpCode,
@@ -13,6 +14,8 @@ import {
 import { RolesService } from './roles.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { AssignPermissionDto } from './dto/assign-permission.dto';
+import { AssignMultiplePermissionsDto } from './dto/assign-multiple-permissions.dto';
+import { UpdateRoleWithPermissionsDto } from './dto/update-role-with-permissions.dto';
 import { AuthenticationGuard } from '../common/guards/authentication.guard';
 import { AuthorizationGuard } from '../common/guards/authorization.guard';
 import { Permisos } from '../permisos/decorators/permisos.decorator';
@@ -56,6 +59,10 @@ se envia el id del rol al que se le va a asignar el permiso
   // --- Endpoints para gestionar permisos en un rol ---
 
   @Post(':id/permisos')
+
+
+
+
   assignPermission(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() assignPermissionDto: AssignPermissionDto,
@@ -64,6 +71,23 @@ se envia el id del rol al que se le va a asignar el permiso
       id,
       assignPermissionDto.permisoId,
     );
+  }
+
+  @Post(':id/permisos/multiple')
+
+  assignMultiplePermissions(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() assignMultiplePermissionsDto: AssignMultiplePermissionsDto,
+  ) {
+    return this.rolesService.assignMultiplePermissions(id, assignMultiplePermissionsDto.permisoIds);
+  }
+
+  @Patch(':id')
+  updateRoleWithPermissions(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateRoleWithPermissionsDto: UpdateRoleWithPermissionsDto,
+  ) {
+    return this.rolesService.updateRoleWithPermissions(id, updateRoleWithPermissionsDto);
   }
 
   @Delete(':id/permisos/:permisoId')
