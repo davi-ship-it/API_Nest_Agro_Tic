@@ -81,6 +81,50 @@ export class RolesService {
     // del rol desde la base de datos, con todas las relaciones anidadas cargadas.
     return this.findOne(roleId);
   }
+  async assignMultiplePermissions(roleId: string, permisoIds: string[]): Promise<Roles> {
+    const rol = await this.findOne(roleId);
+
+    // Busca los permisos que se van a asignar
+    const permisos = await this.permisosRepository.findByIds(permisoIds);
+    if (permisos.length !== permisoIds.length) {
+      throw new NotFoundException('Uno o más permisos no encontrados');
+    }
+
+    // Filtra permisos que ya están asignados
+    const nuevosPermisos = permisos.filter(
+      (permiso) => !rol.permisos.some((p) => p.id === permiso.id),
+    );
+
+    // Asigna los nuevos permisos
+    rol.permisos.push(...nuevosPermisos);
+
+    await this.rolesRepository.save(rol);
+
+    return this.findOne(roleId);
+  }
+
+  async updateRoleWithPermissions(roleId: string, updateData: { nombre?: string; permisoIds?: string[] }): Promise<Roles> {
+    const rol = await this.findOne(roleId);
+
+    // Actualizar nombre si se proporciona
+    if (updateData.nombre) {
+      rol.nombre = updateData.nombre;
+    }
+
+    // Actualizar permisos si se proporcionan
+    if (updateData.permisoIds !== undefined) {
+      // Buscar permisos
+      const permisos = await this.permisosRepository.findByIds(updateData.permisoIds);
+      if (permisos.length !== updateData.permisoIds.length) {
+        throw new NotFoundException('Uno o más permisos no encontrados');
+      }
+      // Reemplazar permisos
+      rol.permisos = permisos;
+    }
+
+    return this.rolesRepository.save(rol);
+  }
+
   async removePermission(roleId: string, permisoId: string): Promise<Roles> {
     const rol = await this.findOne(roleId);
 

@@ -25,7 +25,10 @@ export class ModulosService {
   }
 
   findAll(): Promise<Modulo[]> {
-    return this.moduloRepository.find({ order: { nombre: 'ASC' } });
+    return this.moduloRepository.find({
+      order: { nombre: 'ASC' },
+      relations: ['recursos', 'recursos.permisos'],
+    });
   }
 
   async findOne(id: string): Promise<Modulo> {
