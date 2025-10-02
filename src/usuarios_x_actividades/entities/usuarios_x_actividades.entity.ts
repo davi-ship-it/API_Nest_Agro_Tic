@@ -25,4 +25,3 @@ export class UsuarioXActividad {
   @JoinColumn({ name: 'fk_id_actividad' })
   actividad?: Actividad;
 }
-

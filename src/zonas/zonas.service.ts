@@ -1,27 +1,25 @@
 import { Injectable } from '@nestjs/common';
-import { CreateZonaDto } from './dto/create-zona.dto';
-import { UpdateZonaDto } from './dto/update-zona.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Zona } from './entities/zona.entity';
 
 @Injectable()
 export class ZonasService {
-  create(createZonaDto: CreateZonaDto) {
-    return 'This action adds a new zona';
+  constructor(
+    @InjectRepository(Zona)
+    private readonly zonaRepository: Repository<Zona>,
+  ) {}
+
+  // Devuelve todas las zonas
+  async findAll(): Promise<{ id: string; name: string }[]> {
+    const zonas = await this.zonaRepository.find();
+    // Mapeamos a { id, name } para el frontend
+    return zonas.map(z => ({ id: z.id, name: z.nombre }));
   }
 
-  findAll() {
-    return `This action returns all zonas`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} zona`;
-  }
-
-  update(id: number, updateZonaDto: UpdateZonaDto) {
-    return `This action updates a #${id} zona`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} zona`;
+  // Devuelve una zona por id
+  async findOne(id: string): Promise<Zona | null> {
+    return this.zonaRepository.findOne({ where: { id } });
   }
 }
 

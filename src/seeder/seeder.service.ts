@@ -698,15 +698,15 @@ export class SeederService {
   private async seedActividad() {
     this.logger.log('Creando actividades base...', 'Seeder');
     try {
-      const cvzs = await this.cultivosVariedadXZonaRepository.find();
+      const cvzs = await this.cultivosVariedadXZonaRepository.find({ relations: ['zona'] });
       for (const cvz of cvzs) {
         const actividad = this.actividadRepository.create({
-          nombre: 'Siembra',
           descripcion: 'Actividad de siembra',
-          fechaInicio: new Date('2023-01-01'),
-          fechaFin: new Date('2023-01-10'),
-          estado: 'en curso',
-          imgUrl: 'url',
+          categoria: 'Siembra',
+          dniUsuario: '111111111', // DNI del aprendiz de prueba
+          nombreInventario: 'Semillas de Tomate',
+          fechaInicio: new Date(),
+          nombreZona: cvz.zona?.nombre || 'Zona Desconocida',
           fkCultivoVariedadZonaId: cvz.id,
         });
         await this.actividadRepository.save(actividad);

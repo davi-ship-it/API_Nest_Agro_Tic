@@ -3,11 +3,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ActividadesService } from './actividades.service';
 import { ActividadesController } from './actividades.controller';
 import { Actividad } from './entities/actividades.entity';
+import { CultivosVariedadXZona } from '../cultivos_variedad_x_zona/entities/cultivos_variedad_x_zona.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Actividad])],
-  providers: [ActividadesService],
+  imports: [TypeOrmModule.forFeature([Actividad, CultivosVariedadXZona])],
   controllers: [ActividadesController],
-  exports: [TypeOrmModule], // opcional, si otros módulos también usan Actividad
+  providers: [ActividadesService],
 })
 export class ActividadesModule {}
