@@ -26,7 +26,9 @@ export class ZonasService {
   }
 
   async findOne(id: number): Promise<Zona> {
-    const zona = await this.zonaRepository.findOne({ where: { id: id.toString() } });
+    const zona = await this.zonaRepository.findOne({
+      where: { id: id.toString() },
+    });
     if (!zona) {
       throw new NotFoundException(`Zona con id ${id} no encontrada`);
     }
@@ -50,8 +52,8 @@ export class ZonasService {
       relations: [
         'cultivosVariedad.cultivoXVariedad.cultivo',
         'cultivosVariedad.cultivoXVariedad.variedad',
-        'cultivosVariedad.cultivoXVariedad.variedad.tipoCultivo'
-      ]
+        'cultivosVariedad.cultivoXVariedad.variedad.tipoCultivo',
+      ],
     });
 
     if (!zona) {
@@ -61,22 +63,24 @@ export class ZonasService {
     return {
       zona: {
         id: zona.id,
-        nombre: zona.nombre
+        nombre: zona.nombre,
       },
-      cultivos: zona.cultivosVariedad?.map(cvz => ({
-        cvzId: cvz.id,
-        cultivo: {
-          id: cvz.cultivoXVariedad?.cultivo?.id,
-          nombre: cvz.cultivoXVariedad?.variedad?.tipoCultivo?.nombre || 'Tipo Cultivo',
-          estado: cvz.cultivoXVariedad?.cultivo?.estado,
-          fechaSiembra: cvz.cultivoXVariedad?.cultivo?.siembra
-        },
-        variedad: {
-          id: cvz.cultivoXVariedad?.variedad?.id,
-          nombre: cvz.cultivoXVariedad?.variedad?.nombre
-        }
-      })) || []
+      cultivos:
+        zona.cultivosVariedad?.map((cvz) => ({
+          cvzId: cvz.id,
+          cultivo: {
+            id: cvz.cultivoXVariedad?.cultivo?.id,
+            nombre:
+              cvz.cultivoXVariedad?.variedad?.tipoCultivo?.nombre ||
+              'Tipo Cultivo',
+            estado: cvz.cultivoXVariedad?.cultivo?.estado,
+            fechaSiembra: cvz.cultivoXVariedad?.cultivo?.siembra,
+          },
+          variedad: {
+            id: cvz.cultivoXVariedad?.variedad?.id,
+            nombre: cvz.cultivoXVariedad?.variedad?.nombre,
+          },
+        })) || [],
     };
   }
 }
-

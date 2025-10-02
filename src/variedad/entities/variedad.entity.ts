@@ -1,5 +1,12 @@
 // File: src/entities/variedad/variedad.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
+} from 'typeorm';
 import { TipoCultivo } from '../../tipo_cultivo/entities/tipo_cultivo.entity';
 import { CultivosXVariedad } from '../../cultivos_x_variedad/entities/cultivos_x_variedad.entity';
 
@@ -21,4 +28,3 @@ export class Variedad {
   @OneToMany(() => CultivosXVariedad, (cxv) => cxv.variedad)
   cultivosXVariedad?: CultivosXVariedad[];
 }
-

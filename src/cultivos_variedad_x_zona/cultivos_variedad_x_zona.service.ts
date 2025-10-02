@@ -12,7 +12,9 @@ export class CultivosVariedadXZonaService {
     private readonly cvzRepository: Repository<CultivosVariedadXZona>,
   ) {}
 
-  async create(createCultivosVariedadXZonaDto: CreateCultivosVariedadXZonaDto): Promise<CultivosVariedadXZona> {
+  async create(
+    createCultivosVariedadXZonaDto: CreateCultivosVariedadXZonaDto,
+  ): Promise<CultivosVariedadXZona> {
     const cvz = this.cvzRepository.create(createCultivosVariedadXZonaDto);
     return await this.cvzRepository.save(cvz);
   }
@@ -28,19 +30,31 @@ export class CultivosVariedadXZonaService {
           fkCultivoId: cultivoId,
         },
       },
-      relations: ['cultivoXVariedad', 'cultivoXVariedad.variedad', 'cultivoXVariedad.variedad.tipoCultivo', 'zona'],
+      relations: [
+        'cultivoXVariedad',
+        'cultivoXVariedad.variedad',
+        'cultivoXVariedad.variedad.tipoCultivo',
+        'zona',
+      ],
     });
   }
 
   async findOne(id: number): Promise<CultivosVariedadXZona> {
-    const cvz = await this.cvzRepository.findOne({ where: { id: id.toString() } });
+    const cvz = await this.cvzRepository.findOne({
+      where: { id: id.toString() },
+    });
     if (!cvz) {
-      throw new NotFoundException(`CultivosVariedadXZona con id ${id} no encontrada`);
+      throw new NotFoundException(
+        `CultivosVariedadXZona con id ${id} no encontrada`,
+      );
     }
     return cvz;
   }
 
-  async update(id: number, updateCultivosVariedadXZonaDto: UpdateCultivosVariedadXZonaDto): Promise<CultivosVariedadXZona> {
+  async update(
+    id: number,
+    updateCultivosVariedadXZonaDto: UpdateCultivosVariedadXZonaDto,
+  ): Promise<CultivosVariedadXZona> {
     const cvz = await this.findOne(id);
     Object.assign(cvz, updateCultivosVariedadXZonaDto);
     return await this.cvzRepository.save(cvz);
@@ -51,4 +65,3 @@ export class CultivosVariedadXZonaService {
     await this.cvzRepository.remove(cvz);
   }
 }
-

@@ -15,4 +15,3 @@ export class CreateTipoSensorDto {
   @Length(1, 20)
   unidadMedida: string;
 }
-

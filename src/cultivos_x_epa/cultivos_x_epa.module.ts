@@ -7,4 +7,3 @@ import { CultivosXEpaController } from './cultivos_x_epa.controller';
   providers: [CultivosXEpaService],
 })
 export class CultivosXEpaModule {}
-

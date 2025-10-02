@@ -19,4 +19,3 @@ export class TipoSensor {
   @OneToMany(() => Sensor, (s) => s.tipoSensor)
   sensores?: Sensor[];
 }
-

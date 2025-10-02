@@ -49,16 +49,46 @@ export class CultivosService {
   async search(dto: SearchCultivoDto): Promise<any[]> {
     try {
       // Query que muestra cultivos con CVZ asignado (para poder registrar cosechas)
-      let qb = this.cvzRepo
+      const qb = this.cvzRepo
         .createQueryBuilder('cvz')
         .leftJoin('cvz.cultivoXVariedad', 'cxv')
         .leftJoin('cxv.cultivo', 'c')
         .leftJoin('cxv.variedad', 'v')
         .leftJoin('cvz.zona', 'z')
         .leftJoin('fichas', 'f', 'f.pk_id_ficha = c.fk_id_ficha')
-        .leftJoin('cosechas', 'cos', 'cos.fk_id_cultivos_variedad_x_zona = cvz.pk_id_cv_zona');
+        .leftJoin(
+          'cosechas',
+          'cos',
+          'cos.fk_id_cultivos_variedad_x_zona = cvz.pk_id_cv_zona',
+        );
 
       // Aplicar filtros básicos
+      if (dto.buscar) {
+        qb.andWhere('z.nombre ILIKE :buscar', { buscar: `%${dto.buscar}%` });
+      }
+
+      if (dto.buscar_cultivo) {
+        qb.andWhere('v.var_nombre ILIKE :buscarCultivo', {
+          buscarCultivo: `%${dto.buscar_cultivo}%`,
+        });
+      }
+
+      if (dto.fecha_inicio) {
+        qb.andWhere('c.siembra >= :fechaInicio', {
+          fechaInicio: dto.fecha_inicio,
+        });
+      }
+
+      if (dto.fecha_fin) {
+        qb.andWhere('c.siembra <= :fechaFin', { fechaFin: dto.fecha_fin });
+      }
+
+      if (dto.id_titulado) {
+        qb.andWhere('f.ficha_numero::text = :idTitulado', {
+          idTitulado: dto.id_titulado,
+        });
+      }
+
       if (dto.estado_cultivo !== undefined && dto.estado_cultivo !== null) {
         qb.andWhere('c.estado = :estado', { estado: dto.estado_cultivo });
       }
@@ -76,8 +106,10 @@ export class CultivosService {
         'COUNT(cos.id) as numCosechas',
         '(SELECT cos2.pk_id_cosecha FROM cosechas cos2 WHERE cos2.fk_id_cultivos_variedad_x_zona = cvz.pk_id_cv_zona ORDER BY cos2.cos_fecha DESC LIMIT 1) as cosechaId',
       ])
-      .groupBy('cvz.id, c.id, z.nombre, c.siembra, c.estado, f.ficha_numero, v.var_nombre')
-      .orderBy('cvz.id');
+        .groupBy(
+          'cvz.id, c.id, z.nombre, c.siembra, c.estado, f.ficha_numero, v.var_nombre',
+        )
+        .orderBy('cvz.id');
 
       const result = await qb.getRawMany();
       console.log('Search result count:', result.length);

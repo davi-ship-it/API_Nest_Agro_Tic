@@ -27,7 +27,9 @@ export class TipoCultivoService {
 
   // READ ONE
   async findOne(id: string): Promise<TipoCultivo> {
-    const tipoCultivo = await this.tipoCultivoRepository.findOne({ where: { id } });
+    const tipoCultivo = await this.tipoCultivoRepository.findOne({
+      where: { id },
+    });
     if (!tipoCultivo) {
       throw new NotFoundException(`TipoCultivo con id ${id} no encontrado`);
     }

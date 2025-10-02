@@ -13,9 +13,9 @@ export class MapasService {
   ) {}
 
   async create(dto: { nombre: string; urlImg: string }) {
-  const mapa = this.mapaRepo.create(dto);
-  return await this.mapaRepo.save(mapa);
-}
+    const mapa = this.mapaRepo.create(dto);
+    return await this.mapaRepo.save(mapa);
+  }
 
   async findAll(): Promise<Mapa[]> {
     return await this.mapaRepo.find();

@@ -22,7 +22,6 @@ export class ModulosController {
   constructor(private readonly modulosService: ModulosService) {}
 
   @Post()
- 
   create(@Body() createModuloDto: CreateModuloDto) {
     return this.modulosService.create(createModuloDto);
   }

@@ -7,4 +7,3 @@ import { SensorController } from './sensor.controller';
   providers: [SensorService],
 })
 export class SensorModule {}
-

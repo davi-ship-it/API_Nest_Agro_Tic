@@ -12,17 +12,20 @@ export class ActividadesService {
     private readonly actividadesRepo: Repository<Actividad>,
   ) {}
 
-async create(dto: CreateActividadeDto & { imgUrl: string }): Promise<Actividad> {
-  const actividad: Actividad = this.actividadesRepo.create(dto);
-  return await this.actividadesRepo.save(actividad);
-}
+  async create(
+    dto: CreateActividadeDto & { imgUrl: string },
+  ): Promise<Actividad> {
+    const actividad: Actividad = this.actividadesRepo.create(dto);
+    return await this.actividadesRepo.save(actividad);
+  }
   async findAll(): Promise<Actividad[]> {
     return await this.actividadesRepo.find();
   }
 
   async findOne(id: string): Promise<Actividad> {
     const actividad = await this.actividadesRepo.findOne({ where: { id } });
-    if (!actividad) throw new NotFoundException(`Actividad con ID ${id} no encontrada`);
+    if (!actividad)
+      throw new NotFoundException(`Actividad con ID ${id} no encontrada`);
     return actividad;
   }
 

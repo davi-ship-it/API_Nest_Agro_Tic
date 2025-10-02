@@ -1,12 +1,19 @@
 // File: src/entities/epa/epa.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { CultivosXEpa } from '../../cultivos_x_epa/entities/cultivos_x_epa.entity';
 import { TipoEpa } from '../../tipo_epa/entities/tipo_epa.entity';
 
 @Entity('epa')
 export class Epa {
   @PrimaryGeneratedColumn('uuid', { name: 'pk_id_epa' })
-  id:   string;
+  id: string;
 
   @Column({ name: 'epa_nombre', type: 'varchar', length: 100 })
   nombre: string;

@@ -19,7 +19,10 @@ export class VariedadesService {
     const saved = await this.variedadRepo.save(variedad);
     console.log('Saved variedad:', saved);
     // Load relations for the response
-    const variedadWithRelation = await this.variedadRepo.findOne({ where: { id: saved.id }, relations: ['tipoCultivo'] });
+    const variedadWithRelation = await this.variedadRepo.findOne({
+      where: { id: saved.id },
+      relations: ['tipoCultivo'],
+    });
     if (!variedadWithRelation) {
       throw new Error('Variedad no encontrada después de guardar');
     }
@@ -27,7 +30,8 @@ export class VariedadesService {
   }
 
   async findAll(): Promise<Variedad[]> {
-    const variedades = await this.variedadRepo.createQueryBuilder('v')
+    const variedades = await this.variedadRepo
+      .createQueryBuilder('v')
       .leftJoinAndSelect('v.tipoCultivo', 'tc')
       .getMany();
     console.log('Variedades loaded:', JSON.stringify(variedades, null, 2));

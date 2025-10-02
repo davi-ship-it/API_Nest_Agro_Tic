@@ -12,8 +12,7 @@ import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 
 @Module({
   imports: [
-    
-   forwardRef(() => RolesModule), 
+    forwardRef(() => RolesModule),
     TypeOrmModule.forFeature([Usuario, Roles]),
     // JwtModule y CacheModule ya son globales, no es necesario re-importarlos
   ],
