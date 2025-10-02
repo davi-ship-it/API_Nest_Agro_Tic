@@ -21,6 +21,12 @@ import { Repository } from 'typeorm';
 import { CultivosVariedadXZona } from '../cultivos_variedad_x_zona/entities/cultivos_variedad_x_zona.entity';
 import { Actividad } from '../actividades/entities/actividades.entity';
 import { UsuarioXActividad } from '../usuarios_x_actividades/entities/usuarios_x_actividades.entity';
+import { Inventario } from '../inventario/entities/inventario.entity';
+import { InventarioXActividad } from '../inventario_x_actividades/entities/inventario_x_actividades.entity';
+import { Cosecha } from '../cosechas/entities/cosecha.entity';
+import { Bodega } from '../bodega/entities/bodega.entity';
+import { Categoria } from '../categoria/entities/categoria.entity';
+import { Mapa } from '../mapas/entities/mapa.entity';
 
 // Acciones comunes para reutilizar y mantener consistencia
 const ACCIONES_CRUD = ['leer', 'crear', 'actualizar', 'eliminar'];
@@ -105,6 +111,18 @@ export class SeederService {
     private readonly actividadRepository: Repository<Actividad>,
     @InjectRepository(UsuarioXActividad)
     private readonly usuarioXActividadRepository: Repository<UsuarioXActividad>,
+    @InjectRepository(Inventario)
+    private readonly inventarioRepository: Repository<Inventario>,
+    @InjectRepository(InventarioXActividad)
+    private readonly inventarioXActividadRepository: Repository<InventarioXActividad>,
+    @InjectRepository(Cosecha)
+    private readonly cosechaRepository: Repository<Cosecha>,
+    @InjectRepository(Bodega)
+    private readonly bodegaRepository: Repository<Bodega>,
+    @InjectRepository(Categoria)
+    private readonly categoriaRepository: Repository<Categoria>,
+    @InjectRepository(Mapa)
+    private readonly mapaRepository: Repository<Mapa>,
   ) {}
 
   async seed() {
@@ -153,18 +171,22 @@ export class SeederService {
       );
     }
 
-    // 9. Crear ficha de muestra y linkear con APRENDIZ
-    await this.seedFichaAprendiz();
+    // 9. Crear fichas de muestra
+    await this.seedFichas();
 
     // 7. Seed agricultural data
     await this.seedTipoCultivo();
     await this.seedVariedad();
+    await this.seedMapa();
     await this.seedZona();
     await this.seedCultivo();
     await this.seedCultivosXVariedad();
     await this.seedCultivosVariedadXZona();
+    // await this.seedCosechas(); // Comentado para que las cosechas se registren manualmente
     await this.seedActividad();
     await this.seedUsuarioXActividad();
+    await this.seedInventario();
+    await this.seedInventarioXActividad();
 
     this.logger.log('Seeding completado exitosamente.', 'Seeder');
   }
@@ -549,38 +571,43 @@ export class SeederService {
     }
   }
 
-  private async seedFichaAprendiz() {
-    this.logger.log('Creando ficha de muestra y asignándola al APRENDIZ...', 'Seeder');
+  private async seedFichas() {
+    this.logger.log('Creando fichas de muestra...', 'Seeder');
     try {
-      // Check if ficha exists
-      let ficha = await this.fichaRepository.findOne({ where: { numero: 2925484 } });
-      if (!ficha) {
-        ficha = this.fichaRepository.create({ numero: 2925484 });
-        await this.fichaRepository.save(ficha);
-        this.logger.log('Ficha 2925484 creada.', 'Seeder');
-      } else {
-        this.logger.log('Ficha 2925484 ya existe.', 'Seeder');
+      const fichasData = [
+        { numero: 2925484 },
+        { numero: 1987654 },
+        { numero: 3456789 },
+        { numero: 4567890 },
+      ];
+
+      for (const fichaData of fichasData) {
+        let ficha = await this.fichaRepository.findOne({ where: { numero: fichaData.numero } });
+        if (!ficha) {
+          ficha = this.fichaRepository.create({
+            numero: fichaData.numero,
+          });
+          await this.fichaRepository.save(ficha);
+          this.logger.log(`Ficha ${fichaData.numero} creada.`, 'Seeder');
+        }
       }
 
       // Assign ficha to APRENDIZ user
       const dniAprendiz = 111111111;
+      const fichaAprendiz = await this.fichaRepository.findOne({ where: { numero: 2925484 } });
       const aprendiz = await this.usuarioRepository.findOne({
         where: { dni: dniAprendiz },
         relations: ['ficha'],
       });
-      if (aprendiz) {
+      if (aprendiz && fichaAprendiz) {
         if (!aprendiz.ficha) {
-          aprendiz.ficha = ficha;
+          aprendiz.ficha = fichaAprendiz;
           await this.usuarioRepository.save(aprendiz);
           this.logger.log('Ficha asignada al usuario APRENDIZ.', 'Seeder');
-        } else {
-          this.logger.log('El usuario APRENDIZ ya tiene una ficha asignada.', 'Seeder');
         }
-      } else {
-        this.logger.warn('Usuario APRENDIZ no encontrado para asignar ficha.', 'Seeder');
       }
     } catch (error) {
-      this.logger.error(`Error creando o asignando ficha: ${error.message}`, 'Seeder');
+      this.logger.error(`Error creando fichas: ${error.message}`, 'Seeder');
     }
   }
 
@@ -625,16 +652,39 @@ export class SeederService {
     }
   }
 
+  private async seedMapa() {
+    this.logger.log('Creando mapas base...', 'Seeder');
+    try {
+      const mapas = [{ nombre: 'Mapa Principal', urlImg: 'uploads/mapas/mapa1.jpg' }];
+      for (const m of mapas) {
+        let mapa = await this.mapaRepository.findOne({ where: { nombre: m.nombre } });
+        if (!mapa) {
+          mapa = this.mapaRepository.create(m);
+          await this.mapaRepository.save(mapa);
+          this.logger.log(`Mapa "${m.nombre}" creado.`, 'Seeder');
+        }
+      }
+    } catch (error) {
+      this.logger.error(`Error creando mapas: ${error.message}`, 'Seeder');
+    }
+  }
+
   private async seedZona() {
     this.logger.log('Creando zonas base...', 'Seeder');
     try {
-      const zonas = ['Zona Norte', 'Zona Sur'];
-      for (const nombre of zonas) {
-        let zona = await this.zonaRepository.findOne({ where: { nombre } });
-        if (!zona) {
-          zona = this.zonaRepository.create({ nombre });
-          await this.zonaRepository.save(zona);
-          this.logger.log(`Zona "${nombre}" creada.`, 'Seeder');
+      const mapa = await this.mapaRepository.findOne({ where: { nombre: 'Mapa Principal' } });
+      if (mapa) {
+        const zonas = [
+          { nombre: 'Zona Norte', tipoLote: 'Lote', coorX: 10.5, coorY: 20.3, fkMapaId: mapa.id },
+          { nombre: 'Zona Sur', tipoLote: 'Lote', coorX: 15.2, coorY: 25.7, fkMapaId: mapa.id },
+        ];
+        for (const z of zonas) {
+          let zona = await this.zonaRepository.findOne({ where: { nombre: z.nombre } });
+          if (!zona) {
+            zona = this.zonaRepository.create(z);
+            await this.zonaRepository.save(zona);
+            this.logger.log(`Zona "${z.nombre}" creada.`, 'Seeder');
+          }
         }
       }
     } catch (error) {
@@ -643,31 +693,59 @@ export class SeederService {
   }
 
   private async seedCultivo() {
-    this.logger.log('Creando cultivos base...', 'Seeder');
+    this.logger.log('Creando muchos cultivos con fechas de siembra variadas...', 'Seeder');
     try {
-      const cultivos = [
-        { siembra: new Date('2023-01-01'), estado: 1 },
-        { siembra: new Date('2023-06-01'), estado: 1 },
+      const fechasSiembra = [
+        '2023-01-15', '2023-02-20', '2023-03-10', '2023-04-05', '2023-05-12', '2023-06-18',
+        '2023-07-25', '2023-08-08', '2023-09-14', '2023-10-22', '2023-11-30', '2023-12-05',
+        '2024-01-10', '2024-02-15', '2024-03-20', '2024-04-25', '2024-05-30', '2024-06-05',
+        '2024-07-10', '2024-08-15', '2024-09-20', '2024-10-25', '2024-11-30', '2024-12-05',
+        '2025-01-10', '2025-02-15', '2025-03-20', '2025-04-25', '2025-05-30', '2025-06-05'
       ];
-      for (const c of cultivos) {
-        const cultivo = this.cultivoRepository.create(c);
+
+      // Obtener fichas disponibles
+      const fichas = await this.fichaRepository.find();
+      if (fichas.length === 0) {
+        this.logger.warn('No hay fichas disponibles para asignar a cultivos', 'Seeder');
+        return;
+      }
+
+      const cultivosCreados: any[] = [];
+      for (let i = 0; i < 20; i++) {
+        // Mezcla de estados: 70% en curso, 30% finalizado
+        const estado = Math.random() > 0.7 ? 0 : 1;
+
+        // Asignar ficha durante la creación
+        const ficha = fichas[i % fichas.length];
+
+        const cultivo = this.cultivoRepository.create({
+          fkFichaId: ficha.id,
+          siembra: new Date(fechasSiembra[i % fechasSiembra.length]),
+          estado: estado
+        });
         await this.cultivoRepository.save(cultivo);
-        this.logger.log(`Cultivo creado.`, 'Seeder');
+        cultivosCreados.push(cultivo);
+
+        const estadoTexto = estado === 1 ? 'En curso' : 'Finalizado';
+        this.logger.log(`Cultivo ${i + 1} creado - Estado: ${estadoTexto}, Ficha: ${ficha.numero}`, 'Seeder');
       }
     } catch (error) {
       this.logger.error(`Error creando cultivos: ${error.message}`, 'Seeder');
     }
   }
 
+
   private async seedCultivosXVariedad() {
     this.logger.log('Creando relaciones cultivos x variedad...', 'Seeder');
     try {
       const cultivos = await this.cultivoRepository.find();
       const variedades = await this.variedadRepository.find();
+
+      // Crear una relación simple: cada cultivo con una variedad
       for (let i = 0; i < Math.min(cultivos.length, variedades.length); i++) {
         const cxv = this.cultivosXVariedadRepository.create({
           fkCultivoId: cultivos[i].id,
-          fkVariedadId: variedades[i].id,
+          fkVariedadId: variedades[i % variedades.length].id,
         });
         await this.cultivosXVariedadRepository.save(cxv);
         this.logger.log(`Relación cultivo-variedad creada.`, 'Seeder');
@@ -682,10 +760,12 @@ export class SeederService {
     try {
       const cxvs = await this.cultivosXVariedadRepository.find();
       const zonas = await this.zonaRepository.find();
-      for (let i = 0; i < Math.min(cxvs.length, zonas.length); i++) {
+
+      // Crear una relación simple: cada cxv con una zona
+      for (let i = 0; i < cxvs.length; i++) {
         const cvz = this.cultivosVariedadXZonaRepository.create({
           fkCultivosXVariedadId: cxvs[i].id,
-          fkZonaId: zonas[i].id,
+          fkZonaId: zonas[i % zonas.length].id,
         });
         await this.cultivosVariedadXZonaRepository.save(cvz);
         this.logger.log(`Relación cultivo-variedad-zona creada.`, 'Seeder');
@@ -733,6 +813,70 @@ export class SeederService {
       }
     } catch (error) {
       this.logger.error(`Error creando relaciones usuario x actividad: ${error.message}`, 'Seeder');
+    }
+  }
+
+  private async seedCosechas() {
+    this.logger.log('Creando algunas cosechas para cultivos finalizados...', 'Seeder');
+    try {
+      const cvzs = await this.cultivosVariedadXZonaRepository.find();
+      // Crear cosechas para algunos CVZ (los primeros 3)
+      const numCosechas = Math.min(3, cvzs.length);
+
+      for (let i = 0; i < numCosechas; i++) {
+        const cosecha = this.cosechaRepository.create({
+          unidadMedida: 'kg',
+          cantidad: Math.floor(Math.random() * 200) + 50, // Cantidad aleatoria entre 50-250
+          fecha: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Últimos 30 días
+          fkCultivosVariedadXZonaId: cvzs[i].id,
+        });
+        await this.cosechaRepository.save(cosecha);
+        this.logger.log(`Cosecha creada para CVZ ${cvzs[i].id}.`, 'Seeder');
+      }
+      this.logger.log(`Creadas ${numCosechas} cosechas.`, 'Seeder');
+    } catch (error) {
+      this.logger.error(`Error creando cosechas: ${error.message}`, 'Seeder');
+    }
+  }
+
+  private async seedInventario() {
+    this.logger.log('Creando inventario base...', 'Seeder');
+    try {
+      const bodega = await this.bodegaRepository.findOne({ where: { nombre: 'Bodega Principal' } });
+      const categoria = await this.categoriaRepository.findOne({ where: { nombre: 'Abono' } });
+      if (bodega && categoria) {
+        const inventario = this.inventarioRepository.create({
+          nombre: 'Abono Orgánico',
+          descripcion: 'Abono para cultivos',
+          stock: 50,
+          precio: 10,
+          fkBodegaId: bodega.id,
+          fkCategoriaId: categoria.id,
+        });
+        await this.inventarioRepository.save(inventario);
+        this.logger.log(`Inventario creado.`, 'Seeder');
+      }
+    } catch (error) {
+      this.logger.error(`Error creando inventario: ${error.message}`, 'Seeder');
+    }
+  }
+
+  private async seedInventarioXActividad() {
+    this.logger.log('Creando relaciones inventario x actividad...', 'Seeder');
+    try {
+      const inventarios = await this.inventarioRepository.find();
+      const actividades = await this.actividadRepository.find();
+      for (let i = 0; i < Math.min(inventarios.length, actividades.length); i++) {
+        const ixa = this.inventarioXActividadRepository.create({
+          fkInventarioId: inventarios[i].id,
+          fkActividadId: actividades[i].id,
+          cantidadUsada: 10,
+        });
+        await this.inventarioXActividadRepository.save(ixa);
+        this.logger.log(`Relación inventario-actividad creada.`, 'Seeder');
+      }
+    } catch (error) {
+      this.logger.error(`Error creando relaciones inventario x actividad: ${error.message}`, 'Seeder');
     }
   }
 }

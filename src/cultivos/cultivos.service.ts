@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Cultivo } from './entities/cultivo.entity';
+import { CultivosVariedadXZona } from '../cultivos_variedad_x_zona/entities/cultivos_variedad_x_zona.entity';
 import { CreateCultivoDto } from './dto/create-cultivo.dto';
 import { UpdateCultivoDto } from './dto/update-cultivo.dto';
 import { SearchCultivoDto } from './dto/search-cultivo.dto';
@@ -11,6 +12,8 @@ export class CultivosService {
   constructor(
     @InjectRepository(Cultivo)
     private readonly cultivoRepo: Repository<Cultivo>,
+    @InjectRepository(CultivosVariedadXZona)
+    private readonly cvzRepo: Repository<CultivosVariedadXZona>,
   ) {}
 
   async create(dto: CreateCultivoDto): Promise<Cultivo> {
@@ -44,65 +47,45 @@ export class CultivosService {
   }
 
   async search(dto: SearchCultivoDto): Promise<any[]> {
-    // 1. Inicializar el query builder con todos los JOINS necesarios para la SALIDA (SELECT)
-    let qb = this.cultivoRepo
-      .createQueryBuilder('c')
-      .leftJoin('c.variedades', 'cxv') // Cultivo x Variedad
-      .leftJoin('cxv.variedad', 'v') // Variedad
-      .leftJoin('v.tipoCultivo', 'tc') // Tipo de Cultivo
-      .leftJoin('cxv.zonas', 'cvz') // Cultivo x Variedad x Zona
-      .leftJoin('cvz.zona', 'z') // Zona (Lote)
-      .leftJoin('cxv.cosechas', 'cos') // Cosechas
-      // Join para la Ficha (asumiendo que la tabla se llama 'fichas' y tiene pk_id_ficha)
-      .leftJoin('fichas', 'f', 'f.pk_id_ficha = c.fk_id_ficha'); // 2. APLICAR FILTROS (Usando los aliases de los joins definidos arriba)
+    try {
+      // Query que muestra cultivos con CVZ asignado (para poder registrar cosechas)
+      let qb = this.cvzRepo
+        .createQueryBuilder('cvz')
+        .leftJoin('cvz.cultivoXVariedad', 'cxv')
+        .leftJoin('cxv.cultivo', 'c')
+        .leftJoin('cxv.variedad', 'v')
+        .leftJoin('cvz.zona', 'z')
+        .leftJoin('fichas', 'f', 'f.pk_id_ficha = c.fk_id_ficha')
+        .leftJoin('cosechas', 'cos', 'cos.fk_id_cultivos_variedad_x_zona = cvz.pk_id_cv_zona');
 
-    if (dto.estado_cultivo !== undefined) {
-      qb.andWhere('c.estado = :estado', { estado: dto.estado_cultivo });
+      // Aplicar filtros básicos
+      if (dto.estado_cultivo !== undefined && dto.estado_cultivo !== null) {
+        qb.andWhere('c.estado = :estado', { estado: dto.estado_cultivo });
+      }
+
+      // Seleccionar campos con información completa
+      qb.select([
+        'cvz.id as cvzId',
+        'c.id as id',
+        "COALESCE(f.ficha_numero::text, 'Sin ficha') as ficha",
+        "COALESCE(z.nombre, 'Sin zona') as lote",
+        "COALESCE(v.var_nombre, 'Sin variedad') as nombrecultivo",
+        'c.siembra as fechaSiembra',
+        'c.estado as estado',
+        'MAX(cos.fecha) as fechaCosecha',
+        'COUNT(cos.id) as numCosechas',
+        '(SELECT cos2.pk_id_cosecha FROM cosechas cos2 WHERE cos2.fk_id_cultivos_variedad_x_zona = cvz.pk_id_cv_zona ORDER BY cos2.cos_fecha DESC LIMIT 1) as cosechaId',
+      ])
+      .groupBy('cvz.id, c.id, z.nombre, c.siembra, c.estado, f.ficha_numero, v.var_nombre')
+      .orderBy('cvz.id');
+
+      const result = await qb.getRawMany();
+      console.log('Search result count:', result.length);
+      return result;
+    } catch (error) {
+      console.error('Error en search:', error);
+      // Devolver array vacío en caso de error para evitar crash
+      return [];
     }
-
-    if (dto.id_titulado) {
-      qb.andWhere('f.ficha_numero::text ILIKE :titularId', {
-        titularId: `%${dto.id_titulado}%`,
-      });
-    }
-
-    if (dto.buscar) {
-      // Filtro de Zona usa el alias 'z'
-      qb.andWhere('z.nombre ILIKE :buscar', { buscar: `%${dto.buscar}%` });
-    }
-
-    if (dto.buscar_cultivo) {
-      // Filtro de Cultivo usa los aliases 'v' y 'tc'
-      qb.andWhere('(v.nombre ILIKE :cultivo OR tc.nombre ILIKE :cultivo)', {
-        cultivo: `%${dto.buscar_cultivo}%`,
-      });
-    }
-
-    if (dto.fecha_inicio && dto.fecha_fin) {
-      // Filtro de Fechas usa c.siembra y cos.fecha
-      qb.andWhere(
-        '(c.siembra BETWEEN :fechaInicio AND :fechaFin OR (cos.fecha IS NOT NULL AND cos.fecha BETWEEN :fechaInicio AND :fechaFin))',
-        {
-          fechaInicio: dto.fecha_inicio,
-          fechaFin: dto.fecha_fin,
-        },
-      );
-    } // 3. SELECCIONAR Y AGREGAR (Output de la tabla)
-
-    qb.select([
-      'c.id as id', // 1. FICHA
-      "COALESCE(f.ficha_numero::text, 'Sin ficha') as ficha", // 2. LOTE/ZONA (STRING_AGG para consolidar múltiples zonas)
-
-      "COALESCE(STRING_AGG(DISTINCT z.nombre, ', '), 'Sin zona') as lote", // 3. NOMBRE CULTIVO (STRING_AGG para consolidar múltiples variedades)
-
-      "COALESCE(STRING_AGG(DISTINCT CONCAT(tc.nombre, ' - ', v.nombre), ', '), 'Sin cultivo') as nombreCultivo", // 4. FECHA SIEMBRA
-
-      'c.siembra as fechaSiembra', // 5. FECHA COSECHA (MAX para obtener la más reciente)
-
-      'MAX(cos.fecha) as fechaCosecha',
-    ]) // Agrupamos solo por los campos que NO son agregados
-      .groupBy('c.id, c.fk_id_ficha, f.ficha_numero, c.siembra'); // 4. Ejecutar y devolver
-    const result = await qb.getRawMany();
-    return result;
   }
 }

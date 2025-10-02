@@ -10,16 +10,6 @@ export class CreateActividadeDto {
   @IsNotEmpty()
   descripcion: string;
 
-  @IsNotEmpty()
-  @Type(() => Date)
-  @IsDate()
-  fechaInicio: Date;
-
-  @IsOptional()
-  @Type(() => Date)
-  @IsDate()
-  fechaFin?: Date;
-
   @IsString()
   @IsOptional()
   estado?: string;

@@ -9,10 +9,10 @@ export class InventarioXActividad {
   id: string;
 
   @Column({ name: 'fk_id_inventario', nullable: true })
-  fkInventarioId?: number;
+  fkInventarioId?: string;
 
   @Column({ name: 'fk_id_actividad', nullable: true })
-  fkActividadId?: number;
+  fkActividadId?: string;
 
   @Column({ name: 'ixa_cantidad_usada', type: 'numeric', nullable: true })
   cantidadUsada?: number;

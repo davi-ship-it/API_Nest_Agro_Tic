@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { ZonasService } from './zonas.service';
 import { CreateZonaDto } from './dto/create-zona.dto';
 import { UpdateZonaDto } from './dto/update-zona.dto';
@@ -13,13 +13,21 @@ export class ZonasController {
   }
 
   @Get()
-  findAll() {
+  findAll(@Query('nombre') nombre?: string) {
+    if (nombre) {
+      return this.zonasService.findByNombre(nombre);
+    }
     return this.zonasService.findAll();
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.zonasService.findOne(+id);
+  }
+
+  @Get(':id/cultivos-variedad-zona')
+  getCultivosVariedadXZona(@Param('id') id: string) {
+    return this.zonasService.getCultivosVariedadXZona(id);
   }
 
   @Patch(':id')

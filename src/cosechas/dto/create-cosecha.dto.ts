@@ -1,23 +1,20 @@
-import { IsString, IsNotEmpty, IsNumber, IsDate, IsOptional, Length } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsString, IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
 
 export class CreateCosechaDto {
     @IsString()
     @IsNotEmpty()
-    @Length(1, 2)
-    unidadMedida: string;
+    unidadMedida: string = 'kg';
 
     @IsNumber()
     @IsNotEmpty()
     cantidad: number;
 
     @IsOptional()
-    @Type(() => Date)
-    @IsDate()
-    fecha?: Date;
+    @IsString()
+    fecha?: string;
 
-    @IsNumber()
+    @IsString()
     @IsNotEmpty()
-    fkCultivosXVariedadId: number;
+    fkCultivosVariedadXZonaId: string;
 }
 

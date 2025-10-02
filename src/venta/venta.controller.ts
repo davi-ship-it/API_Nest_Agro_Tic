@@ -19,17 +19,17 @@ export class VentaController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.ventaService.findOne(+id);
+    return this.ventaService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateVentaDto: UpdateVentaDto) {
-    return this.ventaService.update(+id, updateVentaDto);
+    return this.ventaService.update(id, updateVentaDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.ventaService.remove(+id);
+    return this.ventaService.remove(id);
   }
 }
 

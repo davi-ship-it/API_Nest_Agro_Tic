@@ -19,8 +19,8 @@ export class CreateZonaDto {
   @IsNotEmpty()
   coorY: number;
 
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
-  fkMapaId: number;
+  fkMapaId: string;
 }
 

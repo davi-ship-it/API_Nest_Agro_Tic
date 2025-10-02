@@ -14,13 +14,10 @@ export class Venta {
   fecha: string;
 
   @Column({ name: 'fk_id_cosecha' })
-  fkCosechaId: number;
+  fkCosechaId: string;
 
   @Column({ name: 'ven_precio_kilo', type: 'numeric', nullable: true })
   precioKilo?: number;
-
-  @Column({ name: 'ven_venta_total', type: 'numeric', nullable: true })
-  ventaTotal?: number;
 
   @ManyToOne(() => Cosecha, (c) => c.ventas)
   @JoinColumn({ name: 'fk_id_cosecha' })
