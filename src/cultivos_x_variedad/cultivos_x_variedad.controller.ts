@@ -1,11 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { CultivosXVariedadService } from './cultivos_x_variedad.service';
 import { CreateCultivosXVariedadDto } from './dto/create-cultivos_x_variedad.dto';
 import { UpdateCultivosXVariedadDto } from './dto/update-cultivos_x_variedad.dto';
 
 @Controller('cultivos-x-variedad')
 export class CultivosXVariedadController {
-  constructor(private readonly cultivosXVariedadService: CultivosXVariedadService) {}
+  constructor(
+    private readonly cultivosXVariedadService: CultivosXVariedadService,
+  ) {}
 
   @Post()
   create(@Body() createCultivosXVariedadDto: CreateCultivosXVariedadDto) {
@@ -23,8 +33,14 @@ export class CultivosXVariedadController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCultivosXVariedadDto: UpdateCultivosXVariedadDto) {
-    return this.cultivosXVariedadService.update(+id, updateCultivosXVariedadDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateCultivosXVariedadDto: UpdateCultivosXVariedadDto,
+  ) {
+    return this.cultivosXVariedadService.update(
+      +id,
+      updateCultivosXVariedadDto,
+    );
   }
 
   @Delete(':id')
@@ -32,4 +48,3 @@ export class CultivosXVariedadController {
     return this.cultivosXVariedadService.remove(+id);
   }
 }
-

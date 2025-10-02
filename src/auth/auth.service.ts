@@ -198,7 +198,7 @@ export class AuthService {
   "iat": 1757520466,
   "exp": 1760112466
 }
-*/ 
+*/
 
   async refreshToken(refreshToken: string) {
     try {

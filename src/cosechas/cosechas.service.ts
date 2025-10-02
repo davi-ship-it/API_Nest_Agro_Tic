@@ -61,7 +61,10 @@ export class CosechasService {
     return cosecha;
   }
 
-  async update(id: string, updateCosechaDto: UpdateCosechaDto): Promise<Cosecha> {
+  async update(
+    id: string,
+    updateCosechaDto: UpdateCosechaDto,
+  ): Promise<Cosecha> {
     const cosecha = await this.findOne(id);
     Object.assign(cosecha, updateCosechaDto);
     return await this.cosechaRepository.save(cosecha);
@@ -72,4 +75,3 @@ export class CosechasService {
     await this.cosechaRepository.remove(cosecha);
   }
 }
-

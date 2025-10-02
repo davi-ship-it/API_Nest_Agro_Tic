@@ -16,4 +16,3 @@ export class Bodega {
   @OneToMany(() => Inventario, (i) => i.bodega)
   inventarios?: Inventario[];
 }
-

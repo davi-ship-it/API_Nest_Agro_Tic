@@ -16,4 +16,3 @@ export class Mapa {
   @OneToMany(() => Zona, (z) => z.mapa)
   zonas?: Zona[];
 }
-

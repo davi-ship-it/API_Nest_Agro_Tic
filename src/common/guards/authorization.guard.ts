@@ -25,23 +25,30 @@ export class AuthorizationGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
 
     if (!request.userId) {
-      throw new UnauthorizedException('ID de usuario no encontrado en la solicitud.');
+      throw new UnauthorizedException(
+        'ID de usuario no encontrado en la solicitud.',
+      );
     }
 
-    const requiredPermissions = this.reflector.getAllAndOverride<CreatePermisoDto[]>(
-      PERMISOS_KEY,
-      [context.getHandler(), context.getClass()],
-    );
+    const requiredPermissions = this.reflector.getAllAndOverride<
+      CreatePermisoDto[]
+    >(PERMISOS_KEY, [context.getHandler(), context.getClass()]);
 
     if (!requiredPermissions || requiredPermissions.length === 0) {
       return true;
     }
 
-    this.logger.debug(`Permisos requeridos: ${JSON.stringify(requiredPermissions)}`);
+    this.logger.debug(
+      `Permisos requeridos: ${JSON.stringify(requiredPermissions)}`,
+    );
 
     try {
-      const userPermissions = await this.authService.getUserPermissions(request.userId);
-      this.logger.debug(`Permisos del usuario ${request.userId}: ${JSON.stringify(userPermissions)}`);
+      const userPermissions = await this.authService.getUserPermissions(
+        request.userId,
+      );
+      this.logger.debug(
+        `Permisos del usuario ${request.userId}: ${JSON.stringify(userPermissions)}`,
+      );
 
       const hasPermission = requiredPermissions.every((routePermission) => {
         const userPermissionForResource = userPermissions.find(
@@ -56,17 +63,27 @@ export class AuthorizationGuard implements CanActivate {
       });
 
       if (!hasPermission) {
-        throw new ForbiddenException('No tienes los permisos necesarios para acceder a este recurso.');
+        throw new ForbiddenException(
+          'No tienes los permisos necesarios para acceder a este recurso.',
+        );
       }
 
       return true;
     } catch (error) {
-      if (error instanceof ForbiddenException || error instanceof UnauthorizedException || error instanceof NotFoundException) {
+      if (
+        error instanceof ForbiddenException ||
+        error instanceof UnauthorizedException ||
+        error instanceof NotFoundException
+      ) {
         throw error;
       }
-      this.logger.error(`Error inesperado en AuthorizationGuard: ${error.message}`, error.stack);
-      throw new ForbiddenException('Ocurrió un error al verificar los permisos.');
+      this.logger.error(
+        `Error inesperado en AuthorizationGuard: ${error.message}`,
+        error.stack,
+      );
+      throw new ForbiddenException(
+        'Ocurrió un error al verificar los permisos.',
+      );
     }
   }
 }
-

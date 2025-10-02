@@ -23,7 +23,6 @@ export class UsuariosController {
   constructor(private readonly usuariosService: UsuariosService) {}
 
   @UseGuards(AuthenticationGuard)
-
   @Get('me')
   findMe(@Req() req: Request) {
     const userId = req['userId'];
@@ -38,7 +37,6 @@ export class UsuariosController {
   }
 
   @UseGuards(AuthenticationGuard, AuthorizationGuard)
- 
   @Post('register')
   create(@Body() createUserDto: CreateUsuarioDto, @Req() req: any) {
     return this.usuariosService.createUserByPanel(createUserDto, req.user);
@@ -63,8 +61,8 @@ export class UsuariosController {
   remove(@Param('id') id: string) {
     return this.usuariosService.remove(+id);
   }
-@Get('search/dni/:dni')
-findByDni(@Param('dni') dni: string) {
-  return this.usuariosService.findByDni(+dni);
-}
+  @Get('search/dni/:dni')
+  findByDni(@Param('dni') dni: string) {
+    return this.usuariosService.findByDni(+dni);
+  }
 }

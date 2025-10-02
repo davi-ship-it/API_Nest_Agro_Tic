@@ -10,4 +10,3 @@ import { Venta } from './entities/venta.entity';
   providers: [VentaService],
 })
 export class VentaModule {}
-

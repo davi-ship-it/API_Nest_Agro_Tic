@@ -15,4 +15,3 @@ export class CreateMedicionSensorDto {
   @IsNotEmpty()
   fkSensorId: number;
 }
-

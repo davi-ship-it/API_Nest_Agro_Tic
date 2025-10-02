@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { CosechasService } from './cosechas.service';
 import { CreateCosechaDto } from './dto/create-cosecha.dto';
 import { UpdateCosechaDto } from './dto/update-cosecha.dto';
@@ -32,4 +40,3 @@ export class CosechasController {
     return this.cosechasService.remove(id);
   }
 }
-

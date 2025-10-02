@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Roles } from './entities/role.entity';
@@ -26,7 +30,6 @@ export class RolesService {
     const nuevoRol = this.rolesRepository.create(createRoleDto);
     return this.rolesRepository.save(nuevoRol);
   }
-
 
   async findAll(): Promise<Roles[]> {
     return this.rolesRepository.find({
@@ -60,7 +63,9 @@ export class RolesService {
     // 2. Busca el permiso que se va a asignar.
     const permiso = await this.permisosRepository.findOneBy({ id: permisoId });
     if (!permiso) {
-      throw new NotFoundException(`Permiso con ID "${permisoId}" no encontrado`);
+      throw new NotFoundException(
+        `Permiso con ID "${permisoId}" no encontrado`,
+      );
     }
 
     // 3. Verifica si el permiso ya está asignado para evitar duplicados.
@@ -71,7 +76,7 @@ export class RolesService {
 
     // 4. Asigna el nuevo permiso al arreglo en memoria.
     rol.permisos.push(permiso);
-    
+
     // ✅ CAMBIO CLAVE:
     // Primero, guardamos la relación en la base de datos.
     // No nos importa lo que devuelva .save() en este momento.

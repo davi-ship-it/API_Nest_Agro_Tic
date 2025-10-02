@@ -11,4 +11,3 @@ import { BodegaController } from './bodega.controller';
   exports: [BodegaService],
 })
 export class BodegaModule {}
-

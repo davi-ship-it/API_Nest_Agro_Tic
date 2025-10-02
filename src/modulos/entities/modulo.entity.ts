@@ -1,5 +1,11 @@
 import { Recurso } from '../../recursos/entities/recurso.entity';
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, Unique } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  Unique,
+} from 'typeorm';
 
 @Entity('modulos')
 @Unique(['nombre']) // No permitir módulos con el mismo nombre

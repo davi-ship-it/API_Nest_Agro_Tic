@@ -24,4 +24,3 @@ export class SensorService {
     return `This action removes a #${id} sensor`;
   }
 }
-

@@ -35,32 +35,36 @@ export class InventarioController {
       destination: './uploads',
       filename: (req, file, cb) => {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-        cb(null, file.fieldname + '-' + uniqueSuffix + extname(file.originalname));
+        cb(
+          null,
+          file.fieldname + '-' + uniqueSuffix + extname(file.originalname),
+        );
       },
     }),
   };
 
-@Post()
-@UseInterceptors(FileInterceptor('imgUrl', InventarioController.fileInterceptorOptions))
-create(
-  
-  @Body() dto: CreateInventarioDto,
-  @UploadedFile() file?: Express.Multer.File,
-  
-) {
-  return this.inventarioService.create(dto, file);
-}
+  @Post()
+  @UseInterceptors(
+    FileInterceptor('imgUrl', InventarioController.fileInterceptorOptions),
+  )
+  create(
+    @Body() dto: CreateInventarioDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    return this.inventarioService.create(dto, file);
+  }
 
- @Put(':id')
-@UseInterceptors(FileInterceptor('imgUrl', InventarioController.fileInterceptorOptions))
-update(
-  @Param('id', ParseUUIDPipe) id: string,
-  @Body() dto: UpdateInventarioDto,
-  @UploadedFile() file?: Express.Multer.File,
-) {
-  return this.inventarioService.update(id, dto, file);
-}
-
+  @Put(':id')
+  @UseInterceptors(
+    FileInterceptor('imgUrl', InventarioController.fileInterceptorOptions),
+  )
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateInventarioDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    return this.inventarioService.update(id, dto, file);
+  }
 
   @Get()
   findAll(@Query('page') page?: string, @Query('limit') limit?: string) {
@@ -70,7 +74,11 @@ update(
   }
 
   @Get('search/:query')
-  search(@Param('query') query: string, @Query('page') page?: string, @Query('limit') limit?: string) {
+  search(
+    @Param('query') query: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
     const pageNum = page ? parseInt(page, 10) : 1;
     const limitNum = limit ? parseInt(limit, 10) : 10;
     return this.inventarioService.search(query, pageNum, limitNum);

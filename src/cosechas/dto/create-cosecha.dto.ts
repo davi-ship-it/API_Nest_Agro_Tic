@@ -1,20 +1,19 @@
 import { IsString, IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
 
 export class CreateCosechaDto {
-    @IsString()
-    @IsNotEmpty()
-    unidadMedida: string = 'kg';
+  @IsString()
+  @IsNotEmpty()
+  unidadMedida: string = 'kg';
 
-    @IsNumber()
-    @IsNotEmpty()
-    cantidad: number;
+  @IsNumber()
+  @IsNotEmpty()
+  cantidad: number;
 
-    @IsOptional()
-    @IsString()
-    fecha?: string;
+  @IsOptional()
+  @IsString()
+  fecha?: string;
 
-    @IsString()
-    @IsNotEmpty()
-    fkCultivosVariedadXZonaId: string;
+  @IsString()
+  @IsNotEmpty()
+  fkCultivosVariedadXZonaId: string;
 }
-

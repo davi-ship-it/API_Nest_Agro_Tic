@@ -1,5 +1,11 @@
 // File: src/entities/medicion_sensor/medicion_sensor.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Sensor } from '../../sensor/entities/sensor.entity';
 
 @Entity('medicion_sensor')
@@ -20,4 +26,3 @@ export class MedicionSensor {
   @JoinColumn({ name: 'fk_id_sensor' })
   sensor?: Sensor;
 }
-

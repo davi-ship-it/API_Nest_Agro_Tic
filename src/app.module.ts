@@ -41,7 +41,6 @@ import { ModulosModule } from './modulos/modulos.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { FichasModule } from './fichas/fichas.module';
 
-
 @Module({
   imports: [
     ServeStaticModule.forRoot({
@@ -154,7 +153,6 @@ import { FichasModule } from './fichas/fichas.module';
     RecursosModule,
     ModulosModule,
     FichasModule,
-    
   ],
   controllers: [AppController],
   providers: [AppService],

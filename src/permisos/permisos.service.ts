@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreatePermisoDto } from './dto/create-permiso.dto';
@@ -24,7 +28,9 @@ export class PermisosService {
     const { moduloNombre, recurso: nombreRecurso, acciones } = createPermisoDto;
 
     // 1. Busca el módulo por su nombre. Si no existe, lo crea.
-    let modulo = await this.moduloRepository.findOneBy({ nombre: moduloNombre });
+    let modulo = await this.moduloRepository.findOneBy({
+      nombre: moduloNombre,
+    });
     if (!modulo) {
       modulo = this.moduloRepository.create({ nombre: moduloNombre });
       await this.moduloRepository.save(modulo);
@@ -54,10 +60,14 @@ export class PermisosService {
     const permisosActuales = await this.permisosRepository.find({
       where: { recurso: { id: recurso.id } },
     });
-    
+
     const accionesActuales = permisosActuales.map((p) => p.accion);
-    const accionesACrear = acciones.filter((a) => !accionesActuales.includes(a));
-    const permisosAEliminar = permisosActuales.filter((p) => !acciones.includes(p.accion));
+    const accionesACrear = acciones.filter(
+      (a) => !accionesActuales.includes(a),
+    );
+    const permisosAEliminar = permisosActuales.filter(
+      (p) => !acciones.includes(p.accion),
+    );
 
     if (permisosAEliminar.length > 0) {
       await this.permisosRepository.remove(permisosAEliminar);
@@ -75,11 +85,11 @@ export class PermisosService {
       where: { recurso: { id: recurso.id } },
       order: { accion: 'ASC' },
     });
-    
+
     return {
       modulo: modulo.nombre,
       recurso: recurso.nombre,
-      permisos: permisosFinales.map(p => ({ id: p.id, accion: p.accion }))
+      permisos: permisosFinales.map((p) => ({ id: p.id, accion: p.accion })),
     };
   }
 
@@ -89,19 +99,22 @@ export class PermisosService {
   async findAll(): Promise<any[]> {
     const todosLosPermisos = await this.permisosRepository.find({
       relations: ['recurso', 'recurso.modulo'],
-      order: { recurso: { modulo: { nombre: 'ASC' }, nombre: 'ASC' }, accion: 'ASC' },
+      order: {
+        recurso: { modulo: { nombre: 'ASC' }, nombre: 'ASC' },
+        accion: 'ASC',
+      },
     });
-    
+
     const agrupados = todosLosPermisos.reduce((acc, permiso) => {
       const nombreModulo = permiso.recurso.modulo.nombre;
       const nombreRecurso = permiso.recurso.nombre;
       const key = `${nombreModulo}-${nombreRecurso}`;
 
       if (!acc[key]) {
-        acc[key] = { 
+        acc[key] = {
           modulo: nombreModulo,
-          recurso: nombreRecurso, 
-          acciones: [] 
+          recurso: nombreRecurso,
+          acciones: [],
         };
       }
       acc[key].acciones.push(permiso.accion);
@@ -117,7 +130,9 @@ export class PermisosService {
   async findByRecurso(recursoId: string): Promise<Permiso[]> {
     const recurso = await this.recursoRepository.findOneBy({ id: recursoId });
     if (!recurso) {
-      throw new NotFoundException(`Recurso con ID "${recursoId}" no encontrado.`);
+      throw new NotFoundException(
+        `Recurso con ID "${recursoId}" no encontrado.`,
+      );
     }
 
     return this.permisosRepository.find({

@@ -1,5 +1,12 @@
 // File: src/entities/cultivos/cultivo.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, JoinColumn } from 'typeorm'; // Añadir ManyToOne y JoinColumn
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm'; // Añadir ManyToOne y JoinColumn
 import { CultivosXVariedad } from '../../cultivos_x_variedad/entities/cultivos_x_variedad.entity';
 import { Usuario } from '../../usuarios/entities/usuario.entity';
 import { Ficha } from '../../fichas/entities/ficha.entity';
@@ -25,4 +32,3 @@ export class Cultivo {
   @JoinColumn({ name: 'fk_id_ficha' })
   ficha?: Ficha;
 }
-

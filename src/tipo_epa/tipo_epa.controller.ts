@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { TipoEpaService } from './tipo_epa.service';
 import { CreateTipoEpaDto } from './dto/create-tipo_epa.dto';
 import { UpdateTipoEpaDto } from './dto/update-tipo_epa.dto';
@@ -32,4 +40,3 @@ export class TipoEpaController {
     return this.tipoEpaService.remove(+id);
   }
 }
-

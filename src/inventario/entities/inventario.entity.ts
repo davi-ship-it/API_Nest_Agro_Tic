@@ -1,5 +1,12 @@
 // File: src/entities/inventario/inventario.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
+} from 'typeorm';
 import { Categoria } from '../../categoria/entities/categoria.entity';
 import { Bodega } from '../../bodega/entities/bodega.entity';
 import { InventarioXActividad } from '../../inventario_x_actividades/entities/inventario_x_actividades.entity';
@@ -21,7 +28,13 @@ export class Inventario {
   @Column({ name: 'inv_precio', type: 'numeric' })
   precio: number;
 
-  @Column({ name: 'inv_capacidad_unidad', type: 'numeric', precision: 10, scale: 2, nullable: true })
+  @Column({
+    name: 'inv_capacidad_unidad',
+    type: 'numeric',
+    precision: 10,
+    scale: 2,
+    nullable: true,
+  })
   capacidadUnidad: number;
 
   @Column({ name: 'ivn_fecha_vencimiento', type: 'date', nullable: true })

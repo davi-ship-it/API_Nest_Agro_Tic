@@ -7,4 +7,3 @@ import { TipoEpaController } from './tipo_epa.controller';
   providers: [TipoEpaService],
 })
 export class TipoEpaModule {}
-

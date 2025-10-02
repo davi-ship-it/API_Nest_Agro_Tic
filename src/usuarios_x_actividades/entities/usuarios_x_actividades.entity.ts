@@ -1,5 +1,11 @@
 // File: src/entities/usuarios_x_actividades/usuarios_x_actividades.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Usuario } from '../../usuarios/entities/usuario.entity';
 import { Actividad } from '../../actividades/entities/actividades.entity';
 
@@ -17,12 +23,17 @@ export class UsuarioXActividad {
   @Column({ name: 'uxa_fecha_asignacion', type: 'date' })
   fechaAsignacion: string;
 
-  @ManyToOne(() => Usuario, (u) => u.actividadesAsignadas, { onUpdate: 'CASCADE', onDelete: 'CASCADE' })
+  @ManyToOne(() => Usuario, (u) => u.actividadesAsignadas, {
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'fk_id_usuario' })
   usuario?: Usuario;
 
-  @ManyToOne(() => Actividad, (a) => a.usuariosAsignados, { onUpdate: 'CASCADE', onDelete: 'CASCADE' })
+  @ManyToOne(() => Actividad, (a) => a.usuariosAsignados, {
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'fk_id_actividad' })
   actividad?: Actividad;
 }
-

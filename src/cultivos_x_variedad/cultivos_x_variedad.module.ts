@@ -7,4 +7,3 @@ import { CultivosXVariedadController } from './cultivos_x_variedad.controller';
   providers: [CultivosXVariedadService],
 })
 export class CultivosXVariedadModule {}
-
