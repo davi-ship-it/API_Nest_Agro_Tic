@@ -882,7 +882,7 @@ export class SeederService {
         const ficha = fichas[i % fichas.length];
 
         const cultivo = this.cultivoRepository.create({
-          fkFichaId: ficha.id,
+          ficha: ficha,
           siembra: new Date(fechasSiembra[i]),
           estado: estado
         });
