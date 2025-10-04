@@ -98,7 +98,7 @@ export class CultivosService {
         'COUNT(cos.id) as numCosechas',
         '(SELECT cos2.pk_id_cosecha FROM cosechas cos2 WHERE cos2.fk_id_cultivos_variedad_x_zona = cvz.pk_id_cv_zona ORDER BY cos2.cos_fecha DESC LIMIT 1) as cosechaid',
       ])
-      .groupBy('cvz.id, c.id, z.nombre, c.siembra, c.estado, f.ficha_numero, v.var_nombre')
+      .groupBy('cvz.id, c.id, z.nombre, c.siembra, c.estado, v.var_nombre')
       .orderBy('cvz.id');
 
       console.log('Generated Query:', qb.getQuery());
