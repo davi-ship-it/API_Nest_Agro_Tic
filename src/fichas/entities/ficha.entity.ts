@@ -5,7 +5,6 @@ import {
   OneToMany,
 } from 'typeorm';
 import { Usuario } from '../../usuarios/entities/usuario.entity';
-import { Cultivo } from '../../cultivos/entities/cultivo.entity';
 
 @Entity('fichas')
 export class Ficha {
@@ -17,8 +16,5 @@ export class Ficha {
 
   @OneToMany(() => Usuario, (usuario) => usuario.ficha)
   usuarios?: Usuario[];
-
-  @OneToMany(() => Cultivo, (c) => c.ficha)
-  cultivos?: Cultivo[];
 }
 

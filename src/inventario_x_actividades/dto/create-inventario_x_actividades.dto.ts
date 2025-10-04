@@ -8,9 +8,5 @@ export class CreateInventarioXActividadesDto {
   @IsNumber()
   @IsOptional()
   fkActividadId?: number;
-
-  @IsNumber()
-  @IsOptional()
-  cantidadUsada?: number;
 }
 

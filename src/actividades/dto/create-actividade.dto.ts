@@ -1,20 +1,33 @@
-import { IsString, IsNotEmpty, IsDate, IsOptional, IsUUID } from 'class-validator';
+import { IsString, IsNotEmpty, IsDate, IsOptional, IsUUID, IsNumber, IsBoolean } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateActividadeDto {
   @IsString()
   @IsNotEmpty()
-  nombre: string;
+  descripcion: string;
+
+  @Type(() => Date)
+  @IsDate()
+  @IsNotEmpty()
+  fechaAsignacion: Date;
+
+  @IsNumber()
+  @IsNotEmpty()
+  horasDedicadas: number;
 
   @IsString()
   @IsNotEmpty()
-  descripcion: string;
+  observacion: string;
 
-  @IsString()
+  @IsBoolean()
   @IsOptional()
-  estado?: string;
+  estado?: boolean;
 
   @IsUUID()
   @IsNotEmpty()
   fkCultivoVariedadZonaId: string;
+
+  @IsUUID()
+  @IsNotEmpty()
+  fkCategoriaActividadId: string;
 }
