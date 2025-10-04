@@ -1,5 +1,12 @@
 // File: src/entities/actividades/actividades.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
+} from 'typeorm';
 import { CultivosVariedadXZona } from '../../cultivos_variedad_x_zona/entities/cultivos_variedad_x_zona.entity';
 import { InventarioXActividad } from '../../inventario_x_actividades/entities/inventario_x_actividades.entity';
 import { UsuarioXActividad } from '../../usuarios_x_actividades/entities/usuarios_x_actividades.entity';
@@ -7,7 +14,7 @@ import { CategoriaActividad } from '../../categoria_actividad/entities/categoria
 
 @Entity('actividades')
 export class Actividad {
-  @PrimaryGeneratedColumn( 'uuid', { name: 'pk_id_actividad' })
+  @PrimaryGeneratedColumn('uuid', { name: 'pk_id_actividad' })
   id: string;
 
   @Column({ name: 'act_descripcion', type: 'text' })
@@ -48,4 +55,3 @@ export class Actividad {
   @OneToMany(() => UsuarioXActividad, (uxa) => uxa.actividad)
   usuariosAsignados?: UsuarioXActividad[];
 }
-

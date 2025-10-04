@@ -1,5 +1,11 @@
 // File: src/entities/cultivos_x_epa/cultivos_x_epa.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { CultivosXVariedad } from '../../cultivos_x_variedad/entities/cultivos_x_variedad.entity';
 import { Epa } from '../../epa/entities/epa.entity';
 
@@ -28,4 +34,3 @@ export class CultivosXEpa {
   @JoinColumn({ name: 'fk_id_epa' })
   epa?: Epa;
 }
-

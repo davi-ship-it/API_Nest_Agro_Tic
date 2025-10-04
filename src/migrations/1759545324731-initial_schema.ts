@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class InitialSchema1759545324731 implements MigrationInterface {
     name = 'InitialSchema1759545324731'
@@ -10,7 +10,7 @@ export class InitialSchema1759545324731 implements MigrationInterface {
         await queryRunner.query(`CREATE TABLE "roles" ("pk_id_rol" uuid NOT NULL DEFAULT uuid_generate_v4(), "rol_nombre" character varying(50) NOT NULL, CONSTRAINT "UQ_96aaed1c729577ea6fe99348402" UNIQUE ("rol_nombre"), CONSTRAINT "PK_3bf67137b7498d0800050e57c72" PRIMARY KEY ("pk_id_rol"))`);
         await queryRunner.query(`CREATE TABLE "fichas" ("pk_id_ficha" uuid NOT NULL DEFAULT uuid_generate_v4(), "ficha_numero" bigint NOT NULL, CONSTRAINT "UQ_d4cf2c92f89757be2ba36a82edc" UNIQUE ("ficha_numero"), CONSTRAINT "PK_ffb584f563667ba25e5d371bced" PRIMARY KEY ("pk_id_ficha"))`);
         await queryRunner.query(`CREATE TABLE "usuarios" ("pk_id_usuario" uuid NOT NULL DEFAULT uuid_generate_v4(), "usu_dni" bigint NOT NULL, "usu_nombres" character varying(50) NOT NULL, "usu_apellidos" character varying(50) NOT NULL, "usu_password_h" character varying(255) NOT NULL, "usu_telefono" bigint NOT NULL, "usu_correo" character varying(255) NOT NULL, "fk_id_rol" uuid, "fk_id_ficha" uuid, CONSTRAINT "PK_51cd6eda4d00711d8046b3371b5" PRIMARY KEY ("pk_id_usuario"))`);
-        await queryRunner.query(`CREATE TABLE "cultivos" ("pk_id_cultivo" uuid NOT NULL DEFAULT uuid_generate_v4(), "cul_estado" smallint NOT NULL DEFAULT '1', "cul_siembra" date, CONSTRAINT "PK_bca07ab50918efd3cbfa5d751f9" PRIMARY KEY ("pk_id_cultivo"))`);
+        await queryRunner.query(`CREATE TABLE "cultivos" ("pk_id_cultivo" uuid NOT NULL DEFAULT uuid_generate_v4(), "fk_id_ficha" uuid NOT NULL, "cul_estado" smallint NOT NULL DEFAULT '1', "cul_siembra" date, CONSTRAINT "PK_bca07ab50918efd3cbfa5d751f9" PRIMARY KEY ("pk_id_cultivo"))`);
         await queryRunner.query(`CREATE TABLE "tipo_cultivo" ("pk_id_tipo_cultivo" uuid NOT NULL DEFAULT uuid_generate_v4(), "tpc_nombre" character varying(50) NOT NULL, CONSTRAINT "PK_587358c5f6b5c8b443435ab7e7a" PRIMARY KEY ("pk_id_tipo_cultivo"))`);
         await queryRunner.query(`CREATE TABLE "variedad" ("pk_id_variedad" uuid NOT NULL DEFAULT uuid_generate_v4(), "var_nombre" character varying(50) NOT NULL, "fk_id_tipo_cultivo" uuid, CONSTRAINT "PK_969ecd3cd1b6413cddb77780f29" PRIMARY KEY ("pk_id_variedad"))`);
         await queryRunner.query(`CREATE TABLE "cultivos_x_variedad" ("pk_id_cultivos_x_variedad" uuid NOT NULL DEFAULT uuid_generate_v4(), "fk_id_cultivo" uuid NOT NULL, "fk_id_variedad" uuid NOT NULL, CONSTRAINT "PK_08252ea88874d61f1b3e9061574" PRIMARY KEY ("pk_id_cultivos_x_variedad"))`);
@@ -44,6 +44,7 @@ export class InitialSchema1759545324731 implements MigrationInterface {
         await queryRunner.query(`ALTER TABLE "permisos" ADD CONSTRAINT "FK_1def2cd2fbc57f21d1547db508c" FOREIGN KEY ("fk_id_recurso") REFERENCES "recursos"("pk_id_recurso") ON DELETE CASCADE ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "usuarios" ADD CONSTRAINT "FK_dec89f7cdc37cf746fc82ff6034" FOREIGN KEY ("fk_id_rol") REFERENCES "roles"("pk_id_rol") ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "usuarios" ADD CONSTRAINT "FK_2b6534c9d14ac35826764cdc118" FOREIGN KEY ("fk_id_ficha") REFERENCES "fichas"("pk_id_ficha") ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "cultivos" ADD CONSTRAINT "FK_7387f3bec06a90bc883a512fae1" FOREIGN KEY ("fk_id_ficha") REFERENCES "fichas"("pk_id_ficha") ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "variedad" ADD CONSTRAINT "FK_32531335d0482591eae661efcbf" FOREIGN KEY ("fk_id_tipo_cultivo") REFERENCES "tipo_cultivo"("pk_id_tipo_cultivo") ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "cultivos_x_variedad" ADD CONSTRAINT "FK_3869d84e502689591c987724be9" FOREIGN KEY ("fk_id_cultivo") REFERENCES "cultivos"("pk_id_cultivo") ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "cultivos_x_variedad" ADD CONSTRAINT "FK_f625a8d56b4c1e1f18fa2ad8bc7" FOREIGN KEY ("fk_id_variedad") REFERENCES "variedad"("pk_id_variedad") ON DELETE NO ACTION ON UPDATE NO ACTION`);
@@ -102,6 +103,7 @@ export class InitialSchema1759545324731 implements MigrationInterface {
         await queryRunner.query(`ALTER TABLE "medicion_sensor" DROP CONSTRAINT "FK_0f56b05d9849e391c50ef8c1491"`);
         await queryRunner.query(`ALTER TABLE "cultivos_x_variedad" DROP CONSTRAINT "FK_f625a8d56b4c1e1f18fa2ad8bc7"`);
         await queryRunner.query(`ALTER TABLE "cultivos_x_variedad" DROP CONSTRAINT "FK_3869d84e502689591c987724be9"`);
+        await queryRunner.query(`ALTER TABLE "cultivos" DROP CONSTRAINT "FK_7387f3bec06a90bc883a512fae1"`);
         await queryRunner.query(`ALTER TABLE "variedad" DROP CONSTRAINT "FK_32531335d0482591eae661efcbf"`);
         await queryRunner.query(`ALTER TABLE "usuarios" DROP CONSTRAINT "FK_2b6534c9d14ac35826764cdc118"`);
         await queryRunner.query(`ALTER TABLE "usuarios" DROP CONSTRAINT "FK_dec89f7cdc37cf746fc82ff6034"`);
@@ -144,5 +146,4 @@ export class InitialSchema1759545324731 implements MigrationInterface {
         await queryRunner.query(`DROP TABLE "recursos"`);
         await queryRunner.query(`DROP TABLE "modulos"`);
     }
-
 }

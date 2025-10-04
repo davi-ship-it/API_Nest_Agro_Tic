@@ -24,4 +24,3 @@ export class TipoSensorService {
     return `This action removes a #${id} tipoSensor`;
   }
 }
-

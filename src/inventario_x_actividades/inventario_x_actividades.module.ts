@@ -7,4 +7,3 @@ import { InventarioXActividadesController } from './inventario_x_actividades.con
   providers: [InventarioXActividadesService],
 })
 export class InventarioXActividadesModule {}
-

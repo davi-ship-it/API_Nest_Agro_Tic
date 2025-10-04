@@ -8,9 +8,15 @@ import { CultivosVariedadXZona } from '../cultivos_variedad_x_zona/entities/cult
 import { CultivosXVariedad } from '../cultivos_x_variedad/entities/cultivos_x_variedad.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Cosecha, Cultivo, CultivosVariedadXZona, CultivosXVariedad])],
+  imports: [
+    TypeOrmModule.forFeature([
+      Cosecha,
+      Cultivo,
+      CultivosVariedadXZona,
+      CultivosXVariedad,
+    ]),
+  ],
   controllers: [CosechasController],
   providers: [CosechasService],
 })
 export class CosechasModule {}
-

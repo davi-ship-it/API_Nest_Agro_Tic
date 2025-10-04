@@ -5,4 +5,3 @@ export const PERMISOS_KEY = 'permisos';
 
 export const Permisos = (...permisos: CreatePermisoDto[]) =>
   SetMetadata(PERMISOS_KEY, permisos);
-

@@ -1,15 +1,29 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { CultivosVariedadXZonaService } from './cultivos_variedad_x_zona.service';
 import { CreateCultivosVariedadXZonaDto } from './dto/create-cultivos_variedad_x_zona.dto';
 import { UpdateCultivosVariedadXZonaDto } from './dto/update-cultivos_variedad_x_zona.dto';
 
 @Controller('cultivos-variedad-x-zona')
 export class CultivosVariedadXZonaController {
-  constructor(private readonly cultivosVariedadXZonaService: CultivosVariedadXZonaService) {}
+  constructor(
+    private readonly cultivosVariedadXZonaService: CultivosVariedadXZonaService,
+  ) {}
 
   @Post()
-  create(@Body() createCultivosVariedadXZonaDto: CreateCultivosVariedadXZonaDto) {
-    return this.cultivosVariedadXZonaService.create(createCultivosVariedadXZonaDto);
+  create(
+    @Body() createCultivosVariedadXZonaDto: CreateCultivosVariedadXZonaDto,
+  ) {
+    return this.cultivosVariedadXZonaService.create(
+      createCultivosVariedadXZonaDto,
+    );
   }
 
   @Get()
@@ -28,8 +42,14 @@ export class CultivosVariedadXZonaController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCultivosVariedadXZonaDto: UpdateCultivosVariedadXZonaDto) {
-    return this.cultivosVariedadXZonaService.update(+id, updateCultivosVariedadXZonaDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateCultivosVariedadXZonaDto: UpdateCultivosVariedadXZonaDto,
+  ) {
+    return this.cultivosVariedadXZonaService.update(
+      +id,
+      updateCultivosVariedadXZonaDto,
+    );
   }
 
   @Delete(':id')
@@ -37,4 +57,3 @@ export class CultivosVariedadXZonaController {
     return this.cultivosVariedadXZonaService.remove(+id);
   }
 }
-

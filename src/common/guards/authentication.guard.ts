@@ -38,17 +38,16 @@ export class AuthenticationGuard implements CanActivate {
   }
 
   private extractTokenFromHeader(request: Request): string | undefined {
-  // First try header
-  let token = request.headers.authorization?.split(' ')[1];
-  console.log('Token from header:', token);
+    // First try header
+    let token = request.headers.authorization?.split(' ')[1];
+    console.log('Token from header:', token);
 
-  // If no header, try cookie
-  if (!token) {
-    token = request.cookies?.access_token; // Assuming cookie-parser middleware
-    console.log('Token from cookie:', token);
+    // If no header, try cookie
+    if (!token) {
+      token = request.cookies?.access_token; // Assuming cookie-parser middleware
+      console.log('Token from cookie:', token);
+    }
+
+    return token;
   }
-
-  return token;
-}
-
 }

@@ -1,4 +1,10 @@
-import { Controller, Post, Body, ValidationPipe, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  ValidationPipe,
+  UseGuards,
+} from '@nestjs/common';
 import { PermisosService } from './permisos.service';
 import { CreatePermisoDto } from './dto/create-permiso.dto';
 import { Permiso } from './entities/permiso.entity';
@@ -6,9 +12,7 @@ import { AuthenticationGuard } from '../common/guards/authentication.guard';
 import { AuthorizationGuard } from '../common/guards/authorization.guard';
 import { Permisos } from './decorators/permisos.decorator';
 
-
-  @UseGuards(AuthenticationGuard, AuthorizationGuard)
-
+@UseGuards(AuthenticationGuard, AuthorizationGuard)
 @Controller('permisos')
 export class PermisosController {
   constructor(private readonly permisosService: PermisosService) {}

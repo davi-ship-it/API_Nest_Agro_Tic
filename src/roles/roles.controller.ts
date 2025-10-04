@@ -25,7 +25,7 @@ import { Permisos } from '../permisos/decorators/permisos.decorator';
 export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
-/* 
+  /* 
 
 se envia el id del rol al que se le va a asignar el permiso
   http://localhost:3000/roles/2ddc2d7f-8a94-477a-8f24-221c8a230f2e/permisos
@@ -34,15 +34,13 @@ se envia el id del rol al que se le va a asignar el permiso
 {
   "permisoId": "3518a2d4-c5c2-429c-bfee-bba3aa4e3bd4"
 }
-  */ 
+  */
   @Post()
-
   create(@Body() createRoleDto: CreateRoleDto) {
     return this.rolesService.create(createRoleDto);
   }
 
   @Get()
-  
   findAll() {
     return this.rolesService.findAll();
   }
@@ -62,11 +60,17 @@ se envia el id del rol al que se le va a asignar el permiso
 
   @Post(':id/permisos')
 
+
+
+
   assignPermission(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() assignPermissionDto: AssignPermissionDto,
   ) {
-    return this.rolesService.assignPermission(id, assignPermissionDto.permisoId);
+    return this.rolesService.assignPermission(
+      id,
+      assignPermissionDto.permisoId,
+    );
   }
 
   @Post(':id/permisos/multiple')
@@ -94,7 +98,6 @@ se envia el id del rol al que se le va a asignar el permiso
     return this.rolesService.removePermission(id, permisoId);
   }
 }
-
 
 /*
 

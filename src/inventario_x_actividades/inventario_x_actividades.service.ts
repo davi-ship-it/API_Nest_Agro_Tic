@@ -27,4 +27,3 @@ export class InventarioXActividadesService {
     return `This action removes a #${id} inventarioXActividade`;
   }
 }
-

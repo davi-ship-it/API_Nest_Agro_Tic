@@ -1,11 +1,18 @@
 // File: src/entities/cosechas/cosechas.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
+} from 'typeorm';
 import { CultivosVariedadXZona } from '../../cultivos_variedad_x_zona/entities/cultivos_variedad_x_zona.entity';
 import { Venta } from '../../venta/entities/venta.entity';
 
 @Entity('cosechas')
 export class Cosecha {
-  @PrimaryGeneratedColumn('uuid',{name: 'pk_id_cosecha' })
+  @PrimaryGeneratedColumn('uuid', { name: 'pk_id_cosecha' })
   id: string;
 
   @Column({ name: 'cos_unidad_medida', type: 'varchar', length: 2 })
@@ -27,4 +34,3 @@ export class Cosecha {
   @OneToMany(() => Venta, (v) => v.cosecha)
   ventas?: Venta[];
 }
-

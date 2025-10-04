@@ -60,7 +60,6 @@ const PERMISOS_BASE = [
   { moduloNombre: 'Cultivos', recurso: 'cultivos', acciones: ACCIONES_CRUD },
   { moduloNombre: 'Cultivos', recurso: 'lotes', acciones: ACCIONES_CRUD },
 
-
   // Módulo de Inventario
   {
     moduloNombre: 'Inventario',
@@ -263,11 +262,11 @@ export class SeederService {
     }
   }
 
-  private async seedRolesAdicionales(): Promise<{ rolInstructor: Rol | null, rolAprendiz: Rol | null }> {
-    this.logger.log(
-      'Creando roles adicionales...',
-      'Seeder',
-    );
+  private async seedRolesAdicionales(): Promise<{
+    rolInstructor: Rol | null;
+    rolAprendiz: Rol | null;
+  }> {
+    this.logger.log('Creando roles adicionales...', 'Seeder');
     try {
       // Crear roles base si no existen
       let rolInstructor = await this.crearRolSiNoExiste('INSTRUCTOR');
@@ -341,7 +340,9 @@ export class SeederService {
         }
       };
 
-      const rolInvitado = await this.rolRepository.findOneBy({ nombre: 'INVITADO' });
+      const rolInvitado = await this.rolRepository.findOneBy({
+        nombre: 'INVITADO',
+      });
       if (rolInvitado) {
         await asignarPermisosARol(rolInvitado, 'INVITADO');
       }
@@ -358,7 +359,6 @@ export class SeederService {
       return { rolInstructor: null, rolAprendiz: null };
     }
   }
-
 
   private async crearRolSiNoExiste(nombre: string): Promise<Rol> {
     let rol = await this.rolRepository.findOneBy({ nombre });
@@ -439,7 +439,7 @@ export class SeederService {
       // --- Crear Categoría "Abono" ---
       const nombreCategoria = 'Abono';
       const categorias = await this.categoriaService.findAll();
-      let categoria = categorias.find((c) => c.nombre === nombreCategoria);
+      const categoria = categorias.find((c) => c.nombre === nombreCategoria);
 
       if (!categoria) {
         // Buscamos el tipo de unidad 'Gramos' por su símbolo 'g'
@@ -599,7 +599,9 @@ export class SeederService {
       ];
 
       for (const fichaData of fichasData) {
-        let ficha = await this.fichaRepository.findOne({ where: { numero: fichaData.numero } });
+        let ficha = await this.fichaRepository.findOne({
+          where: { numero: fichaData.numero },
+        });
         if (!ficha) {
           ficha = this.fichaRepository.create({
             numero: fichaData.numero,
@@ -611,7 +613,9 @@ export class SeederService {
 
       // Assign ficha only to APRENDIZ
       const dniAprendiz = 111111111;
-      const fichaAprendiz = await this.fichaRepository.findOne({ where: { numero: 2925484 } });
+      const fichaAprendiz = await this.fichaRepository.findOne({
+        where: { numero: 2925484 },
+      });
       const aprendiz = await this.usuarioRepository.findOne({
         where: { dni: dniAprendiz },
         relations: ['ficha'],
@@ -712,7 +716,9 @@ export class SeederService {
     try {
       const tipos = ['Tomate', 'Papa', 'Maíz'];
       for (const nombre of tipos) {
-        let tipo = await this.tipoCultivoRepository.findOne({ where: { nombre } });
+        let tipo = await this.tipoCultivoRepository.findOne({
+          where: { nombre },
+        });
         if (!tipo) {
           tipo = this.tipoCultivoRepository.create({ nombre });
           await this.tipoCultivoRepository.save(tipo);
@@ -720,7 +726,10 @@ export class SeederService {
         }
       }
     } catch (error) {
-      this.logger.error(`Error creando tipos de cultivo: ${error.message}`, 'Seeder');
+      this.logger.error(
+        `Error creando tipos de cultivo: ${error.message}`,
+        'Seeder',
+      );
     }
   }
 
@@ -733,11 +742,18 @@ export class SeederService {
         { nombre: 'Maíz Dulce', tipo: 'Maíz' },
       ];
       for (const v of variedades) {
-        const tipo = await this.tipoCultivoRepository.findOne({ where: { nombre: v.tipo } });
+        const tipo = await this.tipoCultivoRepository.findOne({
+          where: { nombre: v.tipo },
+        });
         if (tipo) {
-          let variedad = await this.variedadRepository.findOne({ where: { nombre: v.nombre } });
+          let variedad = await this.variedadRepository.findOne({
+            where: { nombre: v.nombre },
+          });
           if (!variedad) {
-            variedad = this.variedadRepository.create({ nombre: v.nombre, fkTipoCultivoId: tipo.id });
+            variedad = this.variedadRepository.create({
+              nombre: v.nombre,
+              fkTipoCultivoId: tipo.id,
+            });
             await this.variedadRepository.save(variedad);
             this.logger.log(`Variedad "${v.nombre}" creada.`, 'Seeder');
           }
@@ -751,9 +767,13 @@ export class SeederService {
   private async seedMapa() {
     this.logger.log('Creando mapas base...', 'Seeder');
     try {
-      const mapas = [{ nombre: 'Mapa Principal', urlImg: 'uploads/mapas/mapa1.jpg' }];
+      const mapas = [
+        { nombre: 'Mapa Principal', urlImg: 'uploads/mapas/mapa1.jpg' },
+      ];
       for (const m of mapas) {
-        let mapa = await this.mapaRepository.findOne({ where: { nombre: m.nombre } });
+        let mapa = await this.mapaRepository.findOne({
+          where: { nombre: m.nombre },
+        });
         if (!mapa) {
           mapa = this.mapaRepository.create(m);
           await this.mapaRepository.save(mapa);
@@ -768,14 +788,30 @@ export class SeederService {
   private async seedZona() {
     this.logger.log('Creando zonas base...', 'Seeder');
     try {
-      const mapa = await this.mapaRepository.findOne({ where: { nombre: 'Mapa Principal' } });
+      const mapa = await this.mapaRepository.findOne({
+        where: { nombre: 'Mapa Principal' },
+      });
       if (mapa) {
         const zonas = [
-          { nombre: 'Zona Norte', tipoLote: 'Lote', coorX: 10.5, coorY: 20.3, fkMapaId: mapa.id },
-          { nombre: 'Zona Sur', tipoLote: 'Lote', coorX: 15.2, coorY: 25.7, fkMapaId: mapa.id },
+          {
+            nombre: 'Zona Norte',
+            tipoLote: 'Lote',
+            coorX: 10.5,
+            coorY: 20.3,
+            fkMapaId: mapa.id,
+          },
+          {
+            nombre: 'Zona Sur',
+            tipoLote: 'Lote',
+            coorX: 15.2,
+            coorY: 25.7,
+            fkMapaId: mapa.id,
+          },
         ];
         for (const z of zonas) {
-          let zona = await this.zonaRepository.findOne({ where: { nombre: z.nombre } });
+          let zona = await this.zonaRepository.findOne({
+            where: { nombre: z.nombre },
+          });
           if (!zona) {
             zona = this.zonaRepository.create(z);
             await this.zonaRepository.save(zona);
@@ -789,20 +825,51 @@ export class SeederService {
   }
 
   private async seedCultivo() {
-    this.logger.log('Creando muchos cultivos con fechas de siembra variadas...', 'Seeder');
+    this.logger.log(
+      'Creando muchos cultivos con fechas de siembra variadas...',
+      'Seeder',
+    );
     try {
       const fechasSiembra = [
-        '2023-01-15', '2023-02-20', '2023-03-10', '2023-04-05', '2023-05-12', '2023-06-18',
-        '2023-07-25', '2023-08-08', '2023-09-14', '2023-10-22', '2023-11-30', '2023-12-05',
-        '2024-01-10', '2024-02-15', '2024-03-20', '2024-04-25', '2024-05-30', '2024-06-05',
-        '2024-07-10', '2024-08-15', '2024-09-20', '2024-10-25', '2024-11-30', '2024-12-05',
-        '2025-01-10', '2025-02-15', '2025-03-20', '2025-04-25', '2025-05-30', '2025-06-05'
+        '2023-01-15',
+        '2023-02-20',
+        '2023-03-10',
+        '2023-04-05',
+        '2023-05-12',
+        '2023-06-18',
+        '2023-07-25',
+        '2023-08-08',
+        '2023-09-14',
+        '2023-10-22',
+        '2023-11-30',
+        '2023-12-05',
+        '2024-01-10',
+        '2024-02-15',
+        '2024-03-20',
+        '2024-04-25',
+        '2024-05-30',
+        '2024-06-05',
+        '2024-07-10',
+        '2024-08-15',
+        '2024-09-20',
+        '2024-10-25',
+        '2024-11-30',
+        '2024-12-05',
+        '2025-01-10',
+        '2025-02-15',
+        '2025-03-20',
+        '2025-04-25',
+        '2025-05-30',
+        '2025-06-05',
       ];
 
       // Obtener fichas disponibles
       const fichas = await this.fichaRepository.find();
       if (fichas.length === 0) {
-        this.logger.warn('No hay fichas disponibles para asignar a cultivos', 'Seeder');
+        this.logger.warn(
+          'No hay fichas disponibles para asignar a cultivos',
+          'Seeder',
+        );
         return;
       }
 
@@ -815,6 +882,7 @@ export class SeederService {
         const ficha = fichas[i % fichas.length];
 
         const cultivo = this.cultivoRepository.create({
+          fkFichaId: ficha.id,
           siembra: new Date(fechasSiembra[i]),
           estado: estado
         });
@@ -822,13 +890,15 @@ export class SeederService {
         cultivosCreados.push(cultivo);
 
         const estadoTexto = estado === 1 ? 'En curso' : 'Finalizado';
-        this.logger.log(`Cultivo ${i + 1} creado - Estado: ${estadoTexto}, Ficha: ${ficha.numero}`, 'Seeder');
+        this.logger.log(
+          `Cultivo ${i + 1} creado - Estado: ${estadoTexto}, Ficha: ${ficha.numero}`,
+          'Seeder',
+        );
       }
     } catch (error) {
       this.logger.error(`Error creando cultivos: ${error.message}`, 'Seeder');
     }
   }
-
 
   private async seedCultivosXVariedad() {
     this.logger.log('Creando relaciones cultivos x variedad...', 'Seeder');
@@ -846,7 +916,10 @@ export class SeederService {
         this.logger.log(`Relación cultivo-variedad creada.`, 'Seeder');
       }
     } catch (error) {
-      this.logger.error(`Error creando relaciones cultivos x variedad: ${error.message}`, 'Seeder');
+      this.logger.error(
+        `Error creando relaciones cultivos x variedad: ${error.message}`,
+        'Seeder',
+      );
     }
   }
 
@@ -866,7 +939,10 @@ export class SeederService {
         this.logger.log(`Relación cultivo-variedad-zona creada.`, 'Seeder');
       }
     } catch (error) {
-      this.logger.error(`Error creando relaciones cultivos variedad x zona: ${error.message}`, 'Seeder');
+      this.logger.error(
+        `Error creando relaciones cultivos variedad x zona: ${error.message}`,
+        'Seeder',
+      );
     }
   }
 
@@ -894,7 +970,10 @@ export class SeederService {
         this.logger.log(`Actividad creada.`, 'Seeder');
       }
     } catch (error) {
-      this.logger.error(`Error creando actividades: ${error.message}`, 'Seeder');
+      this.logger.error(
+        `Error creando actividades: ${error.message}`,
+        'Seeder',
+      );
     }
   }
 
@@ -943,7 +1022,10 @@ export class SeederService {
       }
       this.logger.log(`Asignaciones usuario-actividad completadas.`, 'Seeder');
     } catch (error) {
-      this.logger.error(`Error creando relaciones usuario x actividad: ${error.message}`, 'Seeder');
+      this.logger.error(
+        `Error creando relaciones usuario x actividad: ${error.message}`,
+        'Seeder',
+      );
     }
   }
 
@@ -1011,8 +1093,12 @@ export class SeederService {
   private async seedInventario() {
     this.logger.log('Creando inventario base...', 'Seeder');
     try {
-      const bodega = await this.bodegaRepository.findOne({ where: { nombre: 'Bodega Principal' } });
-      const categoria = await this.categoriaRepository.findOne({ where: { nombre: 'Abono' } });
+      const bodega = await this.bodegaRepository.findOne({
+        where: { nombre: 'Bodega Principal' },
+      });
+      const categoria = await this.categoriaRepository.findOne({
+        where: { nombre: 'Abono' },
+      });
       if (bodega && categoria) {
         const inventario = this.inventarioRepository.create({
           nombre: 'Abono Orgánico',
@@ -1035,7 +1121,11 @@ export class SeederService {
     try {
       const inventarios = await this.inventarioRepository.find();
       const actividades = await this.actividadRepository.find();
-      for (let i = 0; i < Math.min(inventarios.length, actividades.length); i++) {
+      for (
+        let i = 0;
+        i < Math.min(inventarios.length, actividades.length);
+        i++
+      ) {
         const ixa = this.inventarioXActividadRepository.create({
           fkInventarioId: inventarios[i].id,
           fkActividadId: actividades[i].id,
@@ -1044,7 +1134,10 @@ export class SeederService {
         this.logger.log(`Relación inventario-actividad creada.`, 'Seeder');
       }
     } catch (error) {
-      this.logger.error(`Error creando relaciones inventario x actividad: ${error.message}`, 'Seeder');
+      this.logger.error(
+        `Error creando relaciones inventario x actividad: ${error.message}`,
+        'Seeder',
+      );
     }
   }
 

@@ -42,4 +42,3 @@ export class CreateUsuarioDto {
   @IsString()
   fichaId?: string;
 }
-

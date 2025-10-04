@@ -40,4 +40,3 @@ export class VentaService {
     await this.ventaRepository.remove(venta);
   }
 }
-

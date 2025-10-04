@@ -12,4 +12,3 @@ import { CategoriaController } from './categoria.controller';
   exports: [CategoriaService],
 })
 export class CategoriaModule {}
-

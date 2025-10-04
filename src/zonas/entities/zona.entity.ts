@@ -1,5 +1,12 @@
 // File: src/entities/zonas/zonas.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
+} from 'typeorm';
 import { Mapa } from '../../mapas/entities/mapa.entity';
 import { CultivosVariedadXZona } from '../../cultivos_variedad_x_zona/entities/cultivos_variedad_x_zona.entity';
 import { Sensor } from '../../sensor/entities/sensor.entity';
@@ -34,4 +41,3 @@ export class Zona {
   @OneToMany(() => Sensor, (s) => s.zona)
   sensores?: Sensor[];
 }
-

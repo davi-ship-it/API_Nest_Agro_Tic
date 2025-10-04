@@ -24,4 +24,3 @@ export class MedicionSensorService {
     return `This action removes a #${id} medicionSensor`;
   }
 }
-

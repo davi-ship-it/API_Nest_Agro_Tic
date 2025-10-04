@@ -16,7 +16,10 @@ export class UsuariosXActividadesService {
     return `This action returns a #${id} usuariosXActividade`;
   }
 
-  update(id: number, updateUsuariosXActividadeDto: UpdateUsuariosXActividadeDto) {
+  update(
+    id: number,
+    updateUsuariosXActividadeDto: UpdateUsuariosXActividadeDto,
+  ) {
     return `This action updates a #${id} usuariosXActividade`;
   }
 
@@ -24,4 +27,3 @@ export class UsuariosXActividadesService {
     return `This action removes a #${id} usuariosXActividade`;
   }
 }
-
