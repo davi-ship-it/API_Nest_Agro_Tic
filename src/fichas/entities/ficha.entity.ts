@@ -13,6 +13,6 @@ export class Ficha {
   @OneToMany(() => Usuario, (usuario) => usuario.ficha)
   usuarios?: Usuario[];
 
-  @OneToMany(() => Cultivo, (c) => c.ficha)
+  @OneToMany(() => Cultivo, (cultivo) => cultivo.ficha)
   cultivos?: Cultivo[];
 }

@@ -10,26 +10,27 @@ import {
 import { CultivosVariedadXZona } from '../../cultivos_variedad_x_zona/entities/cultivos_variedad_x_zona.entity';
 import { InventarioXActividad } from '../../inventario_x_actividades/entities/inventario_x_actividades.entity';
 import { UsuarioXActividad } from '../../usuarios_x_actividades/entities/usuarios_x_actividades.entity';
+import { CategoriaActividad } from '../../categoria_actividad/entities/categoria_actividad.entity';
 
 @Entity('actividades')
 export class Actividad {
   @PrimaryGeneratedColumn('uuid', { name: 'pk_id_actividad' })
   id: string;
 
-  @Column({ name: 'act_nombre', type: 'varchar', length: 255 })
-  nombre: string;
-
   @Column({ name: 'act_descripcion', type: 'text' })
   descripcion: string;
 
-  @Column({ name: 'act_fecha_inicio', type: 'date' })
-  fechaInicio: Date;
+  @Column({ name: 'act_fecha_asignacion', type: 'date' })
+  fechaAsignacion: Date;
 
-  @Column({ name: 'act_fecha_fin', type: 'date', nullable: true })
-  fechaFin?: Date;
+  @Column({ name: 'act_horas_dedicadas', type: 'numeric' })
+  horasDedicadas: number;
 
-  @Column({ name: 'act_estado', type: 'varchar', length: 10, nullable: true })
-  estado?: string;
+  @Column({ name: 'act_observacion', type: 'varchar', length: 255 })
+  observacion: string;
+
+  @Column({ name: 'act_estado', type: 'boolean', nullable: true })
+  estado?: boolean;
 
   @Column({ name: 'act_img_url', type: 'varchar', length: 255 })
   imgUrl: string;
@@ -37,9 +38,16 @@ export class Actividad {
   @Column({ name: 'fk_id_cultivo_variedad_x_zona' })
   fkCultivoVariedadZonaId: string;
 
+  @Column({ name: 'fk_id_categoria_actividad', type: 'uuid' })
+  fkCategoriaActividadId: string;
+
   @ManyToOne(() => CultivosVariedadXZona, (cvz) => cvz.actividades)
   @JoinColumn({ name: 'fk_id_cultivo_variedad_x_zona' })
   cultivoVariedadZona?: CultivosVariedadXZona;
+
+  @ManyToOne(() => CategoriaActividad, (ca) => ca.actividades)
+  @JoinColumn({ name: 'fk_id_categoria_actividad' })
+  categoriaActividad?: CategoriaActividad;
 
   @OneToMany(() => InventarioXActividad, (ixa) => ixa.actividad)
   inventarioUsado?: InventarioXActividad[];

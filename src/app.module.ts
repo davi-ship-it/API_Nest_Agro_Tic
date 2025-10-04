@@ -40,6 +40,8 @@ import { RecursosModule } from './recursos/recursos.module';
 import { ModulosModule } from './modulos/modulos.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { FichasModule } from './fichas/fichas.module';
+import { MovimientosModule } from './movimientos/movimientos.module';
+import { CategoriaActividadModule } from './categoria_actividad/categoria_actividad.module';
 
 @Module({
   imports: [
@@ -153,6 +155,8 @@ import { FichasModule } from './fichas/fichas.module';
     RecursosModule,
     ModulosModule,
     FichasModule,
+    MovimientosModule,
+    CategoriaActividadModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -20,9 +20,6 @@ export class InventarioXActividad {
   @Column({ name: 'fk_id_actividad', nullable: true })
   fkActividadId?: string;
 
-  @Column({ name: 'ixa_cantidad_usada', type: 'numeric', nullable: true })
-  cantidadUsada?: number;
-
   @ManyToOne(() => Inventario, (i) => i.actividades)
   @JoinColumn({ name: 'fk_id_inventario' })
   inventario?: Inventario;

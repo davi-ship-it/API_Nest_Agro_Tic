@@ -10,6 +10,7 @@ import {
 import { Categoria } from '../../categoria/entities/categoria.entity';
 import { Bodega } from '../../bodega/entities/bodega.entity';
 import { InventarioXActividad } from '../../inventario_x_actividades/entities/inventario_x_actividades.entity';
+import { Movimiento } from '../../movimientos/entities/movimiento.entity';
 
 @Entity('inventario')
 export class Inventario {
@@ -59,4 +60,7 @@ export class Inventario {
 
   @OneToMany(() => InventarioXActividad, (ixa) => ixa.inventario)
   actividades?: InventarioXActividad[];
+
+  @OneToMany(() => Movimiento, (m) => m.inventario)
+  movimientos?: Movimiento[];
 }

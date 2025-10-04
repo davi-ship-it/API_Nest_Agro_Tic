@@ -27,6 +27,8 @@ import { Cosecha } from '../cosechas/entities/cosecha.entity';
 import { Bodega } from '../bodega/entities/bodega.entity';
 import { Categoria } from '../categoria/entities/categoria.entity';
 import { Mapa } from '../mapas/entities/mapa.entity';
+import { CategoriaActividad } from '../categoria_actividad/entities/categoria_actividad.entity';
+import { Movimiento } from '../movimientos/entities/movimiento.entity';
 
 // Acciones comunes para reutilizar y mantener consistencia
 const ACCIONES_CRUD = ['leer', 'crear', 'actualizar', 'eliminar'];
@@ -122,6 +124,10 @@ export class SeederService {
     private readonly categoriaRepository: Repository<Categoria>,
     @InjectRepository(Mapa)
     private readonly mapaRepository: Repository<Mapa>,
+    @InjectRepository(CategoriaActividad)
+    private readonly categoriaActividadRepository: Repository<CategoriaActividad>,
+    @InjectRepository(Movimiento)
+    private readonly movimientoRepository: Repository<Movimiento>,
   ) {}
 
   async seed() {
@@ -160,7 +166,10 @@ export class SeederService {
       );
     }
 
-    // 8. Crear el Usuario Aprendiz
+    // 8. Crear fichas de muestra
+    await this.seedFichas();
+
+    // 9. Crear el Usuario Aprendiz
     if (rolAprendiz) {
       await this.seedUsuarioAprendiz(rolAprendiz);
     } else {
@@ -170,8 +179,9 @@ export class SeederService {
       );
     }
 
-    // 9. Crear fichas de muestra
-    await this.seedFichas();
+    // 10. Crear usuarios aprendices con fichas
+    this.logger.log('Llamando a seedUsuariosAprendices...', 'Seeder');
+    await this.seedUsuariosAprendices();
 
     // 7. Seed agricultural data
     await this.seedTipoCultivo();
@@ -181,11 +191,13 @@ export class SeederService {
     await this.seedCultivo();
     await this.seedCultivosXVariedad();
     await this.seedCultivosVariedadXZona();
-    // await this.seedCosechas(); // Comentado para que las cosechas se registren manualmente
+    await this.seedCosechas();
+    await this.seedCategoriaActividad();
     await this.seedActividad();
     await this.seedUsuarioXActividad();
     await this.seedInventario();
     await this.seedInventarioXActividad();
+    await this.seedMovimiento();
 
     this.logger.log('Seeding completado exitosamente.', 'Seeder');
   }
@@ -547,6 +559,9 @@ export class SeederService {
       if (!existeUsuario) {
         this.logger.log('Creando el usuario aprendiz...', 'Seeder');
 
+        // Find a ficha to assign
+        const ficha = await this.fichaRepository.findOne({ where: { numero: 2925484 } });
+
         await this.usuariosService.createUserByPanel({
           nombres: 'Aprendiz',
           apellidos: 'de Prueba',
@@ -555,6 +570,7 @@ export class SeederService {
           password: 'aprendiz123',
           telefono: 3007654321,
           rolId: rolAprendiz.id,
+          fichaId: ficha ? ficha.id : undefined,
         });
 
         this.logger.log('Usuario aprendiz creado.', 'Seeder');
@@ -579,6 +595,7 @@ export class SeederService {
         { numero: 1987654 },
         { numero: 3456789 },
         { numero: 4567890 },
+        { numero: 5678901 },
       ];
 
       for (const fichaData of fichasData) {
@@ -594,7 +611,7 @@ export class SeederService {
         }
       }
 
-      // Assign ficha to APRENDIZ user
+      // Assign ficha only to APRENDIZ
       const dniAprendiz = 111111111;
       const fichaAprendiz = await this.fichaRepository.findOne({
         where: { numero: 2925484 },
@@ -612,6 +629,85 @@ export class SeederService {
       }
     } catch (error) {
       this.logger.error(`Error creando fichas: ${error.message}`, 'Seeder');
+    }
+  }
+
+  private async seedUsuariosAprendices() {
+    this.logger.log('Creando usuarios aprendices con fichas...', 'Seeder');
+    try {
+      const rolAprendiz = await this.rolRepository.findOneBy({ nombre: 'APRENDIZ' });
+      if (!rolAprendiz) {
+        this.logger.warn('Rol APRENDIZ no encontrado. Saltando creación de aprendices.', 'Seeder');
+        return;
+      }
+      this.logger.log(`Rol APRENDIZ encontrado: ${rolAprendiz.id}`, 'Seeder');
+
+      const fichas = await this.fichaRepository.find();
+      if (fichas.length === 0) {
+        this.logger.warn('No hay fichas disponibles. Saltando creación de aprendices.', 'Seeder');
+        return;
+      }
+      this.logger.log(`Fichas encontradas: ${fichas.length}`, 'Seeder');
+      this.logger.log('Iniciando creación de aprendices...', 'Seeder');
+
+      const aprendicesData = [
+        { nombres: 'Juan', apellidos: 'Pérez', dni: 222222222, fichaIndex: 0 },
+        { nombres: 'María', apellidos: 'Gómez', dni: 333333333, fichaIndex: 1 },
+        { nombres: 'Carlos', apellidos: 'Rodríguez', dni: 444444444, fichaIndex: 2 },
+        { nombres: 'Ana', apellidos: 'Martínez', dni: 555555555, fichaIndex: 3 },
+        { nombres: 'Luis', apellidos: 'Hernández', dni: 666666666, fichaIndex: 4 },
+        { nombres: 'Sofia', apellidos: 'López', dni: 777777777, fichaIndex: 0 }, // misma ficha que Juan
+        { nombres: 'Diego', apellidos: 'González', dni: 888888888, fichaIndex: 1 }, // misma ficha que María
+        { nombres: 'Valentina', apellidos: 'Díaz', dni: 999999999, fichaIndex: 2 },
+        { nombres: 'Mateo', apellidos: 'Torres', dni: 101010101, fichaIndex: 3 },
+        { nombres: 'Isabella', apellidos: 'Ramírez', dni: 111111112, fichaIndex: 4 },
+      ];
+
+      for (const aprendizData of aprendicesData) {
+        this.logger.log(`Procesando aprendiz: ${aprendizData.nombres} ${aprendizData.apellidos}`, 'Seeder');
+        const existeUsuario = await this.usuarioRepository.findOne({
+          where: { dni: aprendizData.dni },
+        });
+
+        if (!existeUsuario) {
+          this.logger.log(`Usuario no existe, creando: ${aprendizData.nombres}`, 'Seeder');
+          const ficha = fichas[aprendizData.fichaIndex % fichas.length];
+          try {
+            await this.usuariosService.createUserByPanel({
+              nombres: aprendizData.nombres,
+              apellidos: aprendizData.apellidos,
+              dni: aprendizData.dni,
+              correo: `${aprendizData.nombres.toLowerCase()}@example.com`,
+              password: 'aprendiz123',
+              telefono: 300000000 + (aprendizData.dni % 1000000),
+              rolId: rolAprendiz.id,
+              fichaId: ficha.id,
+            });
+            this.logger.log(`Usuario ${aprendizData.nombres} creado exitosamente.`, 'Seeder');
+          } catch (createError) {
+            this.logger.error(`Error creando usuario ${aprendizData.nombres}: ${createError.message}`, 'Seeder');
+            continue;
+          }
+
+          // Asignar ficha
+          const nuevoUsuario = await this.usuarioRepository.findOne({
+            where: { dni: aprendizData.dni },
+            relations: ['ficha'],
+          });
+          if (nuevoUsuario && ficha) {
+            nuevoUsuario.ficha = ficha;
+            await this.usuarioRepository.save(nuevoUsuario);
+            this.logger.log(`Usuario ${aprendizData.nombres} asignado a ficha ${ficha.numero}.`, 'Seeder');
+          } else {
+            this.logger.warn(`No se pudo asignar ficha a ${aprendizData.nombres}`, 'Seeder');
+          }
+        } else {
+          this.logger.log(`Usuario ${aprendizData.nombres} ya existe, saltando.`, 'Seeder');
+        }
+      }
+      this.logger.log('Creación de usuarios aprendices completada.', 'Seeder');
+    } catch (error) {
+      this.logger.error(`Error creando usuarios aprendices: ${error.message}`, 'Seeder');
     }
   }
 
@@ -778,7 +874,7 @@ export class SeederService {
       }
 
       const cultivosCreados: any[] = [];
-      for (let i = 0; i < 20; i++) {
+      for (let i = 0; i < 6; i++) {
         // Mezcla de estados: 70% en curso, 30% finalizado
         const estado = Math.random() > 0.7 ? 0 : 1;
 
@@ -787,8 +883,8 @@ export class SeederService {
 
         const cultivo = this.cultivoRepository.create({
           fkFichaId: ficha.id,
-          siembra: new Date(fechasSiembra[i % fechasSiembra.length]),
-          estado: estado,
+          siembra: new Date(fechasSiembra[i]),
+          estado: estado
         });
         await this.cultivoRepository.save(cultivo);
         cultivosCreados.push(cultivo);
@@ -854,15 +950,21 @@ export class SeederService {
     this.logger.log('Creando actividades base...', 'Seeder');
     try {
       const cvzs = await this.cultivosVariedadXZonaRepository.find();
+      const categoriaSiembra = await this.categoriaActividadRepository.findOne({ where: { nombre: 'Siembra' } });
+      if (!categoriaSiembra) {
+        this.logger.warn('Categoría de actividad "Siembra" no encontrada. Saltando creación de actividades.', 'Seeder');
+        return;
+      }
       for (const cvz of cvzs) {
         const actividad = this.actividadRepository.create({
-          nombre: 'Siembra',
           descripcion: 'Actividad de siembra',
-          fechaInicio: new Date('2023-01-01'),
-          fechaFin: new Date('2023-01-10'),
-          estado: 'en curso',
+          fechaAsignacion: new Date('2023-01-01'),
+          horasDedicadas: 8,
+          observacion: 'Observación de la actividad de siembra',
+          estado: true,
           imgUrl: 'url',
           fkCultivoVariedadZonaId: cvz.id,
+          fkCategoriaActividadId: categoriaSiembra.id,
         });
         await this.actividadRepository.save(actividad);
         this.logger.log(`Actividad creada.`, 'Seeder');
@@ -876,19 +978,49 @@ export class SeederService {
   }
 
   private async seedUsuarioXActividad() {
-    this.logger.log('Creando relaciones usuario x actividad...', 'Seeder');
+    this.logger.log('Asignando múltiples usuarios de diferentes fichas a las mismas actividades...', 'Seeder');
     try {
       const actividades = await this.actividadRepository.find();
-      const usuarios = await this.usuarioRepository.find();
-      for (let i = 0; i < Math.min(actividades.length, usuarios.length); i++) {
-        const uxa = this.usuarioXActividadRepository.create({
-          fkUsuarioId: usuarios[i].id,
-          fkActividadId: actividades[i].id,
-          fechaAsignacion: new Date().toISOString().split('T')[0], // YYYY-MM-DD
-        });
-        await this.usuarioXActividadRepository.save(uxa);
-        this.logger.log(`Relación usuario-actividad creada.`, 'Seeder');
+      const fichas = await this.fichaRepository.find({ relations: ['usuarios'] });
+
+      if (fichas.length === 0 || actividades.length === 0) {
+        this.logger.warn('No hay fichas con usuarios o actividades disponibles.', 'Seeder');
+        return;
       }
+
+      // Filtrar fichas que tienen usuarios
+      const fichasConUsuarios = fichas.filter(f => f.usuarios && f.usuarios.length > 0);
+
+      if (fichasConUsuarios.length === 0) {
+        this.logger.warn('No hay fichas con usuarios asignados.', 'Seeder');
+        return;
+      }
+
+      for (const actividad of actividades) {
+        // Seleccionar 2-3 fichas aleatorias con usuarios
+        const numFichas = Math.min(3, fichasConUsuarios.length);
+        const fichasSeleccionadas = this.shuffleArray(fichasConUsuarios).slice(0, numFichas);
+
+        const usuariosAsignados: string[] = [];
+
+        for (const ficha of fichasSeleccionadas) {
+          // Seleccionar un usuario aleatorio de la ficha
+          if (ficha.usuarios && ficha.usuarios.length > 0) {
+            const usuarioAleatorio = this.shuffleArray(ficha.usuarios)[0];
+            if (usuarioAleatorio && !usuariosAsignados.includes(usuarioAleatorio.id)) {
+              const uxa = this.usuarioXActividadRepository.create({
+                fkUsuarioId: usuarioAleatorio.id,
+                fkActividadId: actividad.id,
+                fechaAsignacion: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+              });
+              await this.usuarioXActividadRepository.save(uxa);
+              usuariosAsignados.push(usuarioAleatorio.id);
+              this.logger.log(`Usuario ${usuarioAleatorio.nombres} (Ficha ${ficha.numero}) asignado a actividad ${actividad.id}.`, 'Seeder');
+            }
+          }
+        }
+      }
+      this.logger.log(`Asignaciones usuario-actividad completadas.`, 'Seeder');
     } catch (error) {
       this.logger.error(
         `Error creando relaciones usuario x actividad: ${error.message}`,
@@ -897,29 +1029,62 @@ export class SeederService {
     }
   }
 
+  // Método auxiliar para mezclar array
+  private shuffleArray<T>(array: T[]): T[] {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }
+
   private async seedCosechas() {
-    this.logger.log(
-      'Creando algunas cosechas para cultivos finalizados...',
-      'Seeder',
-    );
+    this.logger.log('Creando cosechas para varios cultivos finalizados con fechas variadas...', 'Seeder');
     try {
-      const cvzs = await this.cultivosVariedadXZonaRepository.find();
-      // Crear cosechas para algunos CVZ (los primeros 3)
-      const numCosechas = Math.min(3, cvzs.length);
+      // Obtener CVZ con relaciones para filtrar cultivos finalizados (estado 0)
+      const cvzs = await this.cultivosVariedadXZonaRepository.find({
+        relations: ['cultivoXVariedad', 'cultivoXVariedad.cultivo'],
+      });
+
+      // Filtrar CVZ que pertenecen a cultivos finalizados (estado 0)
+      const cvzsFinalizados = cvzs.filter(cvz => cvz.cultivoXVariedad?.cultivo?.estado === 0);
+
+      if (cvzsFinalizados.length === 0) {
+        this.logger.warn('No hay cultivos finalizados para crear cosechas.', 'Seeder');
+        return;
+      }
+
+      // Crear cosechas para varios cultivos finalizados
+      const numCosechas = cvzsFinalizados.length; // Crear una por cada CVZ de cultivos finalizados
 
       for (let i = 0; i < numCosechas; i++) {
+        const cvz = cvzsFinalizados[i];
+        const cultivo = cvz.cultivoXVariedad?.cultivo;
+
+        // Generar fecha variada: desde la fecha de siembra hasta hoy
+        let fechaCosecha: Date;
+        if (cultivo?.siembra) {
+          const siembra = new Date(cultivo.siembra);
+          const hoy = new Date();
+          const diffTime = hoy.getTime() - siembra.getTime();
+          const randomTime = Math.random() * diffTime;
+          fechaCosecha = new Date(siembra.getTime() + randomTime);
+        } else {
+          // Si no hay siembra, usar fecha aleatoria en los últimos 30 días
+          fechaCosecha = new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000);
+        }
+
         const cosecha = this.cosechaRepository.create({
           unidadMedida: 'kg',
           cantidad: Math.floor(Math.random() * 200) + 50, // Cantidad aleatoria entre 50-250
-          fecha: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000)
-            .toISOString()
-            .split('T')[0], // Últimos 30 días
-          fkCultivosVariedadXZonaId: cvzs[i].id,
+          fecha: fechaCosecha.toISOString().split('T')[0],
+          fkCultivosVariedadXZonaId: cvz.id,
         });
         await this.cosechaRepository.save(cosecha);
-        this.logger.log(`Cosecha creada para CVZ ${cvzs[i].id}.`, 'Seeder');
+        this.logger.log(`Cosecha creada para cultivo finalizado (CVZ ${cvz.id}), fecha: ${cosecha.fecha}.`, 'Seeder');
       }
-      this.logger.log(`Creadas ${numCosechas} cosechas.`, 'Seeder');
+      this.logger.log(`Creadas ${numCosechas} cosechas para cultivos finalizados.`, 'Seeder');
     } catch (error) {
       this.logger.error(`Error creando cosechas: ${error.message}`, 'Seeder');
     }
@@ -964,7 +1129,6 @@ export class SeederService {
         const ixa = this.inventarioXActividadRepository.create({
           fkInventarioId: inventarios[i].id,
           fkActividadId: actividades[i].id,
-          cantidadUsada: 10,
         });
         await this.inventarioXActividadRepository.save(ixa);
         this.logger.log(`Relación inventario-actividad creada.`, 'Seeder');
@@ -974,6 +1138,43 @@ export class SeederService {
         `Error creando relaciones inventario x actividad: ${error.message}`,
         'Seeder',
       );
+    }
+  }
+
+  private async seedCategoriaActividad() {
+    this.logger.log('Creando categorías de actividad base...', 'Seeder');
+    try {
+      const categorias = ['Siembra', 'Riego', 'Fertilización', 'Cosecha'];
+      for (const nombre of categorias) {
+        let categoria = await this.categoriaActividadRepository.findOne({ where: { nombre } });
+        if (!categoria) {
+          categoria = this.categoriaActividadRepository.create({ nombre });
+          await this.categoriaActividadRepository.save(categoria);
+          this.logger.log(`Categoría de actividad "${nombre}" creada.`, 'Seeder');
+        }
+      }
+    } catch (error) {
+      this.logger.error(`Error creando categorías de actividad: ${error.message}`, 'Seeder');
+    }
+  }
+
+  private async seedMovimiento() {
+    this.logger.log('Creando movimientos base...', 'Seeder');
+    try {
+      const inventarios = await this.inventarioRepository.find();
+      if (inventarios.length > 0) {
+        for (const inventario of inventarios) {
+          const movimiento = this.movimientoRepository.create({
+            fkInventarioId: inventario.id,
+            stockReservado: 5,
+            stockDevuelto: 2,
+          });
+          await this.movimientoRepository.save(movimiento);
+          this.logger.log(`Movimiento creado para inventario "${inventario.nombre}".`, 'Seeder');
+        }
+      }
+    } catch (error) {
+      this.logger.error(`Error creando movimientos: ${error.message}`, 'Seeder');
     }
   }
 }
