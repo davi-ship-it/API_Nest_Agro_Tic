@@ -874,7 +874,7 @@ export class SeederService {
       }
 
       const cultivosCreados: any[] = [];
-      for (let i = 0; i < 6; i++) {
+      for (let i = 0; i < 3; i++) { // Crear solo 3 cultivos para evitar duplicados
         // Mezcla de estados: 70% en curso, 30% finalizado
         const estado = Math.random() > 0.7 ? 0 : 1;
 
@@ -950,24 +950,28 @@ export class SeederService {
     this.logger.log('Creando actividades base...', 'Seeder');
     try {
       const cvzs = await this.cultivosVariedadXZonaRepository.find();
-      const categoriaSiembra = await this.categoriaActividadRepository.findOne({ where: { nombre: 'Siembra' } });
-      if (!categoriaSiembra) {
-        this.logger.warn('Categoría de actividad "Siembra" no encontrada. Saltando creación de actividades.', 'Seeder');
+      const categorias = await this.categoriaActividadRepository.find();
+      if (categorias.length === 0) {
+        this.logger.warn('Categorías de actividad no encontradas. Saltando creación de actividades.', 'Seeder');
         return;
       }
       for (const cvz of cvzs) {
-        const actividad = this.actividadRepository.create({
-          descripcion: 'Actividad de siembra',
-          fechaAsignacion: new Date('2023-01-01'),
-          horasDedicadas: 8,
-          observacion: 'Observación de la actividad de siembra',
-          estado: true,
-          imgUrl: 'url',
-          fkCultivoVariedadZonaId: cvz.id,
-          fkCategoriaActividadId: categoriaSiembra.id,
-        });
-        await this.actividadRepository.save(actividad);
-        this.logger.log(`Actividad creada.`, 'Seeder');
+        // Crear múltiples actividades por CVZ para tener varias ficha trabajando en el mismo cultivo
+        for (let i = 0; i < 4; i++) { // 4 actividades por CVZ
+          const categoria = categorias[i % categorias.length];
+          const actividad = this.actividadRepository.create({
+            descripcion: `Actividad de ${categoria.nombre}`,
+            fechaAsignacion: new Date('2023-01-01'),
+            horasDedicadas: 8,
+            observacion: `Observación de la actividad de ${categoria.nombre}`,
+            estado: true,
+            imgUrl: 'url',
+            fkCultivoVariedadZonaId: cvz.id,
+            fkCategoriaActividadId: categoria.id,
+          });
+          await this.actividadRepository.save(actividad);
+          this.logger.log(`Actividad ${categoria.nombre} creada para CVZ ${cvz.id}.`, 'Seeder');
+        }
       }
     } catch (error) {
       this.logger.error(
@@ -978,9 +982,9 @@ export class SeederService {
   }
 
   private async seedUsuarioXActividad() {
-    this.logger.log('Asignando múltiples usuarios de diferentes fichas a las mismas actividades...', 'Seeder');
+    this.logger.log('Asignando usuarios de diferentes fichas a actividades del mismo cultivo...', 'Seeder');
     try {
-      const actividades = await this.actividadRepository.find();
+      const actividades = await this.actividadRepository.find({ relations: ['cultivoVariedadZona'] });
       const fichas = await this.fichaRepository.find({ relations: ['usuarios'] });
 
       if (fichas.length === 0 || actividades.length === 0) {
@@ -996,27 +1000,35 @@ export class SeederService {
         return;
       }
 
+      // Agrupar actividades por CVZ
+      const actividadesPorCvz: { [cvzId: string]: any[] } = {};
       for (const actividad of actividades) {
-        // Seleccionar 2-3 fichas aleatorias con usuarios
-        const numFichas = Math.min(3, fichasConUsuarios.length);
-        const fichasSeleccionadas = this.shuffleArray(fichasConUsuarios).slice(0, numFichas);
+        const cvzId = actividad.fkCultivoVariedadZonaId;
+        if (!actividadesPorCvz[cvzId]) {
+          actividadesPorCvz[cvzId] = [];
+        }
+        actividadesPorCvz[cvzId].push(actividad);
+      }
 
-        const usuariosAsignados: string[] = [];
+      for (const cvzId of Object.keys(actividadesPorCvz)) {
+        const actividadesCvz = actividadesPorCvz[cvzId];
+        // Asignar una ficha diferente a cada actividad del mismo CVZ
+        const fichasSeleccionadas = this.shuffleArray(fichasConUsuarios).slice(0, actividadesCvz.length);
 
-        for (const ficha of fichasSeleccionadas) {
+        for (let i = 0; i < actividadesCvz.length; i++) {
+          const actividad = actividadesCvz[i];
+          const ficha = fichasSeleccionadas[i % fichasSeleccionadas.length];
+
           // Seleccionar un usuario aleatorio de la ficha
           if (ficha.usuarios && ficha.usuarios.length > 0) {
             const usuarioAleatorio = this.shuffleArray(ficha.usuarios)[0];
-            if (usuarioAleatorio && !usuariosAsignados.includes(usuarioAleatorio.id)) {
-              const uxa = this.usuarioXActividadRepository.create({
-                fkUsuarioId: usuarioAleatorio.id,
-                fkActividadId: actividad.id,
-                fechaAsignacion: new Date().toISOString().split('T')[0], // YYYY-MM-DD
-              });
-              await this.usuarioXActividadRepository.save(uxa);
-              usuariosAsignados.push(usuarioAleatorio.id);
-              this.logger.log(`Usuario ${usuarioAleatorio.nombres} (Ficha ${ficha.numero}) asignado a actividad ${actividad.id}.`, 'Seeder');
-            }
+            const uxa = this.usuarioXActividadRepository.create({
+              fkUsuarioId: usuarioAleatorio.id,
+              fkActividadId: actividad.id,
+              fechaAsignacion: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+            });
+            await this.usuarioXActividadRepository.save(uxa);
+            this.logger.log(`Usuario ${usuarioAleatorio.nombres} (Ficha ${ficha.numero}) asignado a actividad ${actividad.id} en CVZ ${cvzId}.`, 'Seeder');
           }
         }
       }
@@ -1121,17 +1133,19 @@ export class SeederService {
     try {
       const inventarios = await this.inventarioRepository.find();
       const actividades = await this.actividadRepository.find();
-      for (
-        let i = 0;
-        i < Math.min(inventarios.length, actividades.length);
-        i++
-      ) {
-        const ixa = this.inventarioXActividadRepository.create({
-          fkInventarioId: inventarios[i].id,
-          fkActividadId: actividades[i].id,
-        });
-        await this.inventarioXActividadRepository.save(ixa);
-        this.logger.log(`Relación inventario-actividad creada.`, 'Seeder');
+      if (inventarios.length > 0) {
+        for (const actividad of actividades) {
+          // Asignar inventario a algunas actividades
+          if (Math.random() > 0.5) { // 50% de las actividades tienen inventario
+            const inventario = inventarios[Math.floor(Math.random() * inventarios.length)];
+            const ixa = this.inventarioXActividadRepository.create({
+              fkInventarioId: inventario.id,
+              fkActividadId: actividad.id,
+            });
+            await this.inventarioXActividadRepository.save(ixa);
+            this.logger.log(`Relación inventario-actividad creada.`, 'Seeder');
+          }
+        }
       }
     } catch (error) {
       this.logger.error(
