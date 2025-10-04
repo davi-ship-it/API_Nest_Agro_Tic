@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { TipoSensorService } from './tipo_sensor.service';
 import { CreateTipoSensorDto } from './dto/create-tipo_sensor.dto';
 import { UpdateTipoSensorDto } from './dto/update-tipo_sensor.dto';
@@ -23,7 +31,10 @@ export class TipoSensorController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTipoSensorDto: UpdateTipoSensorDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateTipoSensorDto: UpdateTipoSensorDto,
+  ) {
     return this.tipoSensorService.update(+id, updateTipoSensorDto);
   }
 
@@ -32,4 +43,3 @@ export class TipoSensorController {
     return this.tipoSensorService.remove(+id);
   }
 }
-

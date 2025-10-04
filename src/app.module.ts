@@ -43,7 +43,6 @@ import { FichasModule } from './fichas/fichas.module';
 import { MovimientosModule } from './movimientos/movimientos.module';
 import { CategoriaActividadModule } from './categoria_actividad/categoria_actividad.module';
 
-
 @Module({
   imports: [
     ServeStaticModule.forRoot({
@@ -156,9 +155,12 @@ import { CategoriaActividadModule } from './categoria_actividad/categoria_activi
     RecursosModule,
     ModulosModule,
     FichasModule,
+<<<<<<< HEAD
     MovimientosModule,
     CategoriaActividadModule,
     
+=======
+>>>>>>> b104bf1c376b7a9654786d3b5ee60243f4e8529a
   ],
   controllers: [AppController],
   providers: [AppService],

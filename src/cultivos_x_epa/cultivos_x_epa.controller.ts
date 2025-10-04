@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { CultivosXEpaService } from './cultivos_x_epa.service';
 import { CreateCultivosXEpaDto } from './dto/create-cultivos_x_epa.dto';
 import { UpdateCultivosXEpaDto } from './dto/update-cultivos_x_epa.dto';
@@ -23,7 +31,10 @@ export class CultivosXEpaController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCultivosXEpaDto: UpdateCultivosXEpaDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateCultivosXEpaDto: UpdateCultivosXEpaDto,
+  ) {
     return this.cultivosXEpaService.update(+id, updateCultivosXEpaDto);
   }
 
@@ -32,4 +43,3 @@ export class CultivosXEpaController {
     return this.cultivosXEpaService.remove(+id);
   }
 }
-

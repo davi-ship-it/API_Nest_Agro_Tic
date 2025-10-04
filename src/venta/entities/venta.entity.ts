@@ -1,5 +1,11 @@
 // File: src/entities/venta/venta.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Cosecha } from '../../cosechas/entities/cosecha.entity';
 
 @Entity('venta')
@@ -23,4 +29,3 @@ export class Venta {
   @JoinColumn({ name: 'fk_id_cosecha' })
   cosecha?: Cosecha;
 }
-

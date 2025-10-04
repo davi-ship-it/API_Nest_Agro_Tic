@@ -40,8 +40,16 @@ export class UsuariosService {
     createUserDto: CreateUsuarioDto,
     requestingUser?: RequestingUser,
   ) {
-    const { nombres, apellidos, dni, correo, password, telefono, rolId, fichaId } =
-      createUserDto;
+    const {
+      nombres,
+      apellidos,
+      dni,
+      correo,
+      password,
+      telefono,
+      rolId,
+      fichaId,
+    } = createUserDto;
 
     // 1. Buscamos el rol que se quiere asignar para obtener su nombre.
     const rolAAsignar = await this.rolRepository.findOneBy({ id: rolId });
@@ -55,18 +63,29 @@ export class UsuariosService {
     let fichaAsignar: Ficha | undefined;
     if (rolAAsignar.nombre?.toLowerCase() === 'aprendiz') {
       if (!fichaId || fichaId.trim() === '') {
-        throw new BadRequestException('Debe proporcionar una ficha para usuarios con rol APRENDIZ.');
+        throw new BadRequestException(
+          'Debe proporcionar una ficha para usuarios con rol APRENDIZ.',
+        );
       }
-      fichaAsignar = await this.fichaRepository.findOneBy({ id: fichaId }) || undefined;
+      fichaAsignar =
+        (await this.fichaRepository.findOneBy({ id: fichaId })) || undefined;
       if (!fichaAsignar) {
-        throw new NotFoundException(`La ficha con ID "${fichaId}" no fue encontrada.`);
+        throw new NotFoundException(
+          `La ficha con ID "${fichaId}" no fue encontrada.`,
+        );
       }
     }
 
     // 3. Lógica de autorización simplificada
     // Solo los ADMIN pueden crear otros usuarios ADMIN
-    if (requestingUser && rolAAsignar.nombre === 'ADMIN' && requestingUser.rol !== 'ADMIN') {
-      throw new ForbiddenException('Solo los administradores pueden crear usuarios con rol ADMIN.');
+    if (
+      requestingUser &&
+      rolAAsignar.nombre === 'ADMIN' &&
+      requestingUser.rol !== 'ADMIN'
+    ) {
+      throw new ForbiddenException(
+        'Solo los administradores pueden crear usuarios con rol ADMIN.',
+      );
     }
 
     const usuarioExistente = await this.usuarioRepository.findOne({
@@ -115,7 +134,13 @@ export class UsuariosService {
   async findMe(userId: string): Promise<Omit<Usuario, 'passwordHash'>> {
     const user = await this.usuarioRepository.findOne({
       where: { id: userId },
-      relations: ['rol', 'rol.permisos', 'rol.permisos.recurso', 'rol.permisos.recurso.modulo', 'ficha'],
+      relations: [
+        'rol',
+        'rol.permisos',
+        'rol.permisos.recurso',
+        'rol.permisos.recurso.modulo',
+        'ficha',
+      ],
     });
 
     if (!user) {
@@ -127,7 +152,10 @@ export class UsuariosService {
     return result;
   }
 
-  async updateMe(userId: string, updateProfileDto: UpdateMeDto): Promise<Omit<Usuario, 'passwordHash'>> {
+  async updateMe(
+    userId: string,
+    updateProfileDto: UpdateMeDto,
+  ): Promise<Omit<Usuario, 'passwordHash'>> {
     const user = await this.usuarioRepository.preload({
       id: userId,
       ...updateProfileDto,

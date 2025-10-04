@@ -7,7 +7,12 @@ export class TipoEpa {
   @PrimaryGeneratedColumn('uuid', { name: 'pk_id_tipo_epa' })
   id: string;
 
-  @Column({ name: 'tipo_epa_nombre', type: 'varchar', length: 50, unique: true })
+  @Column({
+    name: 'tipo_epa_nombre',
+    type: 'varchar',
+    length: 50,
+    unique: true,
+  })
   nombre: string;
 
   @OneToMany(() => Epa, (epa) => epa.tipoEpa)

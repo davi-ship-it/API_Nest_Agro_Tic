@@ -1,9 +1,4 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  OneToMany,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { Usuario } from '../../usuarios/entities/usuario.entity';
 
 @Entity('fichas')
@@ -17,4 +12,3 @@ export class Ficha {
   @OneToMany(() => Usuario, (usuario) => usuario.ficha)
   usuarios?: Usuario[];
 }
-

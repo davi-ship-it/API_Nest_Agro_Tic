@@ -10,4 +10,3 @@ import { Zona } from './entities/zona.entity';
   providers: [ZonasService],
 })
 export class ZonasModule {}
-

@@ -18,13 +18,17 @@ export class CreatePermisoDto {
    * @example ['crear', 'leer']
    */
   @IsArray({ message: 'Las acciones deben ser un arreglo.' })
-  @IsString({ each: true, message: 'Cada acción debe ser una cadena de texto.' })
+  @IsString({
+    each: true,
+    message: 'Cada acción debe ser una cadena de texto.',
+  })
   @IsNotEmpty({ message: 'El arreglo de acciones no puede estar vacío.' })
   acciones: string[];
-   
 
-  @IsString({ each: true, message: 'Cada acción debe ser una cadena de texto.' })
+  @IsString({
+    each: true,
+    message: 'Cada acción debe ser una cadena de texto.',
+  })
   @IsNotEmpty({ message: 'El arreglo de acciones no puede estar vacío.' })
   moduloNombre: string;
 }
-

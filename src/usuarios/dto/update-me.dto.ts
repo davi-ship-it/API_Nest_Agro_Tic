@@ -1,5 +1,11 @@
 // src/usuarios/dto/update-me.dto.ts
-import { IsString, IsEmail, IsOptional, Length, IsNumber } from 'class-validator';
+import {
+  IsString,
+  IsEmail,
+  IsOptional,
+  Length,
+  IsNumber,
+} from 'class-validator';
 
 export class UpdateMeDto {
   @IsString()

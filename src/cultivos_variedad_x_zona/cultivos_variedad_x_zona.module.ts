@@ -10,4 +10,3 @@ import { CultivosVariedadXZona } from './entities/cultivos_variedad_x_zona.entit
   providers: [CultivosVariedadXZonaService],
 })
 export class CultivosVariedadXZonaModule {}
-

@@ -1,4 +1,3 @@
-
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like } from 'typeorm';
@@ -51,11 +50,16 @@ export class InventarioService {
 
   async findOne(id: string) {
     const item = await this.inventarioRepo.findOne({ where: { id } });
-    if (!item) throw new NotFoundException(`Inventario con ID ${id} no encontrado.`);
+    if (!item)
+      throw new NotFoundException(`Inventario con ID ${id} no encontrado.`);
     return item;
   }
 
-  async update(id: string, dto: UpdateInventarioDto, file?: Express.Multer.File) {
+  async update(
+    id: string,
+    dto: UpdateInventarioDto,
+    file?: Express.Multer.File,
+  ) {
     // 1. Aseguramos que el item exista. findOne ya lanza la excepción si no lo encuentra.
     const item = await this.findOne(id); // Esto también obtiene la URL de la imagen antigua
     const oldImgUrl = item.imgUrl;
@@ -77,7 +81,10 @@ export class InventarioService {
         await unlink(imagePath);
       } catch (error) {
         // Es buena idea loggear el error, pero no detener la ejecución
-        console.error(`Error al eliminar la imagen antigua ${oldImgUrl}:`, error);
+        console.error(
+          `Error al eliminar la imagen antigua ${oldImgUrl}:`,
+          error,
+        );
       }
     }
 

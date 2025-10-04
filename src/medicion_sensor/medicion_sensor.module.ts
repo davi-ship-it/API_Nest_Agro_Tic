@@ -7,4 +7,3 @@ import { MedicionSensorController } from './medicion_sensor.controller';
   providers: [MedicionSensorService],
 })
 export class MedicionSensorModule {}
-

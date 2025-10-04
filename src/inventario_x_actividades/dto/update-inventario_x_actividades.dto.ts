@@ -4,4 +4,3 @@ import { CreateInventarioXActividadesDto } from './create-inventario_x_actividad
 export class UpdateInventarioXActividadesDto extends PartialType(
   CreateInventarioXActividadesDto,
 ) {}
-

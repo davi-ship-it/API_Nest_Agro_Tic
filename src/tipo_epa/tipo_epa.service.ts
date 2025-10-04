@@ -24,4 +24,3 @@ export class TipoEpaService {
     return `This action removes a #${id} tipoEpa`;
   }
 }
-

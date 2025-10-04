@@ -6,7 +6,7 @@ import { Variedad } from '../../variedad/entities/variedad.entity';
 
 @Entity('tipo_cultivo')
 export class TipoCultivo {
-  @PrimaryGeneratedColumn('uuid',{ name: 'pk_id_tipo_cultivo' })
+  @PrimaryGeneratedColumn('uuid', { name: 'pk_id_tipo_cultivo' })
   id: string; // Cambiado de number a string
 
   @Column({ name: 'tpc_nombre', type: 'varchar', length: 50 })

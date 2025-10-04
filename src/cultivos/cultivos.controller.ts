@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Param, Patch, Delete, HttpStatus, HttpCode } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Patch,
+  Delete,
+  HttpStatus,
+  HttpCode,
+} from '@nestjs/common';
 import { CultivosService } from './cultivos.service';
 import { CreateCultivoDto } from './dto/create-cultivo.dto';
 import { UpdateCultivoDto } from './dto/update-cultivo.dto';
@@ -33,9 +43,9 @@ export class CultivosController {
     return this.cultivosService.remove(id);
   }
 
-@Post('search')
-@HttpCode(HttpStatus.OK)
-search(@Body() dto: SearchCultivoDto) {
-  return this.cultivosService.search(dto);
-}
+  @Post('search')
+  @HttpCode(HttpStatus.OK)
+  search(@Body() dto: SearchCultivoDto) {
+    return this.cultivosService.search(dto);
+  }
 }

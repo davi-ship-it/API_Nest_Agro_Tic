@@ -1,5 +1,11 @@
 // File: src/entities/inventario_x_actividades/inventario_x_actividades.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Inventario } from '../../inventario/entities/inventario.entity';
 import { Actividad } from '../../actividades/entities/actividades.entity';
 
@@ -22,4 +28,3 @@ export class InventarioXActividad {
   @JoinColumn({ name: 'fk_id_actividad' })
   actividad?: Actividad;
 }
-
