@@ -826,10 +826,17 @@ export class SeederService {
 
   private async seedCultivo() {
     this.logger.log(
-      'Creando muchos cultivos con fechas de siembra variadas...',
+      'Creando cultivos con fechas de siembra variadas...',
       'Seeder',
     );
     try {
+      // Verificar si ya existen cultivos
+      const existingCultivos = await this.cultivoRepository.find();
+      if (existingCultivos.length > 0) {
+        this.logger.log('Cultivos ya existen. Omitiendo creación.', 'Seeder');
+        return;
+      }
+
       const fechasSiembra = [
         '2023-01-15',
         '2023-02-20',
@@ -874,7 +881,7 @@ export class SeederService {
       }
 
       const cultivosCreados: any[] = [];
-      for (let i = 0; i < 3; i++) { // Crear solo 3 cultivos para evitar duplicados
+      for (let i = 0; i < 3; i++) { // Crear solo 3 cultivos
         // Mezcla de estados: 70% en curso, 30% finalizado
         const estado = Math.random() > 0.7 ? 0 : 1;
 
@@ -956,13 +963,25 @@ export class SeederService {
         return;
       }
       for (const cvz of cvzs) {
+        // Verificar si ya existen actividades para este CVZ
+        const existingActivities = await this.actividadRepository.find({
+          where: { fkCultivoVariedadZonaId: cvz.id },
+        });
+        if (existingActivities.length > 0) {
+          this.logger.log(`Actividades ya existen para CVZ ${cvz.id}. Omitiendo.`, 'Seeder');
+          continue;
+        }
+
         // Crear múltiples actividades por CVZ para tener varias ficha trabajando en el mismo cultivo
         for (let i = 0; i < 4; i++) { // 4 actividades por CVZ
           const categoria = categorias[i % categorias.length];
           const isFinished = Math.random() > 0.7; // 30% finished
+          // Fechas aleatorias en octubre 2024
+          const dia = Math.floor(Math.random() * 31) + 1; // 1-31
+          const fechaAsignacion = new Date(`2025-10-${dia.toString().padStart(2, '0')}`);
           const actividad = this.actividadRepository.create({
             descripcion: `Actividad de ${categoria.nombre}`,
-            fechaAsignacion: new Date('2023-01-01'),
+            fechaAsignacion,
             horasDedicadas: 8,
             observacion: `Observación de la actividad de ${categoria.nombre}`,
             estado: isFinished ? false : true,
@@ -1123,16 +1142,23 @@ export class SeederService {
         for (const invData of inventariosData) {
           const categoria = categorias.find(c => c.nombre === invData.categoriaNombre);
           if (categoria) {
-            const inventario = this.inventarioRepository.create({
-              nombre: invData.nombre,
-              descripcion: invData.descripcion,
-              stock: invData.stock,
-              precio: invData.precio,
-              fkBodegaId: bodega.id,
-              fkCategoriaId: categoria.id,
+            let inventario = await this.inventarioRepository.findOne({
+              where: { nombre: invData.nombre },
             });
-            await this.inventarioRepository.save(inventario);
-            this.logger.log(`Inventario "${invData.nombre}" creado.`, 'Seeder');
+            if (!inventario) {
+              inventario = this.inventarioRepository.create({
+                nombre: invData.nombre,
+                descripcion: invData.descripcion,
+                stock: invData.stock,
+                precio: invData.precio,
+                fkBodegaId: bodega.id,
+                fkCategoriaId: categoria.id,
+              });
+              await this.inventarioRepository.save(inventario);
+              this.logger.log(`Inventario "${invData.nombre}" creado.`, 'Seeder');
+            } else {
+              this.logger.log(`Inventario "${invData.nombre}" ya existe. Omitiendo.`, 'Seeder');
+            }
           }
         }
       }
