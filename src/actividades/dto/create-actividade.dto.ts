@@ -30,4 +30,8 @@ export class CreateActividadeDto {
   @IsUUID()
   @IsNotEmpty()
   fkCategoriaActividadId: string;
+
+  @IsString()
+  @IsOptional()
+  imgUrl?: string;
 }
