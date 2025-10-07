@@ -7,6 +7,7 @@ import {
   NotFoundException,
   Logger,
   BadRequestException, // ✅ Importa BadRequestException para el manejo de errores
+  Optional,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -39,7 +40,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly mailerService: MailerService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    @Optional() @Inject(CACHE_MANAGER) private cacheManager?: Cache,
   ) {}
 
   /**
@@ -150,7 +151,9 @@ export class AuthService {
     const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
 
     const ttl = 30 * 24 * 60 * 60;
-    await this.cacheManager.set(`session:${usuario.id}`, refreshTokenHash, ttl);
+    if (this.cacheManager) {
+      await this.cacheManager.set(`session:${usuario.id}`, refreshTokenHash, ttl);
+    }
 
     return {
       message: 'Inicio de sesión exitoso',
@@ -208,9 +211,10 @@ export class AuthService {
 
       const userId = payload.sub;
 
-      const storedTokenHash = await this.cacheManager.get<string>(
-        `session:${userId}`,
-      );
+      let storedTokenHash: string | undefined;
+      if (this.cacheManager) {
+        storedTokenHash = await this.cacheManager.get<string>(`session:${userId}`);
+      }
 
       if (!storedTokenHash) {
         throw new UnauthorizedException('Sesión no encontrada o expirada.');
@@ -256,7 +260,9 @@ export class AuthService {
   }
 
   async logout(userId: string) {
-    await this.cacheManager.del(`session:${userId}`);
+    if (this.cacheManager) {
+      await this.cacheManager.del(`session:${userId}`);
+    }
     return { message: 'Sesión cerrada exitosamente' };
   }
 

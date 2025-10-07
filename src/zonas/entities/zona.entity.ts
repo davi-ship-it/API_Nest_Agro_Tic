@@ -22,7 +22,7 @@ export class Zona {
   coorY: number;
 
   @Column({ name: 'fk_id_mapa' })
-  fkMapaId: number;
+  fkMapaId: string;
 
   @ManyToOne(() => Mapa, (m) => m.zonas)
   @JoinColumn({ name: 'fk_id_mapa' })

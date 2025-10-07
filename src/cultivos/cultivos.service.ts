@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Cultivo } from './entities/cultivo.entity';
 import { CreateCultivoDto } from './dto/create-cultivo.dto';
 import { UpdateCultivoDto } from './dto/update-cultivo.dto';
+import { SearchCultivoDto } from './dto/search-cultivo.dto';
 
 @Injectable()
 export class CultivosService {
@@ -37,4 +38,55 @@ export class CultivosService {
     const cultivo = await this.findOne(id);
     await this.cultivoRepo.remove(cultivo);
   }
+
+async search(dto: SearchCultivoDto): Promise<Cultivo[]> {
+  const qb = this.cultivoRepo.createQueryBuilder('c')
+    .leftJoin('c.variedades', 'cxv')
+    .leftJoin('cxv.variedad', 'v')
+    .leftJoin('v.tipoCultivo', 'tc')
+    .leftJoin('cvz.zona', 'z') // relación con tabla zonas
+    .leftJoin('cvz.actividades', 'a')
+    .leftJoin('a.usuariosAsignados', 'uxa')
+    .leftJoin('uxa.usuario', 'u');
+
+  // Buscar por ZONA (zona.nombre en vez de c.lote)
+  if (dto.buscar) {
+  qb.andWhere('z.nombre LIKE :buscar', { buscar: `%${dto.buscar}%` });
+}
+
+  // Buscar por cultivo (variedad o tipoCultivo)
+  if (dto.buscar_cultivo) {
+    qb.andWhere('(v.nombre LIKE :buscarCultivo OR tc.nombre LIKE :buscarCultivo)', {
+      buscarCultivo: `%${dto.buscar_cultivo}%`,
+    });
+  }
+
+  // Filtrar por rango de fechas de siembra
+  if (dto.fecha_inicio && dto.fecha_fin) {
+    qb.andWhere('c.siembra BETWEEN :inicio AND :fin', {
+      inicio: dto.fecha_inicio,
+      fin: dto.fecha_fin,
+    });
+  }
+
+  // Filtrar por rango de fechas de cosecha (usando mismos nombres de DTO)
+  if (dto.fecha_inicio && dto.fecha_fin) {
+    qb.andWhere('c.cosecha BETWEEN :inicioCosecha AND :finCosecha', {
+      inicioCosecha: dto.fecha_inicio,
+      finCosecha: dto.fecha_fin,
+    });
+  }
+
+  // Filtrar por titulado (usuario)
+  if (dto.id_titulado) {
+    qb.andWhere('u.id = :idTitulado', { idTitulado: dto.id_titulado });
+  }
+
+  // Filtrar por estado del cultivo
+  if (dto.estado_cultivo !== undefined) {
+    qb.andWhere('c.estado = :estado', { estado: dto.estado_cultivo });
+  }
+
+  return qb.getMany();
+}
 }

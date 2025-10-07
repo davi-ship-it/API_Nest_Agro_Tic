@@ -31,7 +31,7 @@ import { RolesModule } from './roles/roles.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { CacheModule } from '@nestjs/cache-manager';
-import { redisStore } from 'cache-manager-redis-store';
+// import { redisStore } from 'cache-manager-redis-store';
 import { AuthModule } from './auth/auth.module';
 import { PermisosModule } from './permisos/permisos.module';
 import { RecursosModule } from './recursos/recursos.module';
@@ -46,23 +46,23 @@ import { FichasModule } from './fichas/fichas.module';
       isGlobal: true,
     }),
 
-    // 2. Módulo de Cache (Redis)
-    CacheModule.registerAsync({
-      isGlobal: true, // Hace el módulo disponible globalmente
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => ({
-        store: await redisStore({
-          socket: {
-            host: configService.get<string>('REDIS_HOST'),
-            port: parseInt(
-              configService.get<string>('REDIS_PORT') || '6379',
-              10,
-            ),
-          },
-        }),
-      }),
-    }),
+    // 2. Módulo de Cache (Redis) - DESACTIVADO TEMPORALMENTE PARA TESTING
+    // CacheModule.registerAsync({
+    //   isGlobal: true, // Hace el módulo disponible globalmente
+    //   imports: [ConfigModule],
+    //   inject: [ConfigService],
+    //   useFactory: async (configService: ConfigService) => ({
+    //     store: await redisStore({
+    //       socket: {
+    //         host: configService.get<string>('REDIS_HOST'),
+    //         port: parseInt(
+    //           configService.get<string>('REDIS_PORT') || '6379',
+    //           10,
+    //         ),
+    //       },
+    //     }),
+    //   }),
+    // }),
 
     // 3. Módulo JWT
     JwtModule.registerAsync({

@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Param, Patch, Delete } from '@nestjs/commo
 import { CultivosService } from './cultivos.service';
 import { CreateCultivoDto } from './dto/create-cultivo.dto';
 import { UpdateCultivoDto } from './dto/update-cultivo.dto';
+import { SearchCultivoDto } from './dto/search-cultivo.dto';
 
 @Controller('cultivos')
 export class CultivosController {
@@ -30,5 +31,10 @@ export class CultivosController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.cultivosService.remove(id);
+  }
+
+  @Post('search')
+  search(@Body() dto: SearchCultivoDto) {
+    return this.cultivosService.search(dto);
   }
 }
