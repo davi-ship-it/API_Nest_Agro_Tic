@@ -19,6 +19,9 @@ export class Movimiento {
   @Column({ name: 'mov_stock_devuelto_sobrante', type: 'numeric', nullable: true })
   stockDevueltoSobrante: number | null;
 
+  @Column({ name: 'mov_stock_reservado_sobrante', type: 'numeric', nullable: true })
+  stockReservadoSobrante: number | null;
+
   @ManyToOne(() => Inventario, (i) => i.movimientos)
   @JoinColumn({ name: 'fk_id_inventario' })
   inventario?: Inventario;

@@ -1,11 +1,15 @@
-import { IsNumber, IsOptional } from 'class-validator';
+import { IsUUID, IsOptional, IsNumber } from 'class-validator';
 
 export class CreateInventarioXActividadesDto {
-  @IsNumber()
+  @IsUUID()
   @IsOptional()
-  fkInventarioId?: number;
+  fkInventarioId?: string;
+
+  @IsUUID()
+  @IsOptional()
+  fkActividadId?: string;
 
   @IsNumber()
   @IsOptional()
-  fkActividadId?: number;
+  cantidadUsada?: number;
 }

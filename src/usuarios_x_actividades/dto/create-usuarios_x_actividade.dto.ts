@@ -1,14 +1,14 @@
-import { IsNotEmpty, IsNumber, IsDate } from 'class-validator';
+import { IsNotEmpty, IsUUID, IsDate } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateUsuariosXActividadeDto {
-  @IsNumber()
+  @IsUUID()
   @IsNotEmpty()
-  fkUsuarioId: number;
+  fkUsuarioId: string;
 
-  @IsNumber()
+  @IsUUID()
   @IsNotEmpty()
-  fkActividadId: number;
+  fkActividadId: string;
 
   @IsNotEmpty()
   @Type(() => Date)

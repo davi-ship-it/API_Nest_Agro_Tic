@@ -1223,6 +1223,7 @@ export class SeederService {
             stockReservado: 10,
             stockDevuelto: null,
             stockDevueltoSobrante: null,
+            stockReservadoSobrante: null,
           });
           await this.movimientoRepository.save(movimientoReservado);
 
@@ -1232,6 +1233,7 @@ export class SeederService {
             stockReservado: 0,
             stockDevuelto: 5, // Stock devuelto completo
             stockDevueltoSobrante: 0,
+            stockReservadoSobrante: null,
           });
           await this.movimientoRepository.save(movimientoDevuelto);
 
@@ -1242,6 +1244,7 @@ export class SeederService {
               stockReservado: 0,
               stockDevuelto: 0,
               stockDevueltoSobrante: 3, // Stock sobrante fraccional
+              stockReservadoSobrante: null,
             });
             await this.movimientoRepository.save(movimientoSobrante);
           }

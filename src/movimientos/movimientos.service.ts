@@ -12,9 +12,13 @@ export class MovimientosService {
     private readonly movimientoRepo: Repository<Movimiento>,
   ) {}
 
-  async create(createMovimientoDto: any) {
+  async create(createMovimientoDto: CreateMovimientoDto) {
+    console.log('Creating movimiento with data:', createMovimientoDto);
     const movimiento = this.movimientoRepo.create(createMovimientoDto);
-    return await this.movimientoRepo.save(movimiento);
+    console.log('Movimiento entity created:', movimiento);
+    const result = await this.movimientoRepo.save(movimiento);
+    console.log('Movimiento saved successfully:', result);
+    return result;
   }
 
   async findAll() {

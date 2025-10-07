@@ -61,12 +61,14 @@ export class InventarioService {
       const movimientos = item.movimientos || [];
       const reservedStock = movimientos.reduce((sum, m) => sum + (m.stockReservado || 0), 0);
       const surplusStock = movimientos.reduce((sum, m) => sum + (Number(m.stockDevueltoSobrante) || 0), 0);
+      const reservedSurplus = movimientos.reduce((sum, m) => sum + (Number(m.stockReservadoSobrante) || 0), 0);
       const availableStock = item.stock - reservedStock;
+      const availableSurplus = surplusStock - reservedSurplus;
 
       return {
         ...item,
         stock_disponible: Math.max(0, availableStock),
-        stock_sobrante: surplusStock,
+        stock_sobrante: Math.max(0, availableSurplus),
       };
     });
     return { items: itemsWithAvailable, total };
@@ -141,7 +143,9 @@ export class InventarioService {
     const movimientos = item.movimientos || [];
     const reservedStock = movimientos.reduce((sum, m) => sum + (m.stockReservado || 0), 0);
     const surplusStock = movimientos.reduce((sum, m) => sum + (Number(m.stockDevueltoSobrante) || 0), 0);
+    const reservedSurplus = movimientos.reduce((sum, m) => sum + (Number(m.stockReservadoSobrante) || 0), 0);
     const availableStock = item.stock - reservedStock;
+    const availableSurplus = surplusStock - reservedSurplus;
 
     return Math.max(0, availableStock);
   }
