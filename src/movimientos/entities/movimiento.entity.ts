@@ -10,11 +10,14 @@ export class Movimiento {
   @Column({ name: 'fk_id_inventario', type: 'uuid' })
   fkInventarioId: string;
 
-  @Column({ name: 'mov_stock_reservado', type: 'numeric' })
-  stockReservado: number;
+  @Column({ name: 'mov_stock_reservado', type: 'numeric', nullable: true })
+  stockReservado: number | null;
 
-  @Column({ name: 'mov_stock_devuelto', type: 'numeric' })
-  stockDevuelto: number;
+  @Column({ name: 'mov_stock_devuelto', type: 'numeric', nullable: true })
+  stockDevuelto: number | null;
+
+  @Column({ name: 'mov_stock_devuelto_sobrante', type: 'numeric', nullable: true })
+  stockDevueltoSobrante: number | null;
 
   @ManyToOne(() => Inventario, (i) => i.movimientos)
   @JoinColumn({ name: 'fk_id_inventario' })

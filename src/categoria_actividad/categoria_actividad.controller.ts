@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { ParseIntPipe } from '@nestjs/common';
 import { CategoriaActividadService } from './categoria_actividad.service';
 import { CreateCategoriaActividadDto } from './dto/create-categoria_actividad.dto';
 import { UpdateCategoriaActividadDto } from './dto/update-categoria_actividad.dto';
@@ -17,18 +18,27 @@ export class CategoriaActividadController {
     return this.categoriaActividadService.findAll();
   }
 
+  @Get('search/:query')
+  search(
+    @Param('query') query: string,
+    @Query('page', ParseIntPipe) page: number = 1,
+    @Query('limit', ParseIntPipe) limit: number = 10,
+  ) {
+    return this.categoriaActividadService.search(query, page, limit);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.categoriaActividadService.findOne(+id);
+    return this.categoriaActividadService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateCategoriaActividadDto: UpdateCategoriaActividadDto) {
-    return this.categoriaActividadService.update(+id, updateCategoriaActividadDto);
+    return this.categoriaActividadService.update(id, updateCategoriaActividadDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.categoriaActividadService.remove(+id);
+    return this.categoriaActividadService.remove(id);
   }
 }

@@ -7,7 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Like, Raw } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Usuario } from './entities/usuario.entity';
 import { Roles } from '../roles/entities/role.entity';
@@ -115,8 +115,30 @@ export class UsuariosService {
     return usuarioCreado;
   }
 
-  findAll() {
-    return `This action returns all usuarios`;
+  async findAll() {
+    return await this.usuarioRepository.find({
+      select: ['id', 'nombres', 'apellidos', 'dni'],
+      relations: ['ficha'],
+    });
+  }
+
+  async search(query: string, page: number = 1, limit: number = 10) {
+    const skip = (page - 1) * limit;
+    const qb = this.usuarioRepository.createQueryBuilder('u')
+      .leftJoinAndSelect('u.ficha', 'f')
+      .where('u.nombres ILIKE :query OR u.apellidos ILIKE :query OR CAST(u.dni AS TEXT) ILIKE :query', { query: `%${query}%` })
+      .select(['u.id', 'u.nombres', 'u.apellidos', 'u.dni', 'f.numero'])
+      .skip(skip)
+      .take(limit);
+
+    const [items, total] = await qb.getManyAndCount();
+    return {
+      items,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   findOne(id: number) {

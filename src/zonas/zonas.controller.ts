@@ -8,6 +8,7 @@ import {
   Delete,
   Query,
 } from '@nestjs/common';
+import { ParseIntPipe } from '@nestjs/common';
 import { ZonasService } from './zonas.service';
 import { CreateZonaDto } from './dto/create-zona.dto';
 import { UpdateZonaDto } from './dto/update-zona.dto';
@@ -27,6 +28,15 @@ export class ZonasController {
       return this.zonasService.findByNombre(nombre);
     }
     return this.zonasService.findAll();
+  }
+
+  @Get('search/:query')
+  search(
+    @Param('query') query: string,
+    @Query('page', ParseIntPipe) page: number = 1,
+    @Query('limit', ParseIntPipe) limit: number = 10,
+  ) {
+    return this.zonasService.search(query, page, limit);
   }
 
   @Get(':id')

@@ -8,6 +8,7 @@ import {
   Delete,
   UploadedFile,
   UseInterceptors,
+  Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -35,15 +36,30 @@ export class ActividadesController {
   )
   create(
     @Body() dto: CreateActividadeDto,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile() file?: Express.Multer.File,
   ) {
-    const imgUrl = `/uploads/actividades/${file.filename}`;
+    const imgUrl = file ? `/uploads/actividades/${file.filename}` : '';
     return this.actividadesService.create({ ...dto, imgUrl });
   }
 
   @Get()
   findAll() {
     return this.actividadesService.findAll();
+  }
+
+  @Get('count-by-date/:date')
+  countByDate(@Param('date') date: string) {
+    return this.actividadesService.countByDate(date);
+  }
+
+  @Get('by-date/:date')
+  findByDate(@Param('date') date: string) {
+    return this.actividadesService.findByDate(date);
+  }
+
+  @Get('by-date-range')
+  findByDateRange(@Query('start') start: string, @Query('end') end: string) {
+    return this.actividadesService.findByDateRange(start, end);
   }
 
   @Get(':id')
@@ -59,5 +75,21 @@ export class ActividadesController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.actividadesService.remove(id);
+  }
+
+  @Post('upload')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './uploads/evidencias',
+        filename: (req, file, cb) => {
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          cb(null, `${uniqueSuffix}${extname(file.originalname)}`);
+        },
+      }),
+    }),
+  )
+  uploadFile(@UploadedFile() file: Express.Multer.File) {
+    return { url: `/uploads/evidencias/${file.filename}` };
   }
 }

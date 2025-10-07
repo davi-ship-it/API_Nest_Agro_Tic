@@ -8,7 +8,9 @@ import {
   Delete,
   UseGuards,
   Req,
+  Query,
 } from '@nestjs/common';
+import { ParseIntPipe } from '@nestjs/common';
 import { UsuariosService } from './usuarios.service';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
@@ -61,6 +63,16 @@ export class UsuariosController {
   remove(@Param('id') id: string) {
     return this.usuariosService.remove(+id);
   }
+
+  @Get('search/:query')
+  search(
+    @Param('query') query: string,
+    @Query('page', ParseIntPipe) page: number = 1,
+    @Query('limit', ParseIntPipe) limit: number = 10,
+  ) {
+    return this.usuariosService.search(query, page, limit);
+  }
+
   @Get('search/dni/:dni')
   findByDni(@Param('dni') dni: string) {
     return this.usuariosService.findByDni(+dni);

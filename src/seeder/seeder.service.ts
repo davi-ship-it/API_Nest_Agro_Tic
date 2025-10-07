@@ -959,18 +959,19 @@ export class SeederService {
         // Crear múltiples actividades por CVZ para tener varias ficha trabajando en el mismo cultivo
         for (let i = 0; i < 4; i++) { // 4 actividades por CVZ
           const categoria = categorias[i % categorias.length];
+          const isFinished = Math.random() > 0.7; // 30% finished
           const actividad = this.actividadRepository.create({
             descripcion: `Actividad de ${categoria.nombre}`,
             fechaAsignacion: new Date('2023-01-01'),
             horasDedicadas: 8,
             observacion: `Observación de la actividad de ${categoria.nombre}`,
-            estado: true,
-            imgUrl: 'url',
+            estado: isFinished ? false : true,
+            imgUrl: isFinished ? '/uploads/evidencias/evidence.jpg' : 'url',
             fkCultivoVariedadZonaId: cvz.id,
             fkCategoriaActividadId: categoria.id,
           });
           await this.actividadRepository.save(actividad);
-          this.logger.log(`Actividad ${categoria.nombre} creada para CVZ ${cvz.id}.`, 'Seeder');
+          this.logger.log(`Actividad ${categoria.nombre} ${isFinished ? 'finalizada' : 'activa'} creada para CVZ ${cvz.id}.`, 'Seeder');
         }
       }
     } catch (error) {
@@ -1108,20 +1109,32 @@ export class SeederService {
       const bodega = await this.bodegaRepository.findOne({
         where: { nombre: 'Bodega Principal' },
       });
-      const categoria = await this.categoriaRepository.findOne({
-        where: { nombre: 'Abono' },
-      });
-      if (bodega && categoria) {
-        const inventario = this.inventarioRepository.create({
-          nombre: 'Abono Orgánico',
-          descripcion: 'Abono para cultivos',
-          stock: 50,
-          precio: 10,
-          fkBodegaId: bodega.id,
-          fkCategoriaId: categoria.id,
-        });
-        await this.inventarioRepository.save(inventario);
-        this.logger.log(`Inventario creado.`, 'Seeder');
+      const categorias = await this.categoriaRepository.find();
+      if (bodega && categorias.length > 0) {
+        const inventariosData = [
+          { nombre: 'Abono Orgánico', descripcion: 'Abono para cultivos', stock: 50, precio: 10, categoriaNombre: 'Abono' },
+          { nombre: 'Fertilizante Líquido', descripcion: 'Fertilizante nitrogenado', stock: 30, precio: 15, categoriaNombre: 'Abono' },
+          { nombre: 'Semillas de Maíz', descripcion: 'Semillas híbridas', stock: 100, precio: 5, categoriaNombre: 'Abono' },
+          { nombre: 'Pala Grande', descripcion: 'Herramienta para excavación', stock: 10, precio: 20, categoriaNombre: 'Herramientas' },
+          { nombre: 'Carretilla', descripcion: 'Para transporte de materiales', stock: 5, precio: 50, categoriaNombre: 'Herramientas' },
+          { nombre: 'Guantes de Trabajo', descripcion: 'Protección para manos', stock: 20, precio: 8, categoriaNombre: 'Herramientas' },
+        ];
+
+        for (const invData of inventariosData) {
+          const categoria = categorias.find(c => c.nombre === invData.categoriaNombre);
+          if (categoria) {
+            const inventario = this.inventarioRepository.create({
+              nombre: invData.nombre,
+              descripcion: invData.descripcion,
+              stock: invData.stock,
+              precio: invData.precio,
+              fkBodegaId: bodega.id,
+              fkCategoriaId: categoria.id,
+            });
+            await this.inventarioRepository.save(inventario);
+            this.logger.log(`Inventario "${invData.nombre}" creado.`, 'Seeder');
+          }
+        }
       }
     } catch (error) {
       this.logger.error(`Error creando inventario: ${error.message}`, 'Seeder');
@@ -1158,7 +1171,7 @@ export class SeederService {
   private async seedCategoriaActividad() {
     this.logger.log('Creando categorías de actividad base...', 'Seeder');
     try {
-      const categorias = ['Siembra', 'Riego', 'Fertilización', 'Cosecha'];
+      const categorias = ['Siembra', 'Cosecha', 'Congelación', 'Fitosanitario', 'Mantenimiento', 'Herramientas'];
       for (const nombre of categorias) {
         let categoria = await this.categoriaActividadRepository.findOne({ where: { nombre } });
         if (!categoria) {
@@ -1175,16 +1188,39 @@ export class SeederService {
   private async seedMovimiento() {
     this.logger.log('Creando movimientos base...', 'Seeder');
     try {
-      const inventarios = await this.inventarioRepository.find();
+      const inventarios = await this.inventarioRepository.find({ relations: ['categoria'] });
       if (inventarios.length > 0) {
         for (const inventario of inventarios) {
-          const movimiento = this.movimientoRepository.create({
+          // Crear movimiento de reserva
+          const movimientoReservado = this.movimientoRepository.create({
             fkInventarioId: inventario.id,
-            stockReservado: 5,
-            stockDevuelto: 2,
+            stockReservado: 10,
+            stockDevuelto: null,
+            stockDevueltoSobrante: null,
           });
-          await this.movimientoRepository.save(movimiento);
-          this.logger.log(`Movimiento creado para inventario "${inventario.nombre}".`, 'Seeder');
+          await this.movimientoRepository.save(movimientoReservado);
+
+          // Crear movimiento de devuelto (para sugerencias)
+          const movimientoDevuelto = this.movimientoRepository.create({
+            fkInventarioId: inventario.id,
+            stockReservado: 0,
+            stockDevuelto: 5, // Stock devuelto completo
+            stockDevueltoSobrante: 0,
+          });
+          await this.movimientoRepository.save(movimientoDevuelto);
+
+          // Crear movimiento de sobrante (para consumibles)
+          if (inventario.categoria?.nombre !== 'Herramientas') {
+            const movimientoSobrante = this.movimientoRepository.create({
+              fkInventarioId: inventario.id,
+              stockReservado: 0,
+              stockDevuelto: 0,
+              stockDevueltoSobrante: 3, // Stock sobrante fraccional
+            });
+            await this.movimientoRepository.save(movimientoSobrante);
+          }
+
+          this.logger.log(`Movimientos creados para inventario "${inventario.nombre}".`, 'Seeder');
         }
       }
     } catch (error) {

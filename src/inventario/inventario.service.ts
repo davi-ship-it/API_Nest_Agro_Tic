@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like } from 'typeorm';
+import { Repository, Like, Raw } from 'typeorm';
 import { Inventario } from './entities/inventario.entity';
 import { CreateInventarioDto } from './dto/create-inventario.dto';
 import { Express } from 'express';
@@ -28,24 +28,48 @@ export class InventarioService {
   async findAll(page: number = 1, limit: number = 10) {
     const skip = (page - 1) * limit;
     const [items, total] = await this.inventarioRepo.findAndCount({
-      relations: ['categoria', 'bodega'],
+      relations: ['categoria', 'bodega', 'movimientos'],
       skip,
       take: limit,
     });
-    return { items, total };
+    const itemsWithAvailable = items.map(item => {
+      const movimientos = item.movimientos || [];
+      const reservedStock = movimientos.reduce((sum, m) => sum + (m.stockReservado || 0), 0);
+      const surplusStock = movimientos.reduce((sum, m) => sum + (Number(m.stockDevueltoSobrante) || 0), 0);
+      const availableStock = item.stock - reservedStock;
+
+      return {
+        ...item,
+        stock_disponible: Math.max(0, availableStock),
+        stock_sobrante: surplusStock,
+      };
+    });
+    return { items: itemsWithAvailable, total };
   }
 
   async search(query: string, page: number = 1, limit: number = 10) {
     const skip = (page - 1) * limit;
     const [items, total] = await this.inventarioRepo.findAndCount({
       where: {
-        nombre: Like(`%${query}%`),
+        nombre: Raw((alias) => `${alias} ILIKE :query`, { query: `%${query}%` }),
       },
-      relations: ['categoria', 'bodega'],
+      relations: ['categoria', 'bodega', 'movimientos'],
       skip,
       take: limit,
     });
-    return { items, total };
+    const itemsWithAvailable = items.map(item => {
+      const movimientos = item.movimientos || [];
+      const reservedStock = movimientos.reduce((sum, m) => sum + (m.stockReservado || 0), 0);
+      const surplusStock = movimientos.reduce((sum, m) => sum + (Number(m.stockDevueltoSobrante) || 0), 0);
+      const availableStock = item.stock - reservedStock;
+
+      return {
+        ...item,
+        stock_disponible: Math.max(0, availableStock),
+        stock_sobrante: surplusStock,
+      };
+    });
+    return { items: itemsWithAvailable, total };
   }
 
   async findOne(id: string) {
@@ -105,5 +129,25 @@ export class InventarioService {
       }
     }
     return { message: `Inventario con ID ${id} eliminado correctamente.` };
+  }
+
+  async getAvailableStock(id: string): Promise<number> {
+    const item = await this.inventarioRepo.findOne({
+      where: { id },
+      relations: ['movimientos'],
+    });
+    if (!item) throw new NotFoundException(`Inventario con ID ${id} no encontrado.`);
+
+    const movimientos = item.movimientos || [];
+    const reservedStock = movimientos.reduce((sum, m) => sum + (m.stockReservado || 0), 0);
+    const surplusStock = movimientos.reduce((sum, m) => sum + (Number(m.stockDevueltoSobrante) || 0), 0);
+    const availableStock = item.stock - reservedStock;
+
+    return Math.max(0, availableStock);
+  }
+
+  async validateStockAvailability(id: string, requestedQuantity: number): Promise<boolean> {
+    const availableStock = await this.getAvailableStock(id);
+    return availableStock >= requestedQuantity;
   }
 }

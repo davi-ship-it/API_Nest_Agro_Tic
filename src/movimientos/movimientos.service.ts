@@ -1,26 +1,43 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Movimiento } from './entities/movimiento.entity';
 import { CreateMovimientoDto } from './dto/create-movimiento.dto';
 import { UpdateMovimientoDto } from './dto/update-movimiento.dto';
 
 @Injectable()
 export class MovimientosService {
-  create(createMovimientoDto: CreateMovimientoDto) {
-    return 'This action adds a new movimiento';
+  constructor(
+    @InjectRepository(Movimiento)
+    private readonly movimientoRepo: Repository<Movimiento>,
+  ) {}
+
+  async create(createMovimientoDto: any) {
+    const movimiento = this.movimientoRepo.create(createMovimientoDto);
+    return await this.movimientoRepo.save(movimiento);
   }
 
-  findAll() {
-    return `This action returns all movimientos`;
+  async findAll() {
+    return await this.movimientoRepo.find({ relations: ['inventario'] });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} movimiento`;
+  async findOne(id: string) {
+    const movimiento = await this.movimientoRepo.findOne({ where: { id }, relations: ['inventario'] });
+    if (!movimiento) {
+      throw new NotFoundException(`Movimiento con ID ${id} no encontrado.`);
+    }
+    return movimiento;
   }
 
-  update(id: number, updateMovimientoDto: UpdateMovimientoDto) {
-    return `This action updates a #${id} movimiento`;
+  async update(id: string, updateMovimientoDto: UpdateMovimientoDto) {
+    const movimiento = await this.findOne(id);
+    const updatedMovimiento = this.movimientoRepo.merge(movimiento, updateMovimientoDto);
+    return await this.movimientoRepo.save(updatedMovimiento);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} movimiento`;
+  async remove(id: string) {
+    const movimiento = await this.findOne(id);
+    await this.movimientoRepo.delete(id);
+    return { message: `Movimiento con ID ${id} eliminado correctamente.` };
   }
 }

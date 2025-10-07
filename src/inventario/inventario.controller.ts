@@ -93,4 +93,18 @@ export class InventarioController {
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.inventarioService.remove(id);
   }
+
+  @Get(':id/stock-disponible')
+  getAvailableStock(@Param('id', ParseUUIDPipe) id: string) {
+    return this.inventarioService.getAvailableStock(id);
+  }
+
+  @Get(':id/validar-stock/:quantity')
+  validateStockAvailability(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('quantity') quantity: string,
+  ) {
+    const qty = parseFloat(quantity);
+    return this.inventarioService.validateStockAvailability(id, qty);
+  }
 }

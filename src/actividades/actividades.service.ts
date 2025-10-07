@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Between } from 'typeorm';
 import { Actividad } from './entities/actividades.entity';
 import { CreateActividadeDto } from './dto/create-actividade.dto';
 import { UpdateActividadeDto } from './dto/update-actividade.dto';
@@ -20,6 +20,26 @@ export class ActividadesService {
   }
   async findAll(): Promise<Actividad[]> {
     return await this.actividadesRepo.find();
+  }
+
+  async countByDate(date: string): Promise<number> {
+    return await this.actividadesRepo.count({
+      where: { fechaAsignacion: new Date(date) },
+    });
+  }
+
+  async findByDate(date: string): Promise<Actividad[]> {
+    return await this.actividadesRepo.find({
+      where: { fechaAsignacion: new Date(date) },
+      relations: ['categoriaActividad', 'cultivoVariedadZona', 'cultivoVariedadZona.cultivoXVariedad', 'cultivoVariedadZona.cultivoXVariedad.cultivo', 'cultivoVariedadZona.zona', 'usuariosAsignados', 'usuariosAsignados.usuario', 'inventarioUsado', 'inventarioUsado.inventario'],
+    });
+  }
+
+  async findByDateRange(start: string, end: string): Promise<Actividad[]> {
+    return await this.actividadesRepo.find({
+      where: { fechaAsignacion: Between(new Date(start), new Date(end)) },
+      relations: ['categoriaActividad', 'cultivoVariedadZona', 'cultivoVariedadZona.cultivoXVariedad', 'cultivoVariedadZona.cultivoXVariedad.cultivo', 'cultivoVariedadZona.zona', 'usuariosAsignados', 'usuariosAsignados.usuario', 'inventarioUsado', 'inventarioUsado.inventario'],
+    });
   }
 
   async findOne(id: string): Promise<Actividad> {

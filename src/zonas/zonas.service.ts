@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Like, Raw } from 'typeorm';
 import { Zona } from './entities/zona.entity';
 import { CreateZonaDto } from './dto/create-zona.dto';
 import { UpdateZonaDto } from './dto/update-zona.dto';
@@ -19,6 +19,24 @@ export class ZonasService {
 
   async findAll(): Promise<Zona[]> {
     return await this.zonaRepository.find();
+  }
+
+  async search(query: string, page: number = 1, limit: number = 10) {
+    const skip = (page - 1) * limit;
+    const [items, total] = await this.zonaRepository.findAndCount({
+      where: {
+        nombre: Raw((alias) => `${alias} ILIKE :query`, { query: `%${query}%` }),
+      },
+      skip,
+      take: limit,
+    });
+    return {
+      items,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async findByNombre(nombre: string): Promise<Zona[]> {
