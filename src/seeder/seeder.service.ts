@@ -737,9 +737,9 @@ export class SeederService {
     this.logger.log('Creando variedades base...', 'Seeder');
     try {
       const variedades = [
-        { nombre: 'Tomate Cherry', tipo: 'Tomate' },
-        { nombre: 'Papa Criolla', tipo: 'Papa' },
-        { nombre: 'Maíz Dulce', tipo: 'Maíz' },
+        { nombre: 'Cherry', tipo: 'Tomate' },
+        { nombre: 'Criolla', tipo: 'Papa' },
+        { nombre: 'Dulce', tipo: 'Maíz' },
       ];
       for (const v of variedades) {
         const tipo = await this.tipoCultivoRepository.findOne({
