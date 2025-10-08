@@ -3,6 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Cultivo } from './entities/cultivo.entity';
 import { CultivosVariedadXZona } from '../cultivos_variedad_x_zona/entities/cultivos_variedad_x_zona.entity';
+import { CultivosXVariedad } from '../cultivos_x_variedad/entities/cultivos_x_variedad.entity';
+import { Variedad } from '../variedad/entities/variedad.entity';
+import { Zona } from '../zonas/entities/zona.entity';
 import { CreateCultivoDto } from './dto/create-cultivo.dto';
 import { UpdateCultivoDto } from './dto/update-cultivo.dto';
 import { SearchCultivoDto } from './dto/search-cultivo.dto';
@@ -14,11 +17,55 @@ export class CultivosService {
     private readonly cultivoRepo: Repository<Cultivo>,
     @InjectRepository(CultivosVariedadXZona)
     private readonly cvzRepo: Repository<CultivosVariedadXZona>,
+    @InjectRepository(CultivosXVariedad)
+    private readonly cxvRepo: Repository<CultivosXVariedad>,
+    @InjectRepository(Variedad)
+    private readonly variedadRepo: Repository<Variedad>,
+    @InjectRepository(Zona)
+    private readonly zonaRepo: Repository<Zona>,
   ) {}
 
   async create(dto: CreateCultivoDto): Promise<Cultivo> {
-    const cultivo = this.cultivoRepo.create(dto);
-    return await this.cultivoRepo.save(cultivo);
+    // Validate variedad exists and belongs to tipoCultivo
+    const variedad = await this.variedadRepo.findOne({
+      where: { id: dto.variedadId },
+      relations: ['tipoCultivo'],
+    });
+    if (!variedad) {
+      throw new NotFoundException(`Variedad con id ${dto.variedadId} no encontrada`);
+    }
+    if (variedad.fkTipoCultivoId !== dto.tipoCultivoId) {
+      throw new NotFoundException(`Variedad no pertenece al tipo de cultivo especificado`);
+    }
+
+    // Validate zona exists
+    const zona = await this.zonaRepo.findOne({ where: { id: dto.zonaId } });
+    if (!zona) {
+      throw new NotFoundException(`Zona con id ${dto.zonaId} no encontrada`);
+    }
+
+    // Create Cultivo
+    const cultivo = this.cultivoRepo.create({
+      estado: dto.estado,
+      siembra: dto.siembra,
+    });
+    const savedCultivo = await this.cultivoRepo.save(cultivo);
+
+    // Create CultivosXVariedad
+    const cxv = this.cxvRepo.create({
+      fkCultivoId: savedCultivo.id,
+      fkVariedadId: dto.variedadId,
+    });
+    const savedCxv = await this.cxvRepo.save(cxv);
+
+    // Create CultivosVariedadXZona
+    const cvz = this.cvzRepo.create({
+      fkCultivosXVariedadId: savedCxv.id,
+      fkZonaId: dto.zonaId,
+    });
+    await this.cvzRepo.save(cvz);
+
+    return savedCultivo;
   } /**
    * NOTA: Esta función fue simplificada para usar la lógica de búsqueda,
    * la cual es más robusta. Solo llama a 'search' sin filtros.

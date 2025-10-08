@@ -1,15 +1,18 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TipoCultivo } from './entities/tipo_cultivo.entity';
 import { CreateTipoCultivoDto } from './dto/create-tipo_cultivo.dto';
 import { UpdateTipoCultivoDto } from './dto/update-tipo_cultivo.dto';
+import { Variedad } from '../variedad/entities/variedad.entity';
 
 @Injectable()
 export class TipoCultivoService {
   constructor(
     @InjectRepository(TipoCultivo)
     private tipoCultivoRepository: Repository<TipoCultivo>,
+    @InjectRepository(Variedad)
+    private variedadRepository: Repository<Variedad>,
   ) {}
 
   // CREATE
@@ -49,6 +52,14 @@ export class TipoCultivoService {
   // DELETE
   async remove(id: string): Promise<void> {
     const tipoCultivo = await this.findOne(id);
+    const variedades = await this.variedadRepository.find({
+      where: { fkTipoCultivoId: id },
+    });
+    if (variedades.length > 0) {
+      throw new BadRequestException(
+        'No se puede eliminar el tipo de cultivo porque tiene variedades asociadas.',
+      );
+    }
     await this.tipoCultivoRepository.remove(tipoCultivo);
   }
 }
