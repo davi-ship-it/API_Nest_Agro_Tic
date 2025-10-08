@@ -23,6 +23,9 @@ export class InventarioXActividad {
   @Column({ name: 'ixa_cantidad_usada', type: 'numeric', nullable: true })
   cantidadUsada?: number;
 
+  @Column({ name: 'ixa_activo', type: 'boolean', default: true })
+  activo?: boolean;
+
   @ManyToOne(() => Inventario, (i) => i.actividades)
   @JoinColumn({ name: 'fk_id_inventario' })
   inventario?: Inventario;

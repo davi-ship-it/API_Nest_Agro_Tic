@@ -31,14 +31,24 @@ export class ActividadesService {
   async findByDate(date: string): Promise<Actividad[]> {
     return await this.actividadesRepo.find({
       where: { fechaAsignacion: new Date(date) },
-      relations: ['categoriaActividad', 'cultivoVariedadZona', 'cultivoVariedadZona.cultivoXVariedad', 'cultivoVariedadZona.cultivoXVariedad.cultivo', 'cultivoVariedadZona.zona', 'usuariosAsignados', 'usuariosAsignados.usuario', 'inventarioUsado', 'inventarioUsado.inventario'],
+      relations: ['categoriaActividad', 'cultivoVariedadZona', 'cultivoVariedadZona.cultivoXVariedad', 'cultivoVariedadZona.cultivoXVariedad.cultivo', 'cultivoVariedadZona.cultivoXVariedad.cultivo.ficha', 'cultivoVariedadZona.cultivoXVariedad.variedad', 'cultivoVariedadZona.cultivoXVariedad.variedad.tipoCultivo', 'cultivoVariedadZona.zona', 'usuariosAsignados', 'usuariosAsignados.usuario', 'inventarioUsado', 'inventarioUsado.inventario', 'inventarioUsado.inventario.categoria'],
     });
+  }
+
+  async findByDateWithActive(date: string): Promise<Actividad[]> {
+    const actividades = await this.findByDate(date);
+    // Filter relations to only active
+    return actividades.map(act => ({
+      ...act,
+      usuariosAsignados: act.usuariosAsignados?.filter(u => u.activo !== false) || [],
+      inventarioUsado: act.inventarioUsado?.filter(i => i.activo !== false) || [],
+    }));
   }
 
   async findByDateRange(start: string, end: string): Promise<Actividad[]> {
     return await this.actividadesRepo.find({
       where: { fechaAsignacion: Between(new Date(start), new Date(end)) },
-      relations: ['categoriaActividad', 'cultivoVariedadZona', 'cultivoVariedadZona.cultivoXVariedad', 'cultivoVariedadZona.cultivoXVariedad.cultivo', 'cultivoVariedadZona.zona', 'usuariosAsignados', 'usuariosAsignados.usuario', 'inventarioUsado', 'inventarioUsado.inventario'],
+      relations: ['categoriaActividad', 'cultivoVariedadZona', 'cultivoVariedadZona.cultivoXVariedad', 'cultivoVariedadZona.cultivoXVariedad.cultivo', 'cultivoVariedadZona.cultivoXVariedad.cultivo.ficha', 'cultivoVariedadZona.cultivoXVariedad.variedad', 'cultivoVariedadZona.cultivoXVariedad.variedad.tipoCultivo', 'cultivoVariedadZona.zona', 'usuariosAsignados', 'usuariosAsignados.usuario', 'inventarioUsado', 'inventarioUsado.inventario'],
     });
   }
 
@@ -58,5 +68,16 @@ export class ActividadesService {
   async remove(id: string): Promise<void> {
     const actividad = await this.findOne(id);
     await this.actividadesRepo.remove(actividad);
+  }
+
+  async finalizar(id: string, observacion?: string, imgUrl?: string, horas?: number, precioHora?: number): Promise<Actividad> {
+    const actividad = await this.findOne(id);
+    actividad.estado = false;
+    actividad.fechaFinalizacion = new Date();
+    if (observacion) actividad.observacion = observacion;
+    if (imgUrl) actividad.imgUrl = imgUrl;
+    if (horas !== undefined) actividad.horasDedicadas = horas;
+    if (precioHora !== undefined) actividad.precioHora = precioHora;
+    return await this.actividadesRepo.save(actividad);
   }
 }

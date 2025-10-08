@@ -21,7 +21,10 @@ export class UsuarioXActividad {
   fkActividadId: string;
 
   @Column({ name: 'uxa_fecha_asignacion', type: 'date' })
-  fechaAsignacion: string;
+  fechaAsignacion: Date;
+
+  @Column({ name: 'uxa_activo', type: 'boolean', default: true })
+  activo?: boolean;
 
   @ManyToOne(() => Usuario, (u) => u.actividadesAsignadas, {
     onUpdate: 'CASCADE',

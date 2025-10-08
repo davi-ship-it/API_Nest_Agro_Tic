@@ -31,7 +31,7 @@ export class UsuariosXActividadesController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.usuariosXActividadesService.findOne(+id);
+    return this.usuariosXActividadesService.findOne(id);
   }
 
   @Patch(':id')
@@ -40,13 +40,13 @@ export class UsuariosXActividadesController {
     @Body() updateUsuariosXActividadeDto: UpdateUsuariosXActividadeDto,
   ) {
     return this.usuariosXActividadesService.update(
-      +id,
+      id,
       updateUsuariosXActividadeDto,
     );
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.usuariosXActividadesService.remove(+id);
+    return this.usuariosXActividadesService.remove(id);
   }
 }

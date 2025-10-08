@@ -57,6 +57,11 @@ export class ActividadesController {
     return this.actividadesService.findByDate(date);
   }
 
+  @Get('by-date-active/:date')
+  findByDateWithActive(@Param('date') date: string) {
+    return this.actividadesService.findByDateWithActive(date);
+  }
+
   @Get('by-date-range')
   findByDateRange(@Query('start') start: string, @Query('end') end: string) {
     return this.actividadesService.findByDateRange(start, end);
@@ -75,6 +80,27 @@ export class ActividadesController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.actividadesService.remove(id);
+  }
+
+  @Patch(':id/finalizar')
+  @UseInterceptors(
+    FileInterceptor('imgUrl', {
+      storage: diskStorage({
+        destination: './uploads/evidencias',
+        filename: (req, file, cb) => {
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          cb(null, `${uniqueSuffix}${extname(file.originalname)}`);
+        },
+      }),
+    }),
+  )
+  finalizar(
+    @Param('id') id: string,
+    @Body() body: { observacion?: string; horas?: number; precioHora?: number },
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    const imgUrl = file ? `/uploads/evidencias/${file.filename}` : undefined;
+    return this.actividadesService.finalizar(id, body.observacion, imgUrl, body.horas, body.precioHora);
   }
 
   @Post('upload')

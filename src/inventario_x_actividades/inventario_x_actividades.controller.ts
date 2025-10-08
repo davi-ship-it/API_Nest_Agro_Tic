@@ -35,7 +35,7 @@ export class InventarioXActividadesController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.inventarioXActividadesService.findOne(+id);
+    return this.inventarioXActividadesService.findOne(id);
   }
 
   @Patch(':id')
@@ -44,13 +44,13 @@ export class InventarioXActividadesController {
     @Body() updateInventarioXActividadeDto: UpdateInventarioXActividadesDto,
   ) {
     return this.inventarioXActividadesService.update(
-      +id,
+      id,
       updateInventarioXActividadeDto,
     );
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.inventarioXActividadesService.remove(+id);
+    return this.inventarioXActividadesService.remove(id);
   }
 }

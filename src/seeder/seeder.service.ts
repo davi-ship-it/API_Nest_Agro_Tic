@@ -1046,6 +1046,7 @@ export class SeederService {
               fkUsuarioId: usuarioAleatorio.id,
               fkActividadId: actividad.id,
               fechaAsignacion: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+              activo: true,
             });
             await this.usuarioXActividadRepository.save(uxa);
             this.logger.log(`Usuario ${usuarioAleatorio.nombres} (Ficha ${ficha.numero}) asignado a actividad ${actividad.id} en CVZ ${cvzId}.`, 'Seeder');
@@ -1180,6 +1181,7 @@ export class SeederService {
             const ixa = this.inventarioXActividadRepository.create({
               fkInventarioId: inventario.id,
               fkActividadId: actividad.id,
+              activo: true,
             });
             await this.inventarioXActividadRepository.save(ixa);
             this.logger.log(`Relación inventario-actividad creada.`, 'Seeder');
