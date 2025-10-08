@@ -21,6 +21,8 @@ import { Repository } from 'typeorm';
 import { CultivosVariedadXZona } from '../cultivos_variedad_x_zona/entities/cultivos_variedad_x_zona.entity';
 import { Actividad } from '../actividades/entities/actividades.entity';
 import { UsuarioXActividad } from '../usuarios_x_actividades/entities/usuarios_x_actividades.entity';
+import { Inventario } from '../inventario/entities/inventario.entity';
+import { Mapa } from '../mapas/entities/mapa.entity';
 
 // Acciones comunes para reutilizar y mantener consistencia
 const ACCIONES_CRUD = ['leer', 'crear', 'actualizar', 'eliminar'];
@@ -126,68 +128,57 @@ export class SeederService {
     private readonly actividadRepository: Repository<Actividad>,
     @InjectRepository(UsuarioXActividad)
     private readonly usuarioXActividadRepository: Repository<UsuarioXActividad>,
+    @InjectRepository(Inventario)
+    private readonly inventarioRepository: Repository<Inventario>,
+    @InjectRepository(Mapa)
+    private readonly mapaRepository: Repository<Mapa>,
   ) {}
 
   async seed() {
-    this.logger.log('Iniciando el proceso de seeding...', 'Seeder');
+    try {
+      this.logger.log('Iniciando el proceso de seeding...', 'Seeder');
 
-    // 1. Sincronizar Permisos Base usando tu endpoint/servicio
-    await this.seedPermisos();
+      // 1. Sincronizar Permisos Base usando tu endpoint/servicio
+      await this.seedPermisos();
 
-    // 2. Crear los tipos de unidad base
-    await this.seedTiposUnidad();
+      // 2. Crear los tipos de unidad base
+      await this.seedTiposUnidad();
 
-    // 3. Crear bodegas y categorías base
-    await this.seedBodegasYCategorias();
+      // 3. Crear bodegas y categorías base
+      await this.seedBodegasYCategorias();
 
-    // 2. Crear roles y definir sus jerarquías y permisos
-    const rolAdmin = await this.seedRolAdmin();
-    const { rolInstructor, rolAprendiz } = await this.seedRolesAdicionales();
+      // 4. Crear roles base incluyendo el rol por defecto 'INVITADO'
+      const rolAdmin = await this.seedRolAdmin();
+      await this.seedRolesAdicionales();
 
-    // 3. Crear el Usuario Administrador
-    if (rolAdmin) {
-      await this.seedUsuarioAdmin(rolAdmin);
-    } else {
-      this.logger.error(
-        'No se pudo crear el usuario admin porque el rol no fue encontrado o creado.',
-        'Seeder',
-      );
+      // 5. Crear usuario admin con todos los permisos
+      if (rolAdmin) {
+        await this.seedUsuarioAdmin(rolAdmin);
+      }
+
+      // 6. Crear fichas de prueba
+      await this.seedFichaAprendiz();
+
+      // 6. Crear datos agrícolas de ejemplo
+      console.log('=== INICIANDO SEEDING DE CULTIVOS ===');
+      await this.seedTipoCultivo();
+      await this.seedVariedad();
+      await this.seedZona();
+      await this.seedCultivo();
+      await this.seedCultivosXVariedad();
+      await this.seedCultivosVariedadXZona();
+      await this.seedActividad();
+      await this.seedUsuarioXActividad();
+      console.log('=== SEEDING DE CULTIVOS COMPLETADO ===');
+
+      // 7. Crear datos de inventario de ejemplo
+      await this.seedInventario();
+
+      this.logger.log('Seeding completado exitosamente.', 'Seeder');
+    } catch (error) {
+      this.logger.error('Error durante el proceso de seeding:', error.message, error.stack, 'Seeder');
+      throw error; // Re-throw to let the caller know seeding failed
     }
-
-    // 4. Crear el Usuario Instructor
-    if (rolInstructor) {
-      await this.seedUsuarioInstructor(rolInstructor);
-    } else {
-      this.logger.warn(
-        'No se pudo crear el usuario instructor porque el rol no fue encontrado.',
-        'Seeder',
-      );
-    }
-
-    // 5. Crear el Usuario Aprendiz
-    if (rolAprendiz) {
-      await this.seedUsuarioAprendiz(rolAprendiz);
-    } else {
-      this.logger.warn(
-        'No se pudo crear el usuario aprendiz porque el rol no fue encontrado.',
-        'Seeder',
-      );
-    }
-
-    // 6. Crear ficha de muestra y linkear con APRENDIZ
-    await this.seedFichaAprendiz();
-
-    // 7. Seed agricultural data
-    await this.seedTipoCultivo();
-    await this.seedVariedad();
-    await this.seedZona();
-    await this.seedCultivo();
-    await this.seedCultivosXVariedad();
-    await this.seedCultivosVariedadXZona();
-    await this.seedActividad();
-    await this.seedUsuarioXActividad();
-
-    this.logger.log('Seeding completado exitosamente.', 'Seeder');
   }
 
   private async seedPermisos() {
@@ -583,10 +574,13 @@ export class SeederService {
           tipo = this.tipoCultivoRepository.create({ nombre });
           await this.tipoCultivoRepository.save(tipo);
           this.logger.log(`Tipo de cultivo "${nombre}" creado.`, 'Seeder');
+        } else {
+          this.logger.log(`Tipo de cultivo "${nombre}" ya existe.`, 'Seeder');
         }
       }
+      this.logger.log('Tipos de cultivo creados/verificados.', 'Seeder');
     } catch (error) {
-      this.logger.error(`Error creando tipos de cultivo: ${error.message}`, 'Seeder');
+      this.logger.error(`Error creando tipos de cultivo: ${error.message}`, error.stack, 'Seeder');
     }
   }
 
@@ -606,28 +600,57 @@ export class SeederService {
             variedad = this.variedadRepository.create({ nombre: v.nombre, fkTipoCultivoId: tipo.id });
             await this.variedadRepository.save(variedad);
             this.logger.log(`Variedad "${v.nombre}" creada.`, 'Seeder');
+          } else {
+            this.logger.log(`Variedad "${v.nombre}" ya existe.`, 'Seeder');
           }
+        } else {
+          this.logger.warn(`Tipo de cultivo "${v.tipo}" no encontrado para variedad "${v.nombre}".`, 'Seeder');
         }
       }
+      this.logger.log('Variedades creadas/verificados.', 'Seeder');
     } catch (error) {
-      this.logger.error(`Error creando variedades: ${error.message}`, 'Seeder');
+      this.logger.error(`Error creando variedades: ${error.message}`, error.stack, 'Seeder');
     }
   }
 
   private async seedZona() {
     this.logger.log('Creando zonas base...', 'Seeder');
     try {
-      const zonas = ['Zona Norte', 'Zona Sur'];
-      for (const nombre of zonas) {
-        let zona = await this.zonaRepository.findOne({ where: { nombre } });
+      // First, create a default mapa if it doesn't exist
+      let mapa = await this.mapaRepository.findOne({ where: { nombre: 'Mapa Principal' } });
+      if (!mapa) {
+        mapa = this.mapaRepository.create({
+          nombre: 'Mapa Principal',
+          urlImg: 'https://example.com/mapa.jpg'
+        });
+        await this.mapaRepository.save(mapa);
+        this.logger.log('Mapa principal creado.', 'Seeder');
+      }
+
+      const zonas = [
+        { nombre: 'Zona Norte', tipoLote: 'Lote A', coorX: 10.5, coorY: 20.3 },
+        { nombre: 'Zona Sur', tipoLote: 'Lote B', coorX: 15.7, coorY: 25.8 }
+      ];
+
+      for (const zonaData of zonas) {
+        let zona = await this.zonaRepository.findOne({ where: { nombre: zonaData.nombre } });
         if (!zona) {
-          zona = this.zonaRepository.create({ nombre });
+          zona = this.zonaRepository.create({
+            nombre: zonaData.nombre,
+            tipoLote: zonaData.tipoLote,
+            coorX: zonaData.coorX,
+            coorY: zonaData.coorY,
+            fkMapaId: mapa.id
+          });
           await this.zonaRepository.save(zona);
-          this.logger.log(`Zona "${nombre}" creada.`, 'Seeder');
+          this.logger.log(`Zona "${zonaData.nombre}" creada.`, 'Seeder');
+        } else {
+          this.logger.log(`Zona "${zonaData.nombre}" ya existe.`, 'Seeder');
         }
       }
+      this.logger.log('Zonas creadas/verificados.', 'Seeder');
     } catch (error) {
-      this.logger.error(`Error creando zonas: ${error.message}`, 'Seeder');
+      this.logger.error(`Error creando zonas: ${error.message}`, error.stack, 'Seeder');
     }
   }
 
@@ -641,10 +664,11 @@ export class SeederService {
       for (const c of cultivos) {
         const cultivo = this.cultivoRepository.create(c);
         await this.cultivoRepository.save(cultivo);
-        this.logger.log(`Cultivo creado.`, 'Seeder');
+        this.logger.log(`Cultivo con siembra ${c.siembra.toISOString().split('T')[0]} creado.`, 'Seeder');
       }
+      this.logger.log(`${cultivos.length} cultivos creados.`, 'Seeder');
     } catch (error) {
-      this.logger.error(`Error creando cultivos: ${error.message}`, 'Seeder');
+      this.logger.error(`Error creando cultivos: ${error.message}`, error.stack, 'Seeder');
     }
   }
 
@@ -653,16 +677,19 @@ export class SeederService {
     try {
       const cultivos = await this.cultivoRepository.find();
       const variedades = await this.variedadRepository.find();
+      this.logger.log(`Encontrados ${cultivos.length} cultivos y ${variedades.length} variedades.`, 'Seeder');
+
       for (let i = 0; i < Math.min(cultivos.length, variedades.length); i++) {
         const cxv = this.cultivosXVariedadRepository.create({
           fkCultivoId: cultivos[i].id,
           fkVariedadId: variedades[i].id,
         });
         await this.cultivosXVariedadRepository.save(cxv);
-        this.logger.log(`Relación cultivo-variedad creada.`, 'Seeder');
+        this.logger.log(`Relación cultivo "${cultivos[i].id}" - variedad "${variedades[i].nombre}" creada.`, 'Seeder');
       }
+      this.logger.log(`${Math.min(cultivos.length, variedades.length)} relaciones cultivo-variedad creadas.`, 'Seeder');
     } catch (error) {
-      this.logger.error(`Error creando relaciones cultivos x variedad: ${error.message}`, 'Seeder');
+      this.logger.error(`Error creando relaciones cultivos x variedad: ${error.message}`, error.stack, 'Seeder');
     }
   }
 
@@ -671,16 +698,19 @@ export class SeederService {
     try {
       const cxvs = await this.cultivosXVariedadRepository.find();
       const zonas = await this.zonaRepository.find();
+      this.logger.log(`Encontrados ${cxvs.length} cultivosXVariedad y ${zonas.length} zonas.`, 'Seeder');
+
       for (let i = 0; i < Math.min(cxvs.length, zonas.length); i++) {
         const cvz = this.cultivosVariedadXZonaRepository.create({
           fkCultivosXVariedadId: cxvs[i].id,
           fkZonaId: zonas[i].id,
         });
         await this.cultivosVariedadXZonaRepository.save(cvz);
-        this.logger.log(`Relación cultivo-variedad-zona creada.`, 'Seeder');
+        this.logger.log(`Relación CVZ creada: ${cxvs[i].id} - ${zonas[i].nombre}.`, 'Seeder');
       }
+      this.logger.log(`${Math.min(cxvs.length, zonas.length)} relaciones cultivo-variedad-zona creadas.`, 'Seeder');
     } catch (error) {
-      this.logger.error(`Error creando relaciones cultivos variedad x zona: ${error.message}`, 'Seeder');
+      this.logger.error(`Error creando relaciones cultivos variedad x zona: ${error.message}`, error.stack, 'Seeder');
     }
   }
 
@@ -722,6 +752,99 @@ export class SeederService {
       }
     } catch (error) {
       this.logger.error(`Error creando relaciones usuario x actividad: ${error.message}`, 'Seeder');
+    }
+  }
+
+  private async seedInventario() {
+    this.logger.log('Creando productos de inventario de ejemplo...', 'Seeder');
+    try {
+      const bodegas = await this.bodegaService.findAll();
+      const categorias = await this.categoriaService.findAll();
+
+      if (bodegas.length === 0 || categorias.length === 0) {
+        this.logger.warn('No hay bodegas o categorías para crear inventario.', 'Seeder');
+        return;
+      }
+
+      const productosEjemplo = [
+        {
+          nombre: 'Fertilizante Orgánico',
+          descripcion: 'Fertilizante natural para cultivos',
+          stock: 50,
+          precio: 25.00,
+          capacidadUnidad: 5.0,
+          fechaVencimiento: '2025-12-31',
+          imgUrl: 'https://example.com/fertilizante.jpg',
+          fkCategoriaId: categorias[0].id,
+          fkBodegaId: bodegas[0].id,
+        },
+        {
+          nombre: 'Semillas de Tomate',
+          descripcion: 'Semillas híbridas de tomate cherry',
+          stock: 100,
+          precio: 15.00,
+          capacidadUnidad: 1.0,
+          fechaVencimiento: '2026-06-30',
+          imgUrl: 'https://example.com/semillas-tomate.jpg',
+          fkCategoriaId: categorias[0].id,
+          fkBodegaId: bodegas[0].id,
+        },
+        {
+          nombre: 'Pesticida Natural',
+          descripcion: 'Pesticida ecológico para plagas',
+          stock: 30,
+          precio: 35.00,
+          capacidadUnidad: 2.5,
+          fechaVencimiento: '2025-08-15',
+          imgUrl: 'https://example.com/pesticida.jpg',
+          fkCategoriaId: categorias[0].id,
+          fkBodegaId: bodegas[0].id,
+        },
+        {
+          nombre: 'Herramientas de Labranza',
+          descripcion: 'Set completo de herramientas agrícolas',
+          stock: 10,
+          precio: 150.00,
+          capacidadUnidad: 1.0,
+          imgUrl: 'https://example.com/herramientas.jpg',
+          fkCategoriaId: categorias[0].id,
+          fkBodegaId: bodegas[0].id,
+        },
+      ];
+
+      for (const producto of productosEjemplo) {
+        try {
+          this.logger.log(`Creando producto: ${producto.nombre}`, 'Seeder');
+          // Usar el servicio de inventario para crear
+          // Nota: Esto requiere que el servicio tenga un método create
+          // Por ahora, creamos directamente en el repositorio
+          const inventarioItem = this.inventarioRepository.create({
+            nombre: producto.nombre,
+            descripcion: producto.descripcion,
+            stock: producto.stock,
+            precio: producto.precio,
+            capacidadUnidad: producto.capacidadUnidad,
+            fechaVencimiento: producto.fechaVencimiento,
+            imgUrl: producto.imgUrl,
+            fkCategoriaId: producto.fkCategoriaId,
+            fkBodegaId: producto.fkBodegaId,
+          });
+          await this.inventarioRepository.save(inventarioItem);
+          this.logger.log(`Producto "${producto.nombre}" creado exitosamente.`, 'Seeder');
+        } catch (error) {
+          this.logger.error(`Error creando producto "${producto.nombre}": ${error.message}`, error.stack, 'Seeder');
+          if (error.code === '23505') { // Unique constraint violation
+            this.logger.log(`Producto "${producto.nombre}" ya existe. Omitiendo.`, 'Seeder');
+          } else {
+            // Don't throw error, continue with other products
+            this.logger.warn(`Continuando con el siguiente producto...`, 'Seeder');
+          }
+        }
+      }
+
+      this.logger.log('Productos de inventario de ejemplo creados.', 'Seeder');
+    } catch (error) {
+      this.logger.error(`Error creando productos de inventario: ${error.message}`, 'Seeder');
     }
   }
 }
