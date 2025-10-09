@@ -8,7 +8,6 @@ import { Roles as Rol } from '../roles/entities/role.entity';
 import { Usuario } from '../usuarios/entities/usuario.entity';
 import { Permiso } from '../permisos/entities/permiso.entity';
 import { UsuariosService } from '../usuarios/usuarios.service';
-import { TipoUnidadService } from '../tipo_unidad/tipo_unidad.service';
 import { BodegaService } from '../bodega/bodega.service';
 import { CategoriaService } from '../categoria/categoria.service'; // Asegúrate que la ruta es correcta
 import { Ficha } from '../fichas/entities/ficha.entity';
@@ -89,7 +88,6 @@ export class SeederService {
     private readonly logger: Logger,
     private readonly permisosService: PermisosService,
     private readonly usuariosService: UsuariosService,
-    private readonly tipoUnidadService: TipoUnidadService, // Inyectamos el servicio
     private readonly bodegaService: BodegaService,
     private readonly categoriaService: CategoriaService,
     @InjectRepository(Rol)
@@ -148,8 +146,6 @@ export class SeederService {
     // 1. Sincronizar Permisos Base usando tu endpoint/servicio
     await this.seedPermisos();
 
-    // 2. Crear los tipos de unidad base
-    await this.seedTiposUnidad();
 
     // 3. Crear bodegas y categorías base
     await this.seedBodegasYCategorias();
@@ -388,50 +384,6 @@ export class SeederService {
     return rol;
   }
 
-  private async seedTiposUnidad() {
-    this.logger.log('Creando tipos de unidad base...', 'Seeder');
-    try {
-      const tiposUnidad = [
-        // Unidades de peso
-        { nombre: 'Kilogramo', simbolo: 'kg' },
-        { nombre: 'Gramo', simbolo: 'g' },
-        { nombre: 'Tonelada', simbolo: 't' },
-
-        // Unidades de volumen
-        { nombre: 'Litro', simbolo: 'L' },
-        { nombre: 'Mililitro', simbolo: 'mL' },
-
-        // Unidades de conteo (para herramientas, equipos, etc.)
-        { nombre: 'Unidad', simbolo: 'u' },
-      ];
-
-      for (const tipo of tiposUnidad) {
-        try {
-          await this.tipoUnidadService.create(tipo);
-          this.logger.log(
-            `Tipo de unidad "${tipo.nombre}" (${tipo.simbolo}) creado.`,
-            'Seeder',
-          );
-        } catch (error) {
-          if (error instanceof ConflictException) {
-            this.logger.log(
-              `Tipo de unidad "${tipo.nombre}" ya existe. Omitiendo.`,
-              'Seeder',
-            );
-          } else {
-            throw error; // Relanzamos otros errores
-          }
-        }
-      }
-
-      this.logger.log('Tipos de unidad base creados/verificados.', 'Seeder');
-    } catch (error) {
-      this.logger.error(
-        `Error creando tipos de unidad: ${error.message}`,
-        'Seeder',
-      );
-    }
-  }
 
   private async seedBodegasYCategorias() {
     this.logger.log('Creando bodegas y categorías base...', 'Seeder');
@@ -460,25 +412,13 @@ export class SeederService {
       const categoria = categorias.find((c) => c.nombre === nombreCategoria);
 
       if (!categoria) {
-        // Buscamos el tipo de unidad 'Gramos' por su símbolo 'g'
-        const tiposUnidad = await this.tipoUnidadService.findAll();
-        const tipoUnidadGramos = tiposUnidad.find((tu) => tu.simbolo === 'g');
-
-        if (tipoUnidadGramos) {
-          await this.categoriaService.create({
-            nombre: nombreCategoria,
-            fkTipoUnidadId: tipoUnidadGramos.id,
-          });
-          this.logger.log(
-            `Categoría "${nombreCategoria}" creada con unidad "g".`,
-            'Seeder',
-          );
-        } else {
-          this.logger.error(
-            'No se encontró el tipo de unidad "g" (Gramos) para crear la categoría "Abono".',
-            'Seeder',
-          );
-        }
+        await this.categoriaService.create({
+          nombre: nombreCategoria,
+        });
+        this.logger.log(
+          `Categoría "${nombreCategoria}" creada.`,
+          'Seeder',
+        );
       } else {
         this.logger.log(
           `Categoría "${nombreCategoria}" ya existe. Omitiendo.`,

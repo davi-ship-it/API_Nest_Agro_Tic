@@ -14,6 +14,8 @@ export class ActividadesService {
   constructor(
     @InjectRepository(Actividad)
     private readonly actividadesRepo: Repository<Actividad>,
+    @InjectRepository(ReservasXActividad)
+    private readonly reservasXActividadRepo: Repository<ReservasXActividad>,
     private readonly reservasXActividadService: ReservasXActividadService,
   ) {}
 
@@ -36,7 +38,7 @@ export class ActividadesService {
   async findByDate(date: string): Promise<Actividad[]> {
     return await this.actividadesRepo.find({
       where: { fechaAsignacion: new Date(date) },
-      relations: ['categoriaActividad', 'cultivoVariedadZona', 'cultivoVariedadZona.cultivoXVariedad', 'cultivoVariedadZona.cultivoXVariedad.cultivo', 'cultivoVariedadZona.cultivoXVariedad.cultivo.ficha', 'cultivoVariedadZona.cultivoXVariedad.variedad', 'cultivoVariedadZona.cultivoXVariedad.variedad.tipoCultivo', 'cultivoVariedadZona.zona', 'usuariosAsignados', 'usuariosAsignados.usuario', 'usuariosAsignados.usuario.ficha', 'reservas', 'reservas.lote', 'reservas.lote.producto', 'reservas.estado'],
+      relations: ['categoriaActividad', 'cultivoVariedadZona', 'cultivoVariedadZona.cultivoXVariedad', 'cultivoVariedadZona.cultivoXVariedad.cultivo', 'cultivoVariedadZona.cultivoXVariedad.cultivo.ficha', 'cultivoVariedadZona.cultivoXVariedad.variedad', 'cultivoVariedadZona.cultivoXVariedad.variedad.tipoCultivo', 'cultivoVariedadZona.zona', 'usuariosAsignados', 'usuariosAsignados.usuario', 'usuariosAsignados.usuario.ficha', 'reservas', 'reservas.lote', 'reservas.lote.producto', 'reservas.lote.producto.unidadMedida', 'reservas.estado'],
     });
   }
 
@@ -53,7 +55,7 @@ export class ActividadesService {
   async findByDateRange(start: string, end: string): Promise<Actividad[]> {
     return await this.actividadesRepo.find({
       where: { fechaAsignacion: Between(new Date(start), new Date(end)) },
-      relations: ['categoriaActividad', 'cultivoVariedadZona', 'cultivoVariedadZona.cultivoXVariedad', 'cultivoVariedadZona.cultivoXVariedad.cultivo', 'cultivoVariedadZona.cultivoXVariedad.cultivo.ficha', 'cultivoVariedadZona.cultivoXVariedad.variedad', 'cultivoVariedadZona.cultivoXVariedad.variedad.tipoCultivo', 'cultivoVariedadZona.zona', 'usuariosAsignados', 'usuariosAsignados.usuario', 'usuariosAsignados.usuario.ficha', 'reservas', 'reservas.lote', 'reservas.lote.producto', 'reservas.estado'],
+      relations: ['categoriaActividad', 'cultivoVariedadZona', 'cultivoVariedadZona.cultivoXVariedad', 'cultivoVariedadZona.cultivoXVariedad.cultivo', 'cultivoVariedadZona.cultivoXVariedad.cultivo.ficha', 'cultivoVariedadZona.cultivoXVariedad.variedad', 'cultivoVariedadZona.cultivoXVariedad.variedad.tipoCultivo', 'cultivoVariedadZona.zona', 'usuariosAsignados', 'usuariosAsignados.usuario', 'usuariosAsignados.usuario.ficha', 'reservas', 'reservas.lote', 'reservas.lote.producto', 'reservas.lote.producto.unidadMedida', 'reservas.estado'],
     });
   }
 
@@ -137,7 +139,9 @@ export class ActividadesService {
   }
 
   async getReservationsByActivity(actividadId: string): Promise<ReservasXActividad[]> {
-    const reservas = await this.reservasXActividadService.findAll();
-    return reservas.filter(r => r.fkActividadId === actividadId);
+    return await this.reservasXActividadRepo.find({
+      where: { fkActividadId: actividadId },
+      relations: ['lote', 'lote.producto', 'lote.producto.unidadMedida', 'estado']
+    });
   }
 }

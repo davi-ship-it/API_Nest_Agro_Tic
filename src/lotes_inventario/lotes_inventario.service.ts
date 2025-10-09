@@ -18,7 +18,7 @@ export class LotesInventarioService {
   }
 
   async findAll(): Promise<LotesInventario[]> {
-    return await this.lotesInventarioRepo.find({ relations: ['producto', 'bodega', 'reservas'] });
+    return await this.lotesInventarioRepo.find({ relations: ['producto', 'producto.unidadMedida', 'bodega', 'reservas'] });
   }
 
   async findOne(id: string): Promise<LotesInventario> {

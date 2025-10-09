@@ -19,7 +19,6 @@ import { MedicionSensorModule } from './medicion_sensor/medicion_sensor.module';
 import { SensorModule } from './sensor/sensor.module';
 import { TipoCultivoModule } from './tipo_cultivo/tipo_cultivo.module';
 import { TipoSensorModule } from './tipo_sensor/tipo_sensor.module';
-import { TipoUnidadModule } from './tipo_unidad/tipo_unidad.module';
 import { UsuariosModule } from './usuarios/usuarios.module';
 import { UsuariosXActividadesModule } from './usuarios_x_actividades/usuarios_x_actividades.module';
 import { VariedadModule } from './variedad/variedad.module';
@@ -144,7 +143,6 @@ import { EstadosReservaModule } from './estados_reserva/estados_reserva.module';
     SensorModule,
     TipoCultivoModule,
     TipoSensorModule,
-    TipoUnidadModule,
     UsuariosModule, // Solo una vez
     UsuariosXActividadesModule,
     VariedadModule,
@@ -173,7 +171,6 @@ import { EstadosReservaModule } from './estados_reserva/estados_reserva.module';
   exports: [
     PermisosModule,
     UsuariosModule,
-    TipoUnidadModule,
     BodegaModule,
     CategoriaModule,
   ],
