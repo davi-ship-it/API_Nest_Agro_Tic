@@ -406,24 +406,27 @@ export class SeederService {
         );
       }
 
-      // --- Crear Categoría "Abono" ---
-      const nombreCategoria = 'Abono';
+      // --- Crear Categorías ---
+      const categoriasNombres = ['Abono', 'Herramientas'];
       const categorias = await this.categoriaService.findAll();
-      const categoria = categorias.find((c) => c.nombre === nombreCategoria);
 
-      if (!categoria) {
-        await this.categoriaService.create({
-          nombre: nombreCategoria,
-        });
-        this.logger.log(
-          `Categoría "${nombreCategoria}" creada.`,
-          'Seeder',
-        );
-      } else {
-        this.logger.log(
-          `Categoría "${nombreCategoria}" ya existe. Omitiendo.`,
-          'Seeder',
-        );
+      for (const nombreCategoria of categoriasNombres) {
+        const categoria = categorias.find((c) => c.nombre === nombreCategoria);
+
+        if (!categoria) {
+          await this.categoriaService.create({
+            nombre: nombreCategoria,
+          });
+          this.logger.log(
+            `Categoría "${nombreCategoria}" creada.`,
+            'Seeder',
+          );
+        } else {
+          this.logger.log(
+            `Categoría "${nombreCategoria}" ya existe. Omitiendo.`,
+            'Seeder',
+          );
+        }
       }
     } catch (error) {
       this.logger.error(
@@ -1143,7 +1146,7 @@ export class SeederService {
           sku: 'FERT-N-001',
           precioCompra: 25.50,
           esDivisible: true,
-          capacidadPresentacion: 1.00,
+          capacidadPresentacion: 25.00,
           categoriaNombre: 'Abono',
           unidadNombre: 'Kilogramo',
         },
@@ -1153,7 +1156,7 @@ export class SeederService {
           sku: 'SEM-MZ-001',
           precioCompra: 15.00,
           esDivisible: false,
-          capacidadPresentacion: 1.00,
+          capacidadPresentacion: 25.00,
           categoriaNombre: 'Abono',
           unidadNombre: 'Kilogramo',
         },
@@ -1163,7 +1166,7 @@ export class SeederService {
           sku: 'PEST-ORG-001',
           precioCompra: 35.00,
           esDivisible: true,
-          capacidadPresentacion: 1.00,
+          capacidadPresentacion: 5.00,
           categoriaNombre: 'Abono',
           unidadNombre: 'Litro',
         },
@@ -1172,6 +1175,66 @@ export class SeederService {
           descripcion: 'Herramienta manual para siembra precisa',
           sku: 'HERR-SIEM-001',
           precioCompra: 45.00,
+          esDivisible: false,
+          capacidadPresentacion: 1.00,
+          categoriaNombre: 'Herramientas',
+          unidadNombre: 'Unidad',
+        },
+        {
+          nombre: 'Pala',
+          descripcion: 'Pala resistente para excavación y movimiento de tierra',
+          sku: 'HERR-PALA-001',
+          precioCompra: 25.00,
+          esDivisible: false,
+          capacidadPresentacion: 1.00,
+          categoriaNombre: 'Herramientas',
+          unidadNombre: 'Unidad',
+        },
+        {
+          nombre: 'Carretilla',
+          descripcion: 'Carretilla metálica para transporte de materiales',
+          sku: 'HERR-CARR-001',
+          precioCompra: 80.00,
+          esDivisible: false,
+          capacidadPresentacion: 1.00,
+          categoriaNombre: 'Herramientas',
+          unidadNombre: 'Unidad',
+        },
+        {
+          nombre: 'Rastrillo',
+          descripcion: 'Rastrillo para nivelación del suelo y recolección de residuos',
+          sku: 'HERR-RAST-001',
+          precioCompra: 15.00,
+          esDivisible: false,
+          capacidadPresentacion: 1.00,
+          categoriaNombre: 'Herramientas',
+          unidadNombre: 'Unidad',
+        },
+        {
+          nombre: 'Azadón',
+          descripcion: 'Azadón para labranza y preparación del suelo',
+          sku: 'HERR-AZAD-001',
+          precioCompra: 30.00,
+          esDivisible: false,
+          capacidadPresentacion: 1.00,
+          categoriaNombre: 'Herramientas',
+          unidadNombre: 'Unidad',
+        },
+        {
+          nombre: 'Guantes de Trabajo',
+          descripcion: 'Par de guantes resistentes para protección manual',
+          sku: 'HERR-GUAN-001',
+          precioCompra: 8.00,
+          esDivisible: false,
+          capacidadPresentacion: 1.00,
+          categoriaNombre: 'Herramientas',
+          unidadNombre: 'Unidad',
+        },
+        {
+          nombre: 'Machete',
+          descripcion: 'Machete afilado para corte de vegetación',
+          sku: 'HERR-MACH-001',
+          precioCompra: 20.00,
           esDivisible: false,
           capacidadPresentacion: 1.00,
           categoriaNombre: 'Herramientas',
@@ -1226,28 +1289,70 @@ export class SeederService {
       const lotes = [
         {
           productoNombre: 'Fertilizante Nitrogenado',
-          cantidadDisponible: 100.00,
+          cantidadDisponible: 125.00,
           cantidadReservada: 0.00,
           esParcial: false,
           fechaVencimiento: new Date('2026-12-31'),
         },
         {
           productoNombre: 'Semillas de Maíz Híbrido',
-          cantidadDisponible: 50.00,
+          cantidadDisponible: 250.00,
           cantidadReservada: 0.00,
           esParcial: false,
           fechaVencimiento: new Date('2026-06-30'),
         },
         {
           productoNombre: 'Pesticida Orgánico',
-          cantidadDisponible: 25.00,
+          cantidadDisponible: 100.00,
           cantidadReservada: 0.00,
           esParcial: true,
           fechaVencimiento: new Date('2026-08-15'),
         },
         {
           productoNombre: 'Herramienta de Siembra',
+          cantidadDisponible: 5.00,
+          cantidadReservada: 0.00,
+          esParcial: false,
+          fechaVencimiento: undefined,
+        },
+        {
+          productoNombre: 'Pala',
           cantidadDisponible: 10.00,
+          cantidadReservada: 0.00,
+          esParcial: false,
+          fechaVencimiento: undefined,
+        },
+        {
+          productoNombre: 'Carretilla',
+          cantidadDisponible: 20.00,
+          cantidadReservada: 0.00,
+          esParcial: false,
+          fechaVencimiento: undefined,
+        },
+        {
+          productoNombre: 'Rastrillo',
+          cantidadDisponible: 5.00,
+          cantidadReservada: 0.00,
+          esParcial: false,
+          fechaVencimiento: undefined,
+        },
+        {
+          productoNombre: 'Azadón',
+          cantidadDisponible: 10.00,
+          cantidadReservada: 0.00,
+          esParcial: false,
+          fechaVencimiento: undefined,
+        },
+        {
+          productoNombre: 'Guantes de Trabajo',
+          cantidadDisponible: 20.00,
+          cantidadReservada: 0.00,
+          esParcial: false,
+          fechaVencimiento: undefined,
+        },
+        {
+          productoNombre: 'Machete',
+          cantidadDisponible: 5.00,
           cantidadReservada: 0.00,
           esParcial: false,
           fechaVencimiento: undefined,

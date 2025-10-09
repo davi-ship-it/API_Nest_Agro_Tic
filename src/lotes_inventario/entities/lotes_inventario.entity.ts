@@ -27,6 +27,9 @@ export class LotesInventario {
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0.00 })
   cantidadReservada: number;
 
+  @Column({ type: 'int', default: 0 })
+  stock: number;
+
   @Column({ type: 'boolean', default: false })
   esParcial: boolean;
 
