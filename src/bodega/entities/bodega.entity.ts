@@ -1,6 +1,6 @@
 // File: src/entities/bodega/bodega.entity.ts
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { Inventario } from '../../inventario/entities/inventario.entity';
+import { LotesInventario } from '../../lotes_inventario/entities/lotes_inventario.entity';
 
 @Entity('bodega')
 export class Bodega {
@@ -13,6 +13,6 @@ export class Bodega {
   @Column({ name: 'bod_nombre', type: 'varchar', length: 100 })
   nombre: string;
 
-  @OneToMany(() => Inventario, (i) => i.bodega)
-  inventarios?: Inventario[];
+  @OneToMany(() => LotesInventario, (li) => li.bodega)
+  lotesInventario?: LotesInventario[];
 }

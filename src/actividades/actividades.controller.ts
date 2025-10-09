@@ -118,4 +118,50 @@ export class ActividadesController {
   uploadFile(@UploadedFile() file: Express.Multer.File) {
     return { url: `/uploads/evidencias/${file.filename}` };
   }
+
+  // New endpoints for reservation management
+
+  @Post(':id/reservas')
+  createReservation(
+    @Param('id') actividadId: string,
+    @Body() body: { loteId: string; cantidadReservada: number; estadoId?: number },
+  ) {
+    return this.actividadesService.createReservation(
+      actividadId,
+      body.loteId,
+      body.cantidadReservada,
+      body.estadoId,
+    );
+  }
+
+  @Post(':id/reservas/producto')
+  createReservationByProduct(
+    @Param('id') actividadId: string,
+    @Body() body: { productId: string; cantidadReservada: number; estadoId?: number },
+  ) {
+    return this.actividadesService.createReservationByProduct(
+      actividadId,
+      body.productId,
+      body.cantidadReservada,
+      body.estadoId,
+    );
+  }
+
+  @Patch('reservas/:reservaId/confirm-usage')
+  confirmUsage(
+    @Param('reservaId') reservaId: string,
+    @Body() body: { cantidadUsada: number },
+  ) {
+    return this.actividadesService.confirmUsage(reservaId, body.cantidadUsada);
+  }
+
+  @Get(':id/cost')
+  calculateCost(@Param('id') actividadId: string) {
+    return this.actividadesService.calculateCost(actividadId);
+  }
+
+  @Get(':id/reservas')
+  getReservationsByActivity(@Param('id') actividadId: string) {
+    return this.actividadesService.getReservationsByActivity(actividadId);
+  }
 }

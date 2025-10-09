@@ -1,30 +1,22 @@
-// File: src/entities/categoria/categoria.entity.ts
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  OneToMany,
-  JoinColumn,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
+import { Producto } from '../../productos/entities/productos.entity';
 import { TipoUnidad } from '../../tipo_unidad/entities/tipo_unidad.entity';
-import { Inventario } from '../../inventario/entities/inventario.entity';
 
 @Entity('categoria')
 export class Categoria {
-  @PrimaryGeneratedColumn('uuid', { name: 'pk_id_categoria' })
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'cat_nombre', type: 'varchar', length: 100 })
+  @Column({ type: 'varchar', length: 100, unique: true })
   nombre: string;
 
-  @Column({ name: 'fk_id_tipo_unidad', type: 'uuid' })
-  fkTipoUnidadId: string;
+  @Column({ name: 'fk_tipo_unidad_id', nullable: true })
+  fkTipoUnidadId?: string;
 
-  @ManyToOne(() => TipoUnidad, (t) => t.categorias)
-  @JoinColumn({ name: 'fk_id_tipo_unidad' })
+  @ManyToOne(() => TipoUnidad, (tu) => tu.categorias)
+  @JoinColumn({ name: 'fk_tipo_unidad_id' })
   tipoUnidad?: TipoUnidad;
 
-  @OneToMany(() => Inventario, (i) => i.categoria)
-  inventarios?: Inventario[];
+  @OneToMany(() => Producto, (p) => p.categoria)
+  productos?: Producto[];
 }
