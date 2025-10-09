@@ -4,12 +4,17 @@ import { Repository, Between } from 'typeorm';
 import { Actividad } from './entities/actividades.entity';
 import { CreateActividadeDto } from './dto/create-actividade.dto';
 import { UpdateActividadeDto } from './dto/update-actividade.dto';
+import { ReservasXActividadService } from '../reservas_x_actividad/reservas_x_actividad.service';
+import { CreateReservasXActividadDto } from '../reservas_x_actividad/dto/create-reservas_x_actividad.dto';
+import { ReservasXActividad } from '../reservas_x_actividad/entities/reservas_x_actividad.entity';
+import { LotesInventario } from '../lotes_inventario/entities/lotes_inventario.entity';
 
 @Injectable()
 export class ActividadesService {
   constructor(
     @InjectRepository(Actividad)
     private readonly actividadesRepo: Repository<Actividad>,
+    private readonly reservasXActividadService: ReservasXActividadService,
   ) {}
 
   async create(
@@ -31,7 +36,7 @@ export class ActividadesService {
   async findByDate(date: string): Promise<Actividad[]> {
     return await this.actividadesRepo.find({
       where: { fechaAsignacion: new Date(date) },
-      relations: ['categoriaActividad', 'cultivoVariedadZona', 'cultivoVariedadZona.cultivoXVariedad', 'cultivoVariedadZona.cultivoXVariedad.cultivo', 'cultivoVariedadZona.cultivoXVariedad.cultivo.ficha', 'cultivoVariedadZona.cultivoXVariedad.variedad', 'cultivoVariedadZona.cultivoXVariedad.variedad.tipoCultivo', 'cultivoVariedadZona.zona', 'usuariosAsignados', 'usuariosAsignados.usuario', 'inventarioUsado', 'inventarioUsado.inventario', 'inventarioUsado.inventario.categoria'],
+      relations: ['categoriaActividad', 'cultivoVariedadZona', 'cultivoVariedadZona.cultivoXVariedad', 'cultivoVariedadZona.cultivoXVariedad.cultivo', 'cultivoVariedadZona.cultivoXVariedad.cultivo.ficha', 'cultivoVariedadZona.cultivoXVariedad.variedad', 'cultivoVariedadZona.cultivoXVariedad.variedad.tipoCultivo', 'cultivoVariedadZona.zona', 'usuariosAsignados', 'usuariosAsignados.usuario', 'usuariosAsignados.usuario.ficha', 'reservas', 'reservas.lote', 'reservas.lote.producto', 'reservas.estado'],
     });
   }
 
@@ -41,14 +46,14 @@ export class ActividadesService {
     return actividades.map(act => ({
       ...act,
       usuariosAsignados: act.usuariosAsignados?.filter(u => u.activo !== false) || [],
-      inventarioUsado: act.inventarioUsado?.filter(i => i.activo !== false) || [],
+      reservas: act.reservas?.filter(r => r.estado?.id === 1) || [], // Assuming 1 is 'Reservado' or active state
     }));
   }
 
   async findByDateRange(start: string, end: string): Promise<Actividad[]> {
     return await this.actividadesRepo.find({
       where: { fechaAsignacion: Between(new Date(start), new Date(end)) },
-      relations: ['categoriaActividad', 'cultivoVariedadZona', 'cultivoVariedadZona.cultivoXVariedad', 'cultivoVariedadZona.cultivoXVariedad.cultivo', 'cultivoVariedadZona.cultivoXVariedad.cultivo.ficha', 'cultivoVariedadZona.cultivoXVariedad.variedad', 'cultivoVariedadZona.cultivoXVariedad.variedad.tipoCultivo', 'cultivoVariedadZona.zona', 'usuariosAsignados', 'usuariosAsignados.usuario', 'inventarioUsado', 'inventarioUsado.inventario'],
+      relations: ['categoriaActividad', 'cultivoVariedadZona', 'cultivoVariedadZona.cultivoXVariedad', 'cultivoVariedadZona.cultivoXVariedad.cultivo', 'cultivoVariedadZona.cultivoXVariedad.cultivo.ficha', 'cultivoVariedadZona.cultivoXVariedad.variedad', 'cultivoVariedadZona.cultivoXVariedad.variedad.tipoCultivo', 'cultivoVariedadZona.zona', 'usuariosAsignados', 'usuariosAsignados.usuario', 'usuariosAsignados.usuario.ficha', 'reservas', 'reservas.lote', 'reservas.lote.producto', 'reservas.estado'],
     });
   }
 
@@ -79,5 +84,60 @@ export class ActividadesService {
     if (horas !== undefined) actividad.horasDedicadas = horas;
     if (precioHora !== undefined) actividad.precioHora = precioHora;
     return await this.actividadesRepo.save(actividad);
+  }
+
+  // New methods for reservation management
+
+  async createReservation(actividadId: string, loteId: string, cantidadReservada: number, estadoId: number = 1): Promise<ReservasXActividad> {
+    const dto: CreateReservasXActividadDto = {
+      fkActividadId: actividadId,
+      fkLoteId: loteId,
+      cantidadReservada,
+      fkEstadoId: estadoId,
+    };
+    return await this.reservasXActividadService.create(dto);
+  }
+
+  async createReservationByProduct(actividadId: string, productId: string, cantidadReservada: number, estadoId: number = 1): Promise<ReservasXActividad> {
+    // Find an available lote for this product
+    const lotes = await this.actividadesRepo.manager.find(LotesInventario, {
+      where: { fkProductoId: productId },
+      relations: ['reservas'],
+    });
+
+    // Find a lote with enough available quantity
+    for (const lote of lotes) {
+      const reserved = lote.reservas?.reduce((sum, r) => sum + (r.cantidadReservada - (r.cantidadDevuelta || 0)), 0) || 0;
+      const available = lote.cantidadDisponible - reserved;
+      if (available >= cantidadReservada) {
+        return this.createReservation(actividadId, lote.id, cantidadReservada, estadoId);
+      }
+    }
+
+    throw new Error(`No hay suficiente stock disponible para el producto ${productId}`);
+  }
+
+  async confirmUsage(reservaId: string, cantidadUsada: number): Promise<ReservasXActividad> {
+    const reserva = await this.reservasXActividadService.findOne(reservaId);
+    reserva.cantidadUsada = cantidadUsada;
+    reserva.fkEstadoId = 2; // Assuming 2 is 'Usado'
+    return await this.reservasXActividadService.update(reservaId, reserva);
+  }
+
+  async calculateCost(actividadId: string): Promise<number> {
+    const reservas = await this.reservasXActividadService.findAll();
+    const actividadReservas = reservas.filter(r => r.fkActividadId === actividadId && r.cantidadUsada);
+    let totalCost = 0;
+    for (const reserva of actividadReservas) {
+      // Assuming cost is cantidadUsada * some price, but since no price in entities, perhaps placeholder
+      // For now, just sum cantidadUsada as cost
+      totalCost += reserva.cantidadUsada || 0;
+    }
+    return totalCost;
+  }
+
+  async getReservationsByActivity(actividadId: string): Promise<ReservasXActividad[]> {
+    const reservas = await this.reservasXActividadService.findAll();
+    return reservas.filter(r => r.fkActividadId === actividadId);
   }
 }

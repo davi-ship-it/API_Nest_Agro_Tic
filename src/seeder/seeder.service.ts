@@ -21,14 +21,18 @@ import { Repository } from 'typeorm';
 import { CultivosVariedadXZona } from '../cultivos_variedad_x_zona/entities/cultivos_variedad_x_zona.entity';
 import { Actividad } from '../actividades/entities/actividades.entity';
 import { UsuarioXActividad } from '../usuarios_x_actividades/entities/usuarios_x_actividades.entity';
-import { Inventario } from '../inventario/entities/inventario.entity';
-import { InventarioXActividad } from '../inventario_x_actividades/entities/inventario_x_actividades.entity';
 import { Cosecha } from '../cosechas/entities/cosecha.entity';
 import { Bodega } from '../bodega/entities/bodega.entity';
 import { Categoria } from '../categoria/entities/categoria.entity';
 import { Mapa } from '../mapas/entities/mapa.entity';
 import { CategoriaActividad } from '../categoria_actividad/entities/categoria_actividad.entity';
-import { Movimiento } from '../movimientos/entities/movimiento.entity';
+import { UnidadMedida } from '../unidades_medida/entities/unidades_medida.entity';
+import { Producto } from '../productos/entities/productos.entity';
+import { LotesInventario } from '../lotes_inventario/entities/lotes_inventario.entity';
+import { ReservasXActividad } from '../reservas_x_actividad/entities/reservas_x_actividad.entity';
+import { MovimientosInventario } from '../movimientos_inventario/entities/movimientos_inventario.entity';
+import { TipoMovimiento } from '../tipos_movimiento/entities/tipos_movimiento.entity';
+import { EstadoReserva } from '../estados_reserva/entities/estados_reserva.entity';
 
 // Acciones comunes para reutilizar y mantener consistencia
 const ACCIONES_CRUD = ['leer', 'crear', 'actualizar', 'eliminar'];
@@ -112,10 +116,6 @@ export class SeederService {
     private readonly actividadRepository: Repository<Actividad>,
     @InjectRepository(UsuarioXActividad)
     private readonly usuarioXActividadRepository: Repository<UsuarioXActividad>,
-    @InjectRepository(Inventario)
-    private readonly inventarioRepository: Repository<Inventario>,
-    @InjectRepository(InventarioXActividad)
-    private readonly inventarioXActividadRepository: Repository<InventarioXActividad>,
     @InjectRepository(Cosecha)
     private readonly cosechaRepository: Repository<Cosecha>,
     @InjectRepository(Bodega)
@@ -126,8 +126,20 @@ export class SeederService {
     private readonly mapaRepository: Repository<Mapa>,
     @InjectRepository(CategoriaActividad)
     private readonly categoriaActividadRepository: Repository<CategoriaActividad>,
-    @InjectRepository(Movimiento)
-    private readonly movimientoRepository: Repository<Movimiento>,
+    @InjectRepository(UnidadMedida)
+    private readonly unidadMedidaRepository: Repository<UnidadMedida>,
+    @InjectRepository(Producto)
+    private readonly productoRepository: Repository<Producto>,
+    @InjectRepository(LotesInventario)
+    private readonly lotesInventarioRepository: Repository<LotesInventario>,
+    @InjectRepository(ReservasXActividad)
+    private readonly reservasXActividadRepository: Repository<ReservasXActividad>,
+    @InjectRepository(MovimientosInventario)
+    private readonly movimientosInventarioRepository: Repository<MovimientosInventario>,
+    @InjectRepository(TipoMovimiento)
+    private readonly tipoMovimientoRepository: Repository<TipoMovimiento>,
+    @InjectRepository(EstadoReserva)
+    private readonly estadoReservaRepository: Repository<EstadoReserva>,
   ) {}
 
   async seed() {
@@ -146,7 +158,7 @@ export class SeederService {
     const rolAdmin = await this.seedRolAdmin();
     const { rolInstructor, rolAprendiz } = await this.seedRolesAdicionales();
 
-    // 6. Crear el Usuario Administrador
+    // 5. Crear el Usuario Administrador
     if (rolAdmin) {
       await this.seedUsuarioAdmin(rolAdmin);
     } else {
@@ -156,7 +168,7 @@ export class SeederService {
       );
     }
 
-    // 7. Crear el Usuario Instructor
+    // 6. Crear el Usuario Instructor
     if (rolInstructor) {
       await this.seedUsuarioInstructor(rolInstructor);
     } else {
@@ -166,10 +178,10 @@ export class SeederService {
       );
     }
 
-    // 8. Crear fichas de muestra
+    // 7. Crear fichas de muestra
     await this.seedFichas();
 
-    // 9. Crear el Usuario Aprendiz
+    // 8. Crear el Usuario Aprendiz
     if (rolAprendiz) {
       await this.seedUsuarioAprendiz(rolAprendiz);
     } else {
@@ -179,11 +191,11 @@ export class SeederService {
       );
     }
 
-    // 10. Crear usuarios aprendices con fichas
+    // 9. Crear usuarios aprendices con fichas
     this.logger.log('Llamando a seedUsuariosAprendices...', 'Seeder');
     await this.seedUsuariosAprendices();
 
-    // 7. Seed agricultural data
+    // 10. Seed agricultural data
     await this.seedTipoCultivo();
     await this.seedVariedad();
     await this.seedMapa();
@@ -195,9 +207,15 @@ export class SeederService {
     await this.seedCategoriaActividad();
     await this.seedActividad();
     await this.seedUsuarioXActividad();
-    await this.seedInventario();
-    await this.seedInventarioXActividad();
-    await this.seedMovimiento();
+
+    // New reservation-related seeding
+    await this.seedUnidadesMedida();
+    await this.seedProductos();
+    await this.seedLotesInventario();
+    await this.seedTiposMovimiento();
+    await this.seedEstadosReserva();
+    await this.seedReservasXActividad();
+    await this.seedMovimientosInventario();
 
     this.logger.log('Seeding completado exitosamente.', 'Seeder');
   }
@@ -1123,78 +1141,6 @@ export class SeederService {
     }
   }
 
-  private async seedInventario() {
-    this.logger.log('Creando inventario base...', 'Seeder');
-    try {
-      const bodega = await this.bodegaRepository.findOne({
-        where: { nombre: 'Bodega Principal' },
-      });
-      const categorias = await this.categoriaRepository.find();
-      if (bodega && categorias.length > 0) {
-        const inventariosData = [
-          { nombre: 'Abono Orgánico', descripcion: 'Abono para cultivos', stock: 50, precio: 10, categoriaNombre: 'Abono' },
-          { nombre: 'Fertilizante Líquido', descripcion: 'Fertilizante nitrogenado', stock: 30, precio: 15, categoriaNombre: 'Abono' },
-          { nombre: 'Semillas de Maíz', descripcion: 'Semillas híbridas', stock: 100, precio: 5, categoriaNombre: 'Abono' },
-          { nombre: 'Pala Grande', descripcion: 'Herramienta para excavación', stock: 10, precio: 20, categoriaNombre: 'Herramientas' },
-          { nombre: 'Carretilla', descripcion: 'Para transporte de materiales', stock: 5, precio: 50, categoriaNombre: 'Herramientas' },
-          { nombre: 'Guantes de Trabajo', descripcion: 'Protección para manos', stock: 20, precio: 8, categoriaNombre: 'Herramientas' },
-        ];
-
-        for (const invData of inventariosData) {
-          const categoria = categorias.find(c => c.nombre === invData.categoriaNombre);
-          if (categoria) {
-            let inventario = await this.inventarioRepository.findOne({
-              where: { nombre: invData.nombre },
-            });
-            if (!inventario) {
-              inventario = this.inventarioRepository.create({
-                nombre: invData.nombre,
-                descripcion: invData.descripcion,
-                stock: invData.stock,
-                precio: invData.precio,
-                fkBodegaId: bodega.id,
-                fkCategoriaId: categoria.id,
-              });
-              await this.inventarioRepository.save(inventario);
-              this.logger.log(`Inventario "${invData.nombre}" creado.`, 'Seeder');
-            } else {
-              this.logger.log(`Inventario "${invData.nombre}" ya existe. Omitiendo.`, 'Seeder');
-            }
-          }
-        }
-      }
-    } catch (error) {
-      this.logger.error(`Error creando inventario: ${error.message}`, 'Seeder');
-    }
-  }
-
-  private async seedInventarioXActividad() {
-    this.logger.log('Creando relaciones inventario x actividad...', 'Seeder');
-    try {
-      const inventarios = await this.inventarioRepository.find();
-      const actividades = await this.actividadRepository.find();
-      if (inventarios.length > 0) {
-        for (const actividad of actividades) {
-          // Asignar inventario a algunas actividades
-          if (Math.random() > 0.5) { // 50% de las actividades tienen inventario
-            const inventario = inventarios[Math.floor(Math.random() * inventarios.length)];
-            const ixa = this.inventarioXActividadRepository.create({
-              fkInventarioId: inventario.id,
-              fkActividadId: actividad.id,
-              activo: true,
-            });
-            await this.inventarioXActividadRepository.save(ixa);
-            this.logger.log(`Relación inventario-actividad creada.`, 'Seeder');
-          }
-        }
-      }
-    } catch (error) {
-      this.logger.error(
-        `Error creando relaciones inventario x actividad: ${error.message}`,
-        'Seeder',
-      );
-    }
-  }
 
   private async seedCategoriaActividad() {
     this.logger.log('Creando categorías de actividad base...', 'Seeder');
@@ -1213,49 +1159,374 @@ export class SeederService {
     }
   }
 
-  private async seedMovimiento() {
-    this.logger.log('Creando movimientos base...', 'Seeder');
+
+  private async seedUnidadesMedida() {
+    this.logger.log('Creando unidades de medida base...', 'Seeder');
     try {
-      const inventarios = await this.inventarioRepository.find({ relations: ['categoria'] });
-      if (inventarios.length > 0) {
-        for (const inventario of inventarios) {
-          // Crear movimiento de reserva
-          const movimientoReservado = this.movimientoRepository.create({
-            fkInventarioId: inventario.id,
-            stockReservado: 10,
-            stockDevuelto: null,
-            stockDevueltoSobrante: null,
-            stockReservadoSobrante: null,
-          });
-          await this.movimientoRepository.save(movimientoReservado);
+      const unidades = [
+        { nombre: 'Kilogramo', abreviatura: 'kg' },
+        { nombre: 'Gramo', abreviatura: 'g' },
+        { nombre: 'Litro', abreviatura: 'L' },
+        { nombre: 'Mililitro', abreviatura: 'mL' },
+        { nombre: 'Unidad', abreviatura: 'u' },
+        { nombre: 'Metro', abreviatura: 'm' },
+        { nombre: 'Centímetro', abreviatura: 'cm' },
+      ];
 
-          // Crear movimiento de devuelto (para sugerencias)
-          const movimientoDevuelto = this.movimientoRepository.create({
-            fkInventarioId: inventario.id,
-            stockReservado: 0,
-            stockDevuelto: 5, // Stock devuelto completo
-            stockDevueltoSobrante: 0,
-            stockReservadoSobrante: null,
-          });
-          await this.movimientoRepository.save(movimientoDevuelto);
-
-          // Crear movimiento de sobrante (para consumibles)
-          if (inventario.categoria?.nombre !== 'Herramientas') {
-            const movimientoSobrante = this.movimientoRepository.create({
-              fkInventarioId: inventario.id,
-              stockReservado: 0,
-              stockDevuelto: 0,
-              stockDevueltoSobrante: 3, // Stock sobrante fraccional
-              stockReservadoSobrante: null,
-            });
-            await this.movimientoRepository.save(movimientoSobrante);
-          }
-
-          this.logger.log(`Movimientos creados para inventario "${inventario.nombre}".`, 'Seeder');
+      for (const unidad of unidades) {
+        let existing = await this.unidadMedidaRepository.findOne({
+          where: { nombre: unidad.nombre },
+        });
+        if (!existing) {
+          existing = this.unidadMedidaRepository.create(unidad);
+          await this.unidadMedidaRepository.save(existing);
+          this.logger.log(`Unidad de medida "${unidad.nombre}" creada.`, 'Seeder');
         }
       }
+
+      this.logger.log('Unidades de medida base creadas/verificados.', 'Seeder');
     } catch (error) {
-      this.logger.error(`Error creando movimientos: ${error.message}`, 'Seeder');
+      this.logger.error(`Error creando unidades de medida: ${error.message}`, 'Seeder');
+    }
+  }
+
+  private async seedProductos() {
+    this.logger.log('Creando productos base...', 'Seeder');
+    try {
+      const categorias = await this.categoriaRepository.find();
+      const unidades = await this.unidadMedidaRepository.find();
+
+      const productos = [
+        {
+          nombre: 'Fertilizante Nitrogenado',
+          descripcion: 'Fertilizante rico en nitrógeno para cultivos',
+          sku: 'FERT-N-001',
+          precioCompra: 25.50,
+          esDivisible: true,
+          capacidadPresentacion: 1.00,
+          categoriaNombre: 'Abono',
+          unidadNombre: 'Kilogramo',
+        },
+        {
+          nombre: 'Semillas de Maíz Híbrido',
+          descripcion: 'Semillas de maíz híbrido de alta calidad',
+          sku: 'SEM-MZ-001',
+          precioCompra: 15.00,
+          esDivisible: false,
+          capacidadPresentacion: 1.00,
+          categoriaNombre: 'Abono',
+          unidadNombre: 'Kilogramo',
+        },
+        {
+          nombre: 'Pesticida Orgánico',
+          descripcion: 'Pesticida natural para control de plagas',
+          sku: 'PEST-ORG-001',
+          precioCompra: 35.00,
+          esDivisible: true,
+          capacidadPresentacion: 1.00,
+          categoriaNombre: 'Abono',
+          unidadNombre: 'Litro',
+        },
+        {
+          nombre: 'Herramienta de Siembra',
+          descripcion: 'Herramienta manual para siembra precisa',
+          sku: 'HERR-SIEM-001',
+          precioCompra: 45.00,
+          esDivisible: false,
+          capacidadPresentacion: 1.00,
+          categoriaNombre: 'Herramientas',
+          unidadNombre: 'Unidad',
+        },
+      ];
+
+      for (const prodData of productos) {
+        let existing = await this.productoRepository.findOne({
+          where: { nombre: prodData.nombre },
+        });
+        if (!existing) {
+          const categoria = categorias.find(c => c.nombre === prodData.categoriaNombre);
+          const unidad = unidades.find(u => u.nombre === prodData.unidadNombre);
+
+          if (categoria && unidad) {
+            existing = this.productoRepository.create({
+              nombre: prodData.nombre,
+              descripcion: prodData.descripcion,
+              sku: prodData.sku,
+              precioCompra: prodData.precioCompra,
+              esDivisible: prodData.esDivisible,
+              capacidadPresentacion: prodData.capacidadPresentacion,
+              fkCategoriaId: categoria.id,
+              fkUnidadMedidaId: unidad.id,
+            });
+            await this.productoRepository.save(existing);
+            this.logger.log(`Producto "${prodData.nombre}" creado.`, 'Seeder');
+          }
+        }
+      }
+
+      this.logger.log('Productos base creados/verificados.', 'Seeder');
+    } catch (error) {
+      this.logger.error(`Error creando productos: ${error.message}`, 'Seeder');
+    }
+  }
+
+  private async seedLotesInventario() {
+    this.logger.log('Creando lotes de inventario base...', 'Seeder');
+    try {
+      const productos = await this.productoRepository.find({ relations: ['categoria'] });
+      const bodega = await this.bodegaRepository.findOne({
+        where: { nombre: 'Bodega Principal' },
+      });
+
+      if (!bodega) {
+        this.logger.warn('Bodega Principal no encontrada. Saltando creación de lotes.', 'Seeder');
+        return;
+      }
+
+      const lotes = [
+        {
+          productoNombre: 'Fertilizante Nitrogenado',
+          cantidadDisponible: 100.00,
+          cantidadReservada: 0.00,
+          esParcial: false,
+          fechaVencimiento: new Date('2026-12-31'),
+        },
+        {
+          productoNombre: 'Semillas de Maíz Híbrido',
+          cantidadDisponible: 50.00,
+          cantidadReservada: 0.00,
+          esParcial: false,
+          fechaVencimiento: new Date('2026-06-30'),
+        },
+        {
+          productoNombre: 'Pesticida Orgánico',
+          cantidadDisponible: 25.00,
+          cantidadReservada: 0.00,
+          esParcial: true,
+          fechaVencimiento: new Date('2026-08-15'),
+        },
+        {
+          productoNombre: 'Herramienta de Siembra',
+          cantidadDisponible: 10.00,
+          cantidadReservada: 0.00,
+          esParcial: false,
+          fechaVencimiento: undefined,
+        },
+      ];
+
+      for (const loteData of lotes) {
+        const producto = productos.find(p => p.nombre === loteData.productoNombre);
+        if (producto) {
+          const lote = this.lotesInventarioRepository.create({
+            fkProductoId: producto.id,
+            fkBodegaId: bodega.id,
+            cantidadDisponible: loteData.cantidadDisponible,
+            cantidadReservada: loteData.cantidadReservada,
+            esParcial: loteData.esParcial,
+            fechaIngreso: new Date(),
+            fechaVencimiento: loteData.fechaVencimiento,
+          } as any);
+          await this.lotesInventarioRepository.save(lote);
+          this.logger.log(`Lote para "${loteData.productoNombre}" creado.`, 'Seeder');
+        }
+      }
+
+      this.logger.log('Lotes de inventario base creados.', 'Seeder');
+    } catch (error) {
+      this.logger.error(`Error creando lotes de inventario: ${error.message}`, 'Seeder');
+    }
+  }
+
+  private async seedTiposMovimiento() {
+    this.logger.log('Creando tipos de movimiento base...', 'Seeder');
+    try {
+      const tipos = [
+        { nombre: 'Entrada' },
+        { nombre: 'Salida' },
+        { nombre: 'Reserva' },
+        { nombre: 'Devolución' },
+        { nombre: 'Ajuste' },
+      ];
+
+      for (const tipo of tipos) {
+        let existing = await this.tipoMovimientoRepository.findOne({
+          where: { nombre: tipo.nombre },
+        });
+        if (!existing) {
+          existing = this.tipoMovimientoRepository.create(tipo);
+          await this.tipoMovimientoRepository.save(existing);
+          this.logger.log(`Tipo de movimiento "${tipo.nombre}" creado.`, 'Seeder');
+        }
+      }
+
+      this.logger.log('Tipos de movimiento base creados/verificados.', 'Seeder');
+    } catch (error) {
+      this.logger.error(`Error creando tipos de movimiento: ${error.message}`, 'Seeder');
+    }
+  }
+
+  private async seedEstadosReserva() {
+    this.logger.log('Creando estados de reserva base...', 'Seeder');
+    try {
+      const estados = [
+        { nombre: 'Pendiente' },
+        { nombre: 'Confirmada' },
+        { nombre: 'En Uso' },
+        { nombre: 'Completada' },
+        { nombre: 'Cancelada' },
+      ];
+
+      for (const estado of estados) {
+        let existing = await this.estadoReservaRepository.findOne({
+          where: { nombre: estado.nombre },
+        });
+        if (!existing) {
+          existing = this.estadoReservaRepository.create(estado);
+          await this.estadoReservaRepository.save(existing);
+          this.logger.log(`Estado de reserva "${estado.nombre}" creado.`, 'Seeder');
+        }
+      }
+
+      this.logger.log('Estados de reserva base creados/verificados.', 'Seeder');
+    } catch (error) {
+      this.logger.error(`Error creando estados de reserva: ${error.message}`, 'Seeder');
+    }
+  }
+
+  private async seedReservasXActividad() {
+    this.logger.log('Creando reservas por actividad...', 'Seeder');
+    try {
+      const actividades = await this.actividadRepository.find();
+      const lotes = await this.lotesInventarioRepository.find({ relations: ['producto'] });
+      const estados = await this.estadoReservaRepository.find();
+
+      if (actividades.length === 0 || lotes.length === 0 || estados.length === 0) {
+        this.logger.warn('No hay actividades, lotes o estados suficientes. Saltando reservas.', 'Seeder');
+        return;
+      }
+
+      const estadoConfirmada = estados.find(e => e.nombre === 'Confirmada');
+      const estadoEnUso = estados.find(e => e.nombre === 'En Uso');
+
+      if (!estadoConfirmada || !estadoEnUso) {
+        this.logger.warn('Estados requeridos no encontrados. Saltando reservas.', 'Seeder');
+        return;
+      }
+
+      // Crear reservas para algunas actividades
+      const reservasData = [
+        {
+          actividadIndex: 0,
+          loteIndex: 0,
+          estado: estadoConfirmada,
+          cantidadReservada: 10.00,
+          cantidadUsada: null,
+          cantidadDevuelta: null,
+        },
+        {
+          actividadIndex: 1,
+          loteIndex: 1,
+          estado: estadoEnUso,
+          cantidadReservada: 5.00,
+          cantidadUsada: 3.00,
+          cantidadDevuelta: null,
+        },
+        {
+          actividadIndex: 2,
+          loteIndex: 2,
+          estado: estadoConfirmada,
+          cantidadReservada: 2.00,
+          cantidadUsada: null,
+          cantidadDevuelta: null,
+        },
+      ];
+
+      for (const resData of reservasData) {
+        const actividad = actividades[resData.actividadIndex % actividades.length];
+        const lote = lotes[resData.loteIndex % lotes.length];
+
+        if (actividad && lote) {
+          const reserva = this.reservasXActividadRepository.create({
+            fkActividadId: actividad.id,
+            fkLoteId: lote.id,
+            fkEstadoId: resData.estado.id,
+            cantidadReservada: resData.cantidadReservada,
+            cantidadUsada: resData.cantidadUsada,
+            cantidadDevuelta: resData.cantidadDevuelta,
+          } as any);
+          await this.reservasXActividadRepository.save(reserva);
+          this.logger.log(`Reserva para actividad ${actividad.id} y lote ${lote.id} creada.`, 'Seeder');
+        }
+      }
+
+      this.logger.log('Reservas por actividad creadas.', 'Seeder');
+    } catch (error) {
+      this.logger.error(`Error creando reservas por actividad: ${error.message}`, 'Seeder');
+    }
+  }
+
+  private async seedMovimientosInventario() {
+    this.logger.log('Creando movimientos de inventario...', 'Seeder');
+    try {
+      const lotes = await this.lotesInventarioRepository.find({ relations: ['producto'] });
+      const reservas = await this.reservasXActividadRepository.find();
+      const tiposMovimiento = await this.tipoMovimientoRepository.find();
+
+      if (lotes.length === 0 || tiposMovimiento.length === 0) {
+        this.logger.warn('No hay lotes o tipos de movimiento. Saltando movimientos.', 'Seeder');
+        return;
+      }
+
+      const tipoEntrada = tiposMovimiento.find(t => t.nombre === 'Entrada');
+      const tipoReserva = tiposMovimiento.find(t => t.nombre === 'Reserva');
+      const tipoSalida = tiposMovimiento.find(t => t.nombre === 'Salida');
+
+      // Movimientos de entrada iniciales
+      for (const lote of lotes) {
+        if (tipoEntrada) {
+          const movimiento = this.movimientosInventarioRepository.create({
+            fkLoteId: lote.id,
+            fkTipoMovimientoId: tipoEntrada.id,
+            cantidad: lote.cantidadDisponible,
+            fechaMovimiento: lote.fechaIngreso,
+            observacion: 'Entrada inicial de inventario',
+          });
+          await this.movimientosInventarioRepository.save(movimiento);
+          this.logger.log(`Movimiento de entrada para lote ${lote.id} creado.`, 'Seeder');
+        }
+      }
+
+      // Movimientos de reserva
+      for (const reserva of reservas) {
+        if (tipoReserva) {
+          const movimiento = this.movimientosInventarioRepository.create({
+            fkLoteId: reserva.fkLoteId,
+            fkReservaId: reserva.id,
+            fkTipoMovimientoId: tipoReserva.id,
+            cantidad: reserva.cantidadReservada,
+            observacion: 'Reserva para actividad',
+          });
+          await this.movimientosInventarioRepository.save(movimiento);
+          this.logger.log(`Movimiento de reserva para reserva ${reserva.id} creado.`, 'Seeder');
+        }
+
+        // Si hay cantidad usada, crear movimiento de salida
+        if (reserva.cantidadUsada && tipoSalida) {
+          const movimientoSalida = this.movimientosInventarioRepository.create({
+            fkLoteId: reserva.fkLoteId,
+            fkReservaId: reserva.id,
+            fkTipoMovimientoId: tipoSalida.id,
+            cantidad: reserva.cantidadUsada,
+            observacion: 'Salida por uso en actividad',
+          });
+          await this.movimientosInventarioRepository.save(movimientoSalida);
+          this.logger.log(`Movimiento de salida para reserva ${reserva.id} creado.`, 'Seeder');
+        }
+      }
+
+      this.logger.log('Movimientos de inventario creados.', 'Seeder');
+    } catch (error) {
+      this.logger.error(`Error creando movimientos de inventario: ${error.message}`, 'Seeder');
     }
   }
 }

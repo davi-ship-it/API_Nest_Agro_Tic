@@ -8,9 +8,9 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { CultivosVariedadXZona } from '../../cultivos_variedad_x_zona/entities/cultivos_variedad_x_zona.entity';
-import { InventarioXActividad } from '../../inventario_x_actividades/entities/inventario_x_actividades.entity';
 import { UsuarioXActividad } from '../../usuarios_x_actividades/entities/usuarios_x_actividades.entity';
 import { CategoriaActividad } from '../../categoria_actividad/entities/categoria_actividad.entity';
+import { ReservasXActividad } from '../../reservas_x_actividad/entities/reservas_x_actividad.entity';
 
 @Entity('actividades')
 export class Actividad {
@@ -55,9 +55,10 @@ export class Actividad {
   @JoinColumn({ name: 'fk_id_categoria_actividad' })
   categoriaActividad?: CategoriaActividad;
 
-  @OneToMany(() => InventarioXActividad, (ixa) => ixa.actividad)
-  inventarioUsado?: InventarioXActividad[];
 
   @OneToMany(() => UsuarioXActividad, (uxa) => uxa.actividad)
   usuariosAsignados?: UsuarioXActividad[];
+
+  @OneToMany(() => ReservasXActividad, (r) => r.actividad)
+  reservas?: ReservasXActividad[];
 }

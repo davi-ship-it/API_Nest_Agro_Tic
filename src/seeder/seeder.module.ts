@@ -28,10 +28,14 @@ import { Modulo } from 'src/modulos/entities/modulo.entity';
 import { Recurso } from 'src/recursos/entities/recurso.entity';
 import { Bodega } from 'src/bodega/entities/bodega.entity';
 import { Categoria } from 'src/categoria/entities/categoria.entity';
-import { Inventario } from 'src/inventario/entities/inventario.entity';
-import { InventarioXActividad } from 'src/inventario_x_actividades/entities/inventario_x_actividades.entity';
 import { CategoriaActividad } from 'src/categoria_actividad/entities/categoria_actividad.entity';
-import { Movimiento } from 'src/movimientos/entities/movimiento.entity';
+import { UnidadMedida } from 'src/unidades_medida/entities/unidades_medida.entity';
+import { Producto } from 'src/productos/entities/productos.entity';
+import { LotesInventario } from 'src/lotes_inventario/entities/lotes_inventario.entity';
+import { ReservasXActividad } from 'src/reservas_x_actividad/entities/reservas_x_actividad.entity';
+import { MovimientosInventario } from 'src/movimientos_inventario/entities/movimientos_inventario.entity';
+import { TipoMovimiento } from 'src/tipos_movimiento/entities/tipos_movimiento.entity';
+import { EstadoReserva } from 'src/estados_reserva/entities/estados_reserva.entity';
 
 @Module({
   imports: [
@@ -41,7 +45,7 @@ import { Movimiento } from 'src/movimientos/entities/movimiento.entity';
     // Al importar AppModule, ya tenemos acceso a los módulos de Usuarios y Permisos
     // y a sus providers exportados.
     // TypeOrmModule.forFeature es necesario aquí para que SeederService pueda inyectar los repositorios correspondientes.
-    TypeOrmModule.forFeature([Roles, Usuario, Permiso, TipoUnidad, Ficha, TipoCultivo, Variedad, Cultivo, CultivosXVariedad, Zona, CultivosVariedadXZona, Actividad, UsuarioXActividad, Mapa, Cosecha, Epa, TipoEpa, CultivosXEpa, Sensor, TipoSensor, MedicionSensor, Venta, Modulo, Recurso, Bodega, Categoria, Inventario, InventarioXActividad, CategoriaActividad, Movimiento]),
+    TypeOrmModule.forFeature([Roles, Usuario, Permiso, TipoUnidad, Ficha, TipoCultivo, Variedad, Cultivo, CultivosXVariedad, Zona, CultivosVariedadXZona, Actividad, UsuarioXActividad, Mapa, Cosecha, Epa, TipoEpa, CultivosXEpa, Sensor, TipoSensor, MedicionSensor, Venta, Modulo, Recurso, Bodega, Categoria, CategoriaActividad, UnidadMedida, Producto, LotesInventario, ReservasXActividad, MovimientosInventario, TipoMovimiento, EstadoReserva]),
   ],
   providers: [SeederService, Logger],
 })

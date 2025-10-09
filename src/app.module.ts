@@ -13,8 +13,6 @@ import { CultivosVariedadXZonaModule } from './cultivos_variedad_x_zona/cultivos
 import { CultivosXEpaModule } from './cultivos_x_epa/cultivos_x_epa.module';
 import { CultivosXVariedadModule } from './cultivos_x_variedad/cultivos_x_variedad.module';
 import { EpaModule } from './epa/epa.module';
-import { InventarioModule } from './inventario/inventario.module';
-import { InventarioXActividadesModule } from './inventario_x_actividades/inventario_x_actividades.module';
 import { CategoriaModule } from './categoria/categoria.module';
 import { MapasModule } from './mapas/mapas.module';
 import { MedicionSensorModule } from './medicion_sensor/medicion_sensor.module';
@@ -40,8 +38,14 @@ import { RecursosModule } from './recursos/recursos.module';
 import { ModulosModule } from './modulos/modulos.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { FichasModule } from './fichas/fichas.module';
-import { MovimientosModule } from './movimientos/movimientos.module';
 import { CategoriaActividadModule } from './categoria_actividad/categoria_actividad.module';
+import { UnidadesMedidaModule } from './unidades_medida/unidades_medida.module';
+import { ProductosModule } from './productos/productos.module';
+import { LotesInventarioModule } from './lotes_inventario/lotes_inventario.module';
+import { ReservasXActividadModule } from './reservas_x_actividad/reservas_x_actividad.module';
+import { MovimientosInventarioModule } from './movimientos_inventario/movimientos_inventario.module';
+import { TiposMovimientoModule } from './tipos_movimiento/tipos_movimiento.module';
+import { EstadosReservaModule } from './estados_reserva/estados_reserva.module';
 
 @Module({
   imports: [
@@ -134,8 +138,6 @@ import { CategoriaActividadModule } from './categoria_actividad/categoria_activi
     CultivosXEpaModule,
     CultivosXVariedadModule,
     EpaModule,
-    InventarioModule,
-    InventarioXActividadesModule,
     CategoriaModule,
     MapasModule,
     MedicionSensorModule,
@@ -155,8 +157,14 @@ import { CategoriaActividadModule } from './categoria_actividad/categoria_activi
     RecursosModule,
     ModulosModule,
     FichasModule,
-    MovimientosModule,
     CategoriaActividadModule,
+    UnidadesMedidaModule,
+    ProductosModule,
+    LotesInventarioModule,
+    ReservasXActividadModule,
+    MovimientosInventarioModule,
+    TiposMovimientoModule,
+    EstadosReservaModule,
   ],
   controllers: [AppController],
   providers: [AppService],
