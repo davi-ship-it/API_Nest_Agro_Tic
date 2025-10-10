@@ -5,7 +5,6 @@ import { Roles } from '../roles/entities/role.entity';
 import { Usuario } from '../usuarios/entities/usuario.entity';
 import { SeederService } from './seeder.service';
 import { Permiso } from 'src/permisos/entities/permiso.entity';
-import { TipoUnidad } from 'src/tipo_unidad/entities/tipo_unidad.entity';
 import { Ficha } from 'src/fichas/entities/ficha.entity';
 import { TipoCultivo } from 'src/tipo_cultivo/entities/tipo_cultivo.entity';
 import { Variedad } from 'src/variedad/entities/variedad.entity';
@@ -45,7 +44,7 @@ import { EstadoReserva } from 'src/estados_reserva/entities/estados_reserva.enti
     // Al importar AppModule, ya tenemos acceso a los módulos de Usuarios y Permisos
     // y a sus providers exportados.
     // TypeOrmModule.forFeature es necesario aquí para que SeederService pueda inyectar los repositorios correspondientes.
-    TypeOrmModule.forFeature([Roles, Usuario, Permiso, TipoUnidad, Ficha, TipoCultivo, Variedad, Cultivo, CultivosXVariedad, Zona, CultivosVariedadXZona, Actividad, UsuarioXActividad, Mapa, Cosecha, Epa, TipoEpa, CultivosXEpa, Sensor, TipoSensor, MedicionSensor, Venta, Modulo, Recurso, Bodega, Categoria, CategoriaActividad, UnidadMedida, Producto, LotesInventario, ReservasXActividad, MovimientosInventario, TipoMovimiento, EstadoReserva]),
+    TypeOrmModule.forFeature([Roles, Usuario, Permiso, Ficha, TipoCultivo, Variedad, Cultivo, CultivosXVariedad, Zona, CultivosVariedadXZona, Actividad, UsuarioXActividad, Mapa, Cosecha, Epa, TipoEpa, CultivosXEpa, Sensor, TipoSensor, MedicionSensor, Venta, Modulo, Recurso, Bodega, Categoria, CategoriaActividad, UnidadMedida, Producto, LotesInventario, ReservasXActividad, MovimientosInventario, TipoMovimiento, EstadoReserva]),
   ],
   providers: [SeederService, Logger],
 })

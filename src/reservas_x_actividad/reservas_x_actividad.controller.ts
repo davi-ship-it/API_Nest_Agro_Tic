@@ -10,6 +10,7 @@ import {
 import { ReservasXActividadService } from './reservas_x_actividad.service';
 import { CreateReservasXActividadDto } from './dto/create-reservas_x_actividad.dto';
 import { UpdateReservasXActividadDto } from './dto/update-reservas_x_actividad.dto';
+import { FinalizeActivityDto } from './dto/finalize-activity.dto';
 
 @Controller('reservas-x-actividad')
 export class ReservasXActividadController {
@@ -36,6 +37,11 @@ export class ReservasXActividadController {
     @Body() updateReservasXActividadDto: UpdateReservasXActividadDto,
   ) {
     return this.reservasXActividadService.update(id, updateReservasXActividadDto);
+  }
+
+  @Post('finalize')
+  finalizeActivity(@Body() finalizeActivityDto: FinalizeActivityDto) {
+    return this.reservasXActividadService.finalizeActivity(finalizeActivityDto);
   }
 
   @Delete(':id')
