@@ -38,7 +38,7 @@ export class ActividadesService {
   async findByDate(date: string): Promise<Actividad[]> {
     return await this.actividadesRepo.find({
       where: { fechaAsignacion: new Date(date) },
-      relations: ['categoriaActividad', 'cultivoVariedadZona', 'cultivoVariedadZona.cultivoXVariedad', 'cultivoVariedadZona.cultivoXVariedad.cultivo', 'cultivoVariedadZona.cultivoXVariedad.cultivo.ficha', 'cultivoVariedadZona.cultivoXVariedad.variedad', 'cultivoVariedadZona.cultivoXVariedad.variedad.tipoCultivo', 'cultivoVariedadZona.zona', 'usuariosAsignados', 'usuariosAsignados.usuario', 'usuariosAsignados.usuario.ficha', 'reservas', 'reservas.lote', 'reservas.lote.producto', 'reservas.lote.producto.unidadMedida', 'reservas.estado'],
+      relations: ['categoriaActividad', 'cultivoVariedadZona', 'cultivoVariedadZona.cultivoXVariedad', 'cultivoVariedadZona.cultivoXVariedad.cultivo', 'cultivoVariedadZona.cultivoXVariedad.variedad', 'cultivoVariedadZona.cultivoXVariedad.variedad.tipoCultivo', 'cultivoVariedadZona.zona', 'usuariosAsignados', 'usuariosAsignados.usuario', 'usuariosAsignados.usuario.ficha', 'reservas', 'reservas.lote', 'reservas.lote.producto', 'reservas.lote.producto.unidadMedida', 'reservas.estado'],
     });
   }
 
@@ -55,7 +55,7 @@ export class ActividadesService {
   async findByDateRange(start: string, end: string): Promise<Actividad[]> {
     return await this.actividadesRepo.find({
       where: { fechaAsignacion: Between(new Date(start), new Date(end)) },
-      relations: ['categoriaActividad', 'cultivoVariedadZona', 'cultivoVariedadZona.cultivoXVariedad', 'cultivoVariedadZona.cultivoXVariedad.cultivo', 'cultivoVariedadZona.cultivoXVariedad.cultivo.ficha', 'cultivoVariedadZona.cultivoXVariedad.variedad', 'cultivoVariedadZona.cultivoXVariedad.variedad.tipoCultivo', 'cultivoVariedadZona.zona', 'usuariosAsignados', 'usuariosAsignados.usuario', 'usuariosAsignados.usuario.ficha', 'reservas', 'reservas.lote', 'reservas.lote.producto', 'reservas.lote.producto.unidadMedida', 'reservas.estado'],
+      relations: ['categoriaActividad', 'cultivoVariedadZona', 'cultivoVariedadZona.cultivoXVariedad', 'cultivoVariedadZona.cultivoXVariedad.cultivo', 'cultivoVariedadZona.cultivoXVariedad.variedad', 'cultivoVariedadZona.cultivoXVariedad.variedad.tipoCultivo', 'cultivoVariedadZona.zona', 'usuariosAsignados', 'usuariosAsignados.usuario', 'usuariosAsignados.usuario.ficha', 'reservas', 'reservas.lote', 'reservas.lote.producto', 'reservas.lote.producto.unidadMedida', 'reservas.estado'],
     });
   }
 

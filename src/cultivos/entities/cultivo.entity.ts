@@ -14,9 +14,6 @@ export class Cultivo {
   @Column({ name: 'cul_siembra', type: 'date', nullable: true })
   siembra?: Date;
 
-  @ManyToOne(() => Ficha, (ficha) => ficha.cultivos)
-  @JoinColumn({ name: 'fk_id_ficha' })
-  ficha?: Ficha;
 
   @OneToMany(() => CultivosXVariedad, (cxv) => cxv.cultivo)
   variedades?: CultivosXVariedad[];
