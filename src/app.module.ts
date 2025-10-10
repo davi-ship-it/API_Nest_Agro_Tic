@@ -45,7 +45,6 @@ import { ReservasXActividadModule } from './reservas_x_actividad/reservas_x_acti
 import { MovimientosInventarioModule } from './movimientos_inventario/movimientos_inventario.module';
 import { TiposMovimientoModule } from './tipos_movimiento/tipos_movimiento.module';
 import { EstadosReservaModule } from './estados_reserva/estados_reserva.module';
-import { ModulosModule } from './modulos/modulos.module';
 
 @Module({
   imports: [
