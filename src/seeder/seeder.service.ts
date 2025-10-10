@@ -846,11 +846,7 @@ export class SeederService {
         // Mezcla de estados: 70% en curso, 30% finalizado
         const estado = Math.random() > 0.7 ? 0 : 1;
 
-        // Asignar ficha durante la creación
-        const ficha = fichas[i % fichas.length];
-
         const cultivo = this.cultivoRepository.create({
-          ficha: ficha,
           siembra: new Date(fechasSiembra[i]),
           estado: estado
         });
@@ -859,7 +855,7 @@ export class SeederService {
 
         const estadoTexto = estado === 1 ? 'En curso' : 'Finalizado';
         this.logger.log(
-          `Cultivo ${i + 1} creado - Estado: ${estadoTexto}, Ficha: ${ficha.numero}`,
+          `Cultivo ${i + 1} creado - Estado: ${estadoTexto}`,
           'Seeder',
         );
       }

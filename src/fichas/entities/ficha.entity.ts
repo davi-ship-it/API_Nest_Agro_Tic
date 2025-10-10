@@ -13,6 +13,4 @@ export class Ficha {
   @OneToMany(() => Usuario, (usuario) => usuario.ficha)
   usuarios?: Usuario[];
 
-  @OneToMany(() => Cultivo, (cultivo) => cultivo.ficha)
-  cultivos?: Cultivo[];
 }
