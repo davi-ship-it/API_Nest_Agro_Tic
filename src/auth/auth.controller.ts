@@ -21,6 +21,7 @@ import { LoginAuthDto } from './dto/login-auth.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { AuthenticationGuard } from '../common/guards/authentication.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -38,31 +39,34 @@ export class AuthController {
     @Body() loginDto: LoginAuthDto,
     @Res({ passthrough: true }) response: Response,
   ) {
+    console.log('AuthController: Login attempt for user with DNI:', loginDto.dni);
+    console.log('AuthController: NODE_ENV:', process.env.NODE_ENV);
+
     const result = await this.authService.login(loginDto);
     const accessMaxAge = 15 * 60 * 1000; // 15 min
     const refreshMaxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
     const isProduction = process.env.NODE_ENV === 'production';
-    console.log(
-      'Setting access_token cookie:',
-      result.access_token ? 'present' : 'missing',
-    );
+
+    console.log('AuthController: Environment check - isProduction:', isProduction);
+    console.log('AuthController: Setting access_token cookie:', result.access_token ? 'present' : 'missing');
+    console.log('AuthController: Setting refresh_token cookie:', result.refresh_token ? 'present' : 'missing');
+
     response.cookie('access_token', result.access_token, {
       httpOnly: true,
       secure: isProduction,
       sameSite: isProduction ? 'strict' : 'lax',
       maxAge: accessMaxAge,
     });
-    console.log(
-      'Setting refresh_token cookie:',
-      result.refresh_token ? 'present' : 'missing',
-    );
+
     response.cookie('refresh_token', result.refresh_token, {
       httpOnly: true,
       secure: isProduction,
       sameSite: isProduction ? 'strict' : 'lax',
       maxAge: refreshMaxAge,
     });
-    console.log('Login response sent');
+
+    console.log('AuthController: Cookies set successfully, sending response');
+    console.log('AuthController: Response headers will include Set-Cookie headers');
     return { message: result.message };
   }
   @Post('refresh')
@@ -95,15 +99,16 @@ export class AuthController {
   // En una aplicación real, este endpoint debería estar protegido.
   // El ID del usuario se extrae del token JWT verificado, no del body.
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthenticationGuard)
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   async logout(
     @Req() req: Request,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const user = req.user as { sub: string };
-    await this.authService.logout(user.sub);
+    const userId = (req as any).userId;
+    console.log('Logout request received, userId:', userId);
+    await this.authService.logout(userId);
     response.clearCookie('access_token');
     response.clearCookie('refresh_token');
     return { message: 'Sesión cerrada exitosamente' };

@@ -14,7 +14,9 @@ import { FinalizeActivityDto } from './dto/finalize-activity.dto';
 
 @Controller('reservas-x-actividad')
 export class ReservasXActividadController {
-  constructor(private readonly reservasXActividadService: ReservasXActividadService) {}
+  constructor(
+    private readonly reservasXActividadService: ReservasXActividadService,
+  ) {}
 
   @Post()
   create(@Body() createReservasXActividadDto: CreateReservasXActividadDto) {
@@ -36,7 +38,10 @@ export class ReservasXActividadController {
     @Param('id') id: string,
     @Body() updateReservasXActividadDto: UpdateReservasXActividadDto,
   ) {
-    return this.reservasXActividadService.update(id, updateReservasXActividadDto);
+    return this.reservasXActividadService.update(
+      id,
+      updateReservasXActividadDto,
+    );
   }
 
   @Post('finalize')

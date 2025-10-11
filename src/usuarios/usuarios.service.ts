@@ -124,9 +124,13 @@ export class UsuariosService {
 
   async search(query: string, page: number = 1, limit: number = 10) {
     const skip = (page - 1) * limit;
-    const qb = this.usuarioRepository.createQueryBuilder('u')
+    const qb = this.usuarioRepository
+      .createQueryBuilder('u')
       .leftJoinAndSelect('u.ficha', 'f')
-      .where('u.nombres ILIKE :query OR u.apellidos ILIKE :query OR CAST(u.dni AS TEXT) ILIKE :query', { query: `%${query}%` })
+      .where(
+        'u.nombres ILIKE :query OR u.apellidos ILIKE :query OR CAST(u.dni AS TEXT) ILIKE :query',
+        { query: `%${query}%` },
+      )
       .select(['u.id', 'u.nombres', 'u.apellidos', 'u.dni', 'f.numero'])
       .skip(skip)
       .take(limit);

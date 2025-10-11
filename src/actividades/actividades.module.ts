@@ -7,7 +7,10 @@ import { ReservasXActividad } from '../reservas_x_actividad/entities/reservas_x_
 import { ReservasXActividadModule } from '../reservas_x_actividad/reservas_x_actividad.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Actividad, ReservasXActividad]), ReservasXActividadModule],
+  imports: [
+    TypeOrmModule.forFeature([Actividad, ReservasXActividad]),
+    ReservasXActividadModule,
+  ],
   providers: [ActividadesService],
   controllers: [ActividadesController],
   exports: [TypeOrmModule], // opcional, si otros módulos también usan Actividad

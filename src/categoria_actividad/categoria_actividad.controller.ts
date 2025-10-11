@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+} from '@nestjs/common';
 import { ParseIntPipe } from '@nestjs/common';
 import { CategoriaActividadService } from './categoria_actividad.service';
 import { CreateCategoriaActividadDto } from './dto/create-categoria_actividad.dto';
@@ -6,7 +15,9 @@ import { UpdateCategoriaActividadDto } from './dto/update-categoria_actividad.dt
 
 @Controller('categoria-actividad')
 export class CategoriaActividadController {
-  constructor(private readonly categoriaActividadService: CategoriaActividadService) {}
+  constructor(
+    private readonly categoriaActividadService: CategoriaActividadService,
+  ) {}
 
   @Post()
   create(@Body() createCategoriaActividadDto: CreateCategoriaActividadDto) {
@@ -33,8 +44,14 @@ export class CategoriaActividadController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCategoriaActividadDto: UpdateCategoriaActividadDto) {
-    return this.categoriaActividadService.update(id, updateCategoriaActividadDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateCategoriaActividadDto: UpdateCategoriaActividadDto,
+  ) {
+    return this.categoriaActividadService.update(
+      id,
+      updateCategoriaActividadDto,
+    );
   }
 
   @Delete(':id')

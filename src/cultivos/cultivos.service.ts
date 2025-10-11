@@ -32,10 +32,14 @@ export class CultivosService {
       relations: ['tipoCultivo'],
     });
     if (!variedad) {
-      throw new NotFoundException(`Variedad con id ${dto.variedadId} no encontrada`);
+      throw new NotFoundException(
+        `Variedad con id ${dto.variedadId} no encontrada`,
+      );
     }
     if (variedad.fkTipoCultivoId !== dto.tipoCultivoId) {
-      throw new NotFoundException(`Variedad no pertenece al tipo de cultivo especificado`);
+      throw new NotFoundException(
+        `Variedad no pertenece al tipo de cultivo especificado`,
+      );
     }
 
     // Validate zona exists
@@ -119,14 +123,16 @@ export class CultivosService {
       }
 
       if (dto.buscar_cultivo && dto.buscar_cultivo.trim()) {
-        qb.andWhere('(v.var_nombre ILIKE :cultivo OR tc.tpc_nombre ILIKE :cultivo)',
-          { cultivo: `%${dto.buscar_cultivo}%` });
+        qb.andWhere(
+          '(v.var_nombre ILIKE :cultivo OR tc.tpc_nombre ILIKE :cultivo)',
+          { cultivo: `%${dto.buscar_cultivo}%` },
+        );
       }
 
       if (dto.fecha_inicio && dto.fecha_fin) {
         qb.andWhere('c.siembra BETWEEN :inicio AND :fin', {
           inicio: dto.fecha_inicio,
-          fin: dto.fecha_fin
+          fin: dto.fecha_fin,
         });
       }
 
@@ -145,8 +151,8 @@ export class CultivosService {
         'COUNT(cos.id) as numCosechas',
         '(SELECT cos2.pk_id_cosecha FROM cosechas cos2 WHERE cos2.fk_id_cultivos_variedad_x_zona = cvz.pk_id_cv_zona ORDER BY cos2.cos_fecha DESC LIMIT 1) as cosechaid',
       ])
-      .groupBy('cvz.id, c.id, z.nombre, c.siembra, c.estado, v.var_nombre')
-      .orderBy('cvz.id');
+        .groupBy('cvz.id, c.id, z.nombre, c.siembra, c.estado, v.var_nombre')
+        .orderBy('cvz.id');
 
       console.log('Generated Query:', qb.getQuery());
       console.log('Query Parameters:', qb.getParameters());
@@ -158,10 +164,15 @@ export class CultivosService {
       // Aplicar filtro por ficha después de obtener los resultados
       let filteredResult = result;
       if (dto.id_titulado && dto.id_titulado.trim()) {
-        filteredResult = result.filter(r =>
-          r.ficha && r.ficha.toLowerCase().includes(dto.id_titulado!.toLowerCase())
+        filteredResult = result.filter(
+          (r) =>
+            r.ficha &&
+            r.ficha.toLowerCase().includes(dto.id_titulado!.toLowerCase()),
         );
-        console.log('Search result count after ficha filter:', filteredResult.length);
+        console.log(
+          'Search result count after ficha filter:',
+          filteredResult.length,
+        );
       }
 
       return filteredResult;

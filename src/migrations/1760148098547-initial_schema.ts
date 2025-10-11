@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class InitialSchema1760121572142 implements MigrationInterface {
-    name = 'InitialSchema1760121572142'
+export class InitialSchema1760148098547 implements MigrationInterface {
+    name = 'InitialSchema1760148098547'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`CREATE TABLE "modulos" ("pk_id_modulo" uuid NOT NULL DEFAULT uuid_generate_v4(), "modulo_nombre" character varying(100) NOT NULL, CONSTRAINT "UQ_923a92db6231b5b2f2f7e9e5da2" UNIQUE ("modulo_nombre"), CONSTRAINT "PK_8a063140bc741bfecd07b24ff37" PRIMARY KEY ("pk_id_modulo"))`);
@@ -37,6 +37,7 @@ export class InitialSchema1760121572142 implements MigrationInterface {
         await queryRunner.query(`CREATE TABLE "epa" ("pk_id_epa" uuid NOT NULL DEFAULT uuid_generate_v4(), "epa_nombre" character varying(100) NOT NULL, "epa_descripcion" text, "epa_img_url" character varying(255), "fk_id_tipo_epa" uuid NOT NULL, CONSTRAINT "PK_9a3b902c7db65928623ec6598a9" PRIMARY KEY ("pk_id_epa"))`);
         await queryRunner.query(`CREATE TABLE "tipo_epa" ("pk_id_tipo_epa" uuid NOT NULL DEFAULT uuid_generate_v4(), "tipo_epa_nombre" character varying(50) NOT NULL, CONSTRAINT "UQ_d9e54d57338afcad4d7c91b0d7c" UNIQUE ("tipo_epa_nombre"), CONSTRAINT "PK_dcc91f7443ac39c48ed98eccdf9" PRIMARY KEY ("pk_id_tipo_epa"))`);
         await queryRunner.query(`CREATE TABLE "movimientos_inventario" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "fk_lote_id" uuid NOT NULL, "fk_reserva_id" uuid, "fk_tipo_movimiento_id" integer NOT NULL, "cantidad" numeric(10,2) NOT NULL, "fecha_movimiento" TIMESTAMP NOT NULL DEFAULT now(), "observacion" text, CONSTRAINT "PK_812f6e4f95b017981363c4b9ff9" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "sessions" ("pk_id_session" uuid NOT NULL DEFAULT uuid_generate_v4(), "session_token_hash" character varying(255) NOT NULL, "session_expires_at" TIMESTAMP NOT NULL, "session_is_active" boolean NOT NULL DEFAULT true, "session_created_at" TIMESTAMP NOT NULL DEFAULT now(), "session_updated_at" TIMESTAMP NOT NULL DEFAULT now(), "fk_id_usuario" uuid, CONSTRAINT "PK_854b0cbf57826eeb92786fd61fe" PRIMARY KEY ("pk_id_session"))`);
         await queryRunner.query(`CREATE TABLE "roles_permisos" ("rol_id" uuid NOT NULL, "permiso_id" uuid NOT NULL, CONSTRAINT "PK_0e1dbe0449ae37ef1b31b0d9474" PRIMARY KEY ("rol_id", "permiso_id"))`);
         await queryRunner.query(`CREATE INDEX "IDX_dc3cfbcce511233d4bef92d7e3" ON "roles_permisos" ("rol_id") `);
         await queryRunner.query(`CREATE INDEX "IDX_ef10d9983fcb45f0024cc7000d" ON "roles_permisos" ("permiso_id") `);
@@ -75,6 +76,7 @@ export class InitialSchema1760121572142 implements MigrationInterface {
         await queryRunner.query(`ALTER TABLE "movimientos_inventario" ADD CONSTRAINT "FK_b635c8408938f63578ad3a441d5" FOREIGN KEY ("fk_lote_id") REFERENCES "lotes_inventario"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "movimientos_inventario" ADD CONSTRAINT "FK_ed669516597c2d98f49817c9814" FOREIGN KEY ("fk_reserva_id") REFERENCES "reservas_x_actividad"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "movimientos_inventario" ADD CONSTRAINT "FK_8a915d5adf1b954fc3fb4469a2d" FOREIGN KEY ("fk_tipo_movimiento_id") REFERENCES "tipos_movimiento"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "sessions" ADD CONSTRAINT "FK_1ab7dcfb69b30ddcdab1d564750" FOREIGN KEY ("fk_id_usuario") REFERENCES "usuarios"("pk_id_usuario") ON DELETE CASCADE ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "roles_permisos" ADD CONSTRAINT "FK_dc3cfbcce511233d4bef92d7e3b" FOREIGN KEY ("rol_id") REFERENCES "roles"("pk_id_rol") ON DELETE CASCADE ON UPDATE CASCADE`);
         await queryRunner.query(`ALTER TABLE "roles_permisos" ADD CONSTRAINT "FK_ef10d9983fcb45f0024cc7000d3" FOREIGN KEY ("permiso_id") REFERENCES "permisos"("pk_id_permiso") ON DELETE CASCADE ON UPDATE CASCADE`);
         await queryRunner.query(`ALTER TABLE "rol_creacion_jerarquia" ADD CONSTRAINT "FK_1b25d18dffadb2e4dbbf66c901c" FOREIGN KEY ("rol_creador_id") REFERENCES "roles"("pk_id_rol") ON DELETE CASCADE ON UPDATE CASCADE`);
@@ -86,6 +88,7 @@ export class InitialSchema1760121572142 implements MigrationInterface {
         await queryRunner.query(`ALTER TABLE "rol_creacion_jerarquia" DROP CONSTRAINT "FK_1b25d18dffadb2e4dbbf66c901c"`);
         await queryRunner.query(`ALTER TABLE "roles_permisos" DROP CONSTRAINT "FK_ef10d9983fcb45f0024cc7000d3"`);
         await queryRunner.query(`ALTER TABLE "roles_permisos" DROP CONSTRAINT "FK_dc3cfbcce511233d4bef92d7e3b"`);
+        await queryRunner.query(`ALTER TABLE "sessions" DROP CONSTRAINT "FK_1ab7dcfb69b30ddcdab1d564750"`);
         await queryRunner.query(`ALTER TABLE "movimientos_inventario" DROP CONSTRAINT "FK_8a915d5adf1b954fc3fb4469a2d"`);
         await queryRunner.query(`ALTER TABLE "movimientos_inventario" DROP CONSTRAINT "FK_ed669516597c2d98f49817c9814"`);
         await queryRunner.query(`ALTER TABLE "movimientos_inventario" DROP CONSTRAINT "FK_b635c8408938f63578ad3a441d5"`);
@@ -124,6 +127,7 @@ export class InitialSchema1760121572142 implements MigrationInterface {
         await queryRunner.query(`DROP INDEX "public"."IDX_ef10d9983fcb45f0024cc7000d"`);
         await queryRunner.query(`DROP INDEX "public"."IDX_dc3cfbcce511233d4bef92d7e3"`);
         await queryRunner.query(`DROP TABLE "roles_permisos"`);
+        await queryRunner.query(`DROP TABLE "sessions"`);
         await queryRunner.query(`DROP TABLE "movimientos_inventario"`);
         await queryRunner.query(`DROP TABLE "tipo_epa"`);
         await queryRunner.query(`DROP TABLE "epa"`);

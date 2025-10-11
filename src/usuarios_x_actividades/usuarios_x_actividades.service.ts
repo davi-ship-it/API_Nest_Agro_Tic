@@ -12,7 +12,9 @@ export class UsuariosXActividadesService {
     private readonly uxActRepo: Repository<UsuarioXActividad>,
   ) {}
 
-  async create(createDto: CreateUsuariosXActividadeDto): Promise<UsuarioXActividad> {
+  async create(
+    createDto: CreateUsuariosXActividadeDto,
+  ): Promise<UsuarioXActividad> {
     const entity = this.uxActRepo.create(createDto);
     return await this.uxActRepo.save(entity);
   }
@@ -26,11 +28,17 @@ export class UsuariosXActividadesService {
       where: { id },
       relations: ['usuario', 'actividad'],
     });
-    if (!entity) throw new NotFoundException(`UsuarioXActividad con ID ${id} no encontrado`);
+    if (!entity)
+      throw new NotFoundException(
+        `UsuarioXActividad con ID ${id} no encontrado`,
+      );
     return entity;
   }
 
-  async update(id: string, updateDto: UpdateUsuariosXActividadeDto): Promise<UsuarioXActividad> {
+  async update(
+    id: string,
+    updateDto: UpdateUsuariosXActividadeDto,
+  ): Promise<UsuarioXActividad> {
     const entity = await this.findOne(id);
     Object.assign(entity, updateDto);
     return await this.uxActRepo.save(entity);
@@ -41,7 +49,10 @@ export class UsuariosXActividadesService {
     await this.uxActRepo.remove(entity);
   }
 
-  async findByActividad(actividadId: string, activo?: boolean): Promise<UsuarioXActividad[]> {
+  async findByActividad(
+    actividadId: string,
+    activo?: boolean,
+  ): Promise<UsuarioXActividad[]> {
     const where: any = { fkActividadId: actividadId };
     if (activo !== undefined) where.activo = activo;
     return await this.uxActRepo.find({
@@ -51,6 +62,9 @@ export class UsuariosXActividadesService {
   }
 
   async finalizarByActividad(actividadId: string): Promise<void> {
-    await this.uxActRepo.update({ fkActividadId: actividadId }, { activo: false });
+    await this.uxActRepo.update(
+      { fkActividadId: actividadId },
+      { activo: false },
+    );
   }
 }

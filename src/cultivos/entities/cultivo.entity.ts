@@ -1,5 +1,12 @@
 // File: src/entities/cultivos/cultivo.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { CultivosXVariedad } from '../../cultivos_x_variedad/entities/cultivos_x_variedad.entity';
 import { Ficha } from '../../fichas/entities/ficha.entity';
 
@@ -13,7 +20,6 @@ export class Cultivo {
 
   @Column({ name: 'cul_siembra', type: 'date', nullable: true })
   siembra?: Date;
-
 
   @OneToMany(() => CultivosXVariedad, (cxv) => cxv.cultivo)
   variedades?: CultivosXVariedad[];

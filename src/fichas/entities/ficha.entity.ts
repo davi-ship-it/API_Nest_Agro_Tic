@@ -12,5 +12,4 @@ export class Ficha {
 
   @OneToMany(() => Usuario, (usuario) => usuario.ficha)
   usuarios?: Usuario[];
-
 }

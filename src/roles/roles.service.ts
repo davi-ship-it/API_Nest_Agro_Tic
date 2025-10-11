@@ -86,7 +86,10 @@ export class RolesService {
     // del rol desde la base de datos, con todas las relaciones anidadas cargadas.
     return this.findOne(roleId);
   }
-  async assignMultiplePermissions(roleId: string, permisoIds: string[]): Promise<Roles> {
+  async assignMultiplePermissions(
+    roleId: string,
+    permisoIds: string[],
+  ): Promise<Roles> {
     const rol = await this.findOne(roleId);
 
     // Busca los permisos que se van a asignar
@@ -108,7 +111,10 @@ export class RolesService {
     return this.findOne(roleId);
   }
 
-  async updateRoleWithPermissions(roleId: string, updateData: { nombre?: string; permisoIds?: string[] }): Promise<Roles> {
+  async updateRoleWithPermissions(
+    roleId: string,
+    updateData: { nombre?: string; permisoIds?: string[] },
+  ): Promise<Roles> {
     const rol = await this.findOne(roleId);
 
     // Actualizar nombre si se proporciona
@@ -119,7 +125,9 @@ export class RolesService {
     // Actualizar permisos si se proporcionan
     if (updateData.permisoIds !== undefined) {
       // Buscar permisos
-      const permisos = await this.permisosRepository.findByIds(updateData.permisoIds);
+      const permisos = await this.permisosRepository.findByIds(
+        updateData.permisoIds,
+      );
       if (permisos.length !== updateData.permisoIds.length) {
         throw new NotFoundException('Uno o más permisos no encontrados');
       }

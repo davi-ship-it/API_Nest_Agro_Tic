@@ -13,7 +13,9 @@ import { UpdateTiposMovimientoDto } from './dto/update-tipos_movimiento.dto';
 
 @Controller('tipos-movimiento')
 export class TiposMovimientoController {
-  constructor(private readonly tiposMovimientoService: TiposMovimientoService) {}
+  constructor(
+    private readonly tiposMovimientoService: TiposMovimientoService,
+  ) {}
 
   @Post()
   create(@Body() createTiposMovimientoDto: CreateTiposMovimientoDto) {

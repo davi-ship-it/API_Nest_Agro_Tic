@@ -28,12 +28,16 @@ export class ZonasService {
     console.log('Search query:', query, 'page:', page, 'limit:', limit);
     try {
       const skip = (page - 1) * limit;
-      const qb = this.cvzRepository.createQueryBuilder('cvz')
+      const qb = this.cvzRepository
+        .createQueryBuilder('cvz')
         .leftJoinAndSelect('cvz.zona', 'zona')
         .leftJoinAndSelect('cvz.cultivoXVariedad', 'cxv')
         .leftJoinAndSelect('cxv.variedad', 'variedad')
         .leftJoinAndSelect('variedad.tipoCultivo', 'tipoCultivo')
-        .where('zona.nombre ILIKE :query OR variedad.nombre ILIKE :query OR tipoCultivo.nombre ILIKE :query', { query: `%${query}%` })
+        .where(
+          'zona.nombre ILIKE :query OR variedad.nombre ILIKE :query OR tipoCultivo.nombre ILIKE :query',
+          { query: `%${query}%` },
+        )
         .skip(skip)
         .take(limit);
 
@@ -41,7 +45,7 @@ export class ZonasService {
       const [items, total] = await qb.getManyAndCount();
       console.log('Items found:', items.length, 'total:', total);
 
-      const mappedItems = items.map(item => ({
+      const mappedItems = items.map((item) => ({
         id: item.id,
         nombre: `${item.cultivoXVariedad?.variedad?.tipoCultivo?.nombre || 'Tipo'} - ${item.cultivoXVariedad?.variedad?.nombre || 'Variedad'} - ${item.zona?.nombre || 'Zona'}`,
         zonaId: item.zona?.id,

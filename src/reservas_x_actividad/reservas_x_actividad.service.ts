@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ReservasXActividad } from './entities/reservas_x_actividad.entity';
@@ -19,13 +23,17 @@ export class ReservasXActividadService {
     private readonly estadoReservaRepo: Repository<EstadoReserva>,
   ) {}
 
-  async create(createDto: CreateReservasXActividadDto): Promise<ReservasXActividad> {
+  async create(
+    createDto: CreateReservasXActividadDto,
+  ): Promise<ReservasXActividad> {
     const entity = this.reservasXActividadRepo.create(createDto);
     return await this.reservasXActividadRepo.save(entity);
   }
 
   async findAll(): Promise<ReservasXActividad[]> {
-    return await this.reservasXActividadRepo.find({ relations: ['actividad', 'lote', 'estado'] });
+    return await this.reservasXActividadRepo.find({
+      relations: ['actividad', 'lote', 'estado'],
+    });
   }
 
   async findOne(id: string): Promise<ReservasXActividad> {
@@ -33,11 +41,17 @@ export class ReservasXActividadService {
       where: { id },
       relations: ['actividad', 'lote', 'estado'],
     });
-    if (!entity) throw new NotFoundException(`ReservasXActividad con ID ${id} no encontrado`);
+    if (!entity)
+      throw new NotFoundException(
+        `ReservasXActividad con ID ${id} no encontrado`,
+      );
     return entity;
   }
 
-  async update(id: string, updateDto: UpdateReservasXActividadDto): Promise<ReservasXActividad> {
+  async update(
+    id: string,
+    updateDto: UpdateReservasXActividadDto,
+  ): Promise<ReservasXActividad> {
     const entity = await this.findOne(id);
     Object.assign(entity, updateDto);
     return await this.reservasXActividadRepo.save(entity);
@@ -54,7 +68,9 @@ export class ReservasXActividadService {
       where: { id: finalizeDto.actividadId },
     });
     if (!actividad) {
-      throw new NotFoundException(`Actividad con ID ${finalizeDto.actividadId} no encontrada`);
+      throw new NotFoundException(
+        `Actividad con ID ${finalizeDto.actividadId} no encontrada`,
+      );
     }
 
     // Find the confirmed state
@@ -62,7 +78,9 @@ export class ReservasXActividadService {
       where: { nombre: 'Confirmada' },
     });
     if (!estadoConfirmada) {
-      throw new NotFoundException('Estado de reserva "Confirmada" no encontrado');
+      throw new NotFoundException(
+        'Estado de reserva "Confirmada" no encontrado',
+      );
     }
 
     // Process each reservation
@@ -73,13 +91,15 @@ export class ReservasXActividadService {
       });
 
       if (!reserva) {
-        throw new NotFoundException(`Reserva con ID ${reservaDto.reservaId} no encontrada`);
+        throw new NotFoundException(
+          `Reserva con ID ${reservaDto.reservaId} no encontrada`,
+        );
       }
 
       // Verify the reservation belongs to the activity
       if (reserva.fkActividadId !== finalizeDto.actividadId) {
         throw new BadRequestException(
-          `La reserva ${reservaDto.reservaId} no pertenece a la actividad ${finalizeDto.actividadId}`
+          `La reserva ${reservaDto.reservaId} no pertenece a la actividad ${finalizeDto.actividadId}`,
         );
       }
 
@@ -87,7 +107,8 @@ export class ReservasXActividadService {
       reserva.cantidadDevuelta = reservaDto.cantidadDevuelta || 0;
 
       // Calculate cantidad_usada = cantidad_reservada - cantidad_devuelta
-      reserva.cantidadUsada = reserva.cantidadReservada - reserva.cantidadDevuelta;
+      reserva.cantidadUsada =
+        reserva.cantidadReservada - reserva.cantidadDevuelta;
 
       // Change estado to confirmed
       reserva.fkEstadoId = estadoConfirmada.id;

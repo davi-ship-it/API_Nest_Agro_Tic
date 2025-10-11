@@ -1,4 +1,11 @@
-import { IsUUID, IsNumber, IsOptional, IsInt, IsString, MaxLength } from 'class-validator';
+import {
+  IsUUID,
+  IsNumber,
+  IsOptional,
+  IsInt,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 export class CreateMovimientosInventarioDto {
   @IsUUID()

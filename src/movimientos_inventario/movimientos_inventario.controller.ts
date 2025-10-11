@@ -13,11 +13,17 @@ import { UpdateMovimientosInventarioDto } from './dto/update-movimientos_inventa
 
 @Controller('movimientos-inventario')
 export class MovimientosInventarioController {
-  constructor(private readonly movimientosInventarioService: MovimientosInventarioService) {}
+  constructor(
+    private readonly movimientosInventarioService: MovimientosInventarioService,
+  ) {}
 
   @Post()
-  create(@Body() createMovimientosInventarioDto: CreateMovimientosInventarioDto) {
-    return this.movimientosInventarioService.create(createMovimientosInventarioDto);
+  create(
+    @Body() createMovimientosInventarioDto: CreateMovimientosInventarioDto,
+  ) {
+    return this.movimientosInventarioService.create(
+      createMovimientosInventarioDto,
+    );
   }
 
   @Get()
@@ -35,7 +41,10 @@ export class MovimientosInventarioController {
     @Param('id') id: string,
     @Body() updateMovimientosInventarioDto: UpdateMovimientosInventarioDto,
   ) {
-    return this.movimientosInventarioService.update(id, updateMovimientosInventarioDto);
+    return this.movimientosInventarioService.update(
+      id,
+      updateMovimientosInventarioDto,
+    );
   }
 
   @Delete(':id')

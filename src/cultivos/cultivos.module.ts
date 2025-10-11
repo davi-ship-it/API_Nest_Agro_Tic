@@ -9,7 +9,15 @@ import { Variedad } from '../variedad/entities/variedad.entity';
 import { Zona } from '../zonas/entities/zona.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Cultivo, CultivosVariedadXZona, CultivosXVariedad, Variedad, Zona])],
+  imports: [
+    TypeOrmModule.forFeature([
+      Cultivo,
+      CultivosVariedadXZona,
+      CultivosXVariedad,
+      Variedad,
+      Zona,
+    ]),
+  ],
   controllers: [CultivosController],
   providers: [CultivosService],
 })

@@ -12,7 +12,6 @@ import { UsuarioXActividad } from '../../usuarios_x_actividades/entities/usuario
 import { CategoriaActividad } from '../../categoria_actividad/entities/categoria_actividad.entity';
 import { ReservasXActividad } from '../../reservas_x_actividad/entities/reservas_x_actividad.entity';
 
-
 @Entity('actividades')
 export class Actividad {
   @PrimaryGeneratedColumn('uuid', { name: 'pk_id_actividad' })
@@ -56,11 +55,9 @@ export class Actividad {
   @JoinColumn({ name: 'fk_id_categoria_actividad' })
   categoriaActividad?: CategoriaActividad;
 
-
   @OneToMany(() => UsuarioXActividad, (uxa) => uxa.actividad)
   usuariosAsignados?: UsuarioXActividad[];
 
   @OneToMany(() => ReservasXActividad, (r) => r.actividad)
   reservas?: ReservasXActividad[];
-
 }

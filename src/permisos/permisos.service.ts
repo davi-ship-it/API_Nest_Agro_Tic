@@ -2,9 +2,13 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  Inject,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 import { CreatePermisoDto } from './dto/create-permiso.dto';
 import { Permiso } from './entities/permiso.entity';
 import { Recurso } from '../recursos/entities/recurso.entity';
@@ -19,6 +23,8 @@ export class PermisosService {
     private readonly recursoRepository: Repository<Recurso>,
     @InjectRepository(Modulo)
     private readonly moduloRepository: Repository<Modulo>,
+    private readonly eventEmitter: EventEmitter2,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   /**
@@ -86,11 +92,19 @@ export class PermisosService {
       order: { accion: 'ASC' },
     });
 
-    return {
+    const result = {
       modulo: modulo.nombre,
       recurso: recurso.nombre,
       permisos: permisosFinales.map((p) => ({ id: p.id, accion: p.accion })),
     };
+
+    // Cache permissions in Redis for real-time sync
+    await this.cacheAllPermissions();
+
+    // Emit event for WebSocket
+    this.eventEmitter.emit('permission.changed', result);
+
+    return result;
   }
 
   /**
@@ -138,5 +152,46 @@ export class PermisosService {
     return this.permisosRepository.find({
       where: { recurso: { id: recursoId } },
     });
+  }
+
+  /**
+   * Cache all permissions in Redis for real-time synchronization
+   */
+  private async cacheAllPermissions(): Promise<void> {
+    console.log('PermisosService: Starting to cache all permissions');
+    const allPermissions = await this.findAll();
+    console.log(
+      `PermisosService: Caching ${allPermissions.length} permission groups`,
+    );
+    await this.cacheManager.set('permissions:all', allPermissions, 0); // 0 = no expiration
+    console.log(
+      'PermisosService: Successfully cached all permissions in Redis',
+    );
+  }
+
+  /**
+   * Get cached permissions from Redis
+   */
+  async getCachedPermissions(): Promise<any[]> {
+    console.log(
+      'PermisosService: Attempting to get cached permissions from Redis',
+    );
+    const cached = await this.cacheManager.get<any[]>('permissions:all');
+    if (cached) {
+      console.log(
+        `PermisosService: Found cached permissions with ${cached.length} groups`,
+      );
+      return cached;
+    }
+    console.log(
+      'PermisosService: No cached permissions found, fetching from DB',
+    );
+    // If not cached, fetch from DB and cache
+    const permissions = await this.findAll();
+    console.log(
+      `PermisosService: Fetched ${permissions.length} permission groups from DB, caching them`,
+    );
+    await this.cacheManager.set('permissions:all', permissions, 0);
+    return permissions;
   }
 }

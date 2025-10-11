@@ -14,7 +14,9 @@ import { UpdateLotesInventarioDto } from './dto/update-lotes_inventario.dto';
 
 @Controller('inventario')
 export class LotesInventarioController {
-  constructor(private readonly lotesInventarioService: LotesInventarioService) {}
+  constructor(
+    private readonly lotesInventarioService: LotesInventarioService,
+  ) {}
 
   @Post()
   create(@Body() createLotesInventarioDto: CreateLotesInventarioDto) {
@@ -22,7 +24,10 @@ export class LotesInventarioController {
   }
 
   @Get()
-  findAll(@Query('page') page: string = '1', @Query('limit') limit: string = '10') {
+  findAll(
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '10',
+  ) {
     const pageNum = parseInt(page, 10);
     const limitNum = parseInt(limit, 10);
     return this.lotesInventarioService.findAllPaginated(pageNum, limitNum);
