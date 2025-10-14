@@ -26,7 +26,11 @@ export class MovimientosInventario {
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   cantidad: number;
 
-  @Column({ name: 'fecha_movimiento', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({
+    name: 'fecha_movimiento',
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   fechaMovimiento: Date;
 
   @Column({ type: 'text', nullable: true })

@@ -18,6 +18,7 @@ import * as bcrypt from 'bcrypt';
 
 import { Usuario } from '../usuarios/entities/usuario.entity';
 import { Roles } from '../roles/entities/role.entity';
+import { Session } from './sessions/entities/session.entity';
 import { RegisterAuthDto } from './dto/register-auth.dto';
 import { LoginAuthDto } from './dto/login-auth.dto';
 import { RolesService } from 'src/roles/roles.service';
@@ -35,6 +36,8 @@ export class AuthService {
     private readonly usuarioRepository: Repository<Usuario>,
     @InjectRepository(Roles)
     private readonly rolRepository: Repository<Roles>,
+    @InjectRepository(Session)
+    private readonly sessionRepository: Repository<Session>,
     private readonly rolesService: RolesService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
@@ -149,8 +152,26 @@ export class AuthService {
 
     const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
 
-    const ttl = 30 * 24 * 60 * 60;
-    await this.cacheManager.set(`session:${usuario.id}`, refreshTokenHash, ttl);
+    // Store session in database
+    const expiresAt = new Date();
+    expiresAt.setSeconds(expiresAt.getSeconds() + 30 * 24 * 60 * 60); // 30 days
+
+    const session = this.sessionRepository.create({
+      tokenHash: refreshTokenHash,
+      expiresAt,
+      isActive: true,
+      usuario,
+    });
+    await this.sessionRepository.save(session);
+
+    // Store session in Redis cache (with error handling)
+    try {
+      const ttl = 30 * 24 * 60 * 60;
+      await this.cacheManager.set(`session:${usuario.id}`, refreshTokenHash, ttl);
+    } catch (redisError) {
+      this.logger.warn(`Failed to store session in Redis for user ${usuario.id}:`, redisError.message);
+      // Continue with login even if Redis fails - database session is still valid
+    }
 
     return {
       message: 'Inicio de sesión exitoso',
@@ -208,15 +229,42 @@ export class AuthService {
 
       const userId = payload.sub;
 
+      // Check session in database first
+      const session = await this.sessionRepository.findOne({
+        where: {
+          usuario: { id: userId },
+          isActive: true,
+        },
+        relations: ['usuario'],
+      });
+
+      if (!session || session.expiresAt < new Date()) {
+        throw new UnauthorizedException('Sesión no encontrada o expirada.');
+      }
+
+      const tokensMatch = await bcrypt.compare(refreshToken, session.tokenHash);
+
+      if (!tokensMatch) {
+        // If token doesn't match, invalidate the session
+        session.isActive = false;
+        await this.sessionRepository.save(session);
+        throw new UnauthorizedException('El token de refresco es inválido.');
+      }
+
+      // Also check Redis cache as fallback
       const storedTokenHash = await this.cacheManager.get<string>(
         `session:${userId}`,
       );
 
-      if (!storedTokenHash) {
-        throw new UnauthorizedException('Sesión no encontrada o expirada.');
+      if (
+        !storedTokenHash ||
+        !(await bcrypt.compare(refreshToken, storedTokenHash))
+      ) {
+        // Invalidate database session if Redis doesn't match
+        session.isActive = false;
+        await this.sessionRepository.save(session);
+        throw new UnauthorizedException('El token de refresco es inválido.');
       }
-
-      const tokensMatch = await bcrypt.compare(refreshToken, storedTokenHash);
 
       if (!tokensMatch) {
         throw new UnauthorizedException('El token de refresco es inválido.');
@@ -256,8 +304,38 @@ export class AuthService {
   }
 
   async logout(userId: string) {
-    await this.cacheManager.del(`session:${userId}`);
-    return { message: 'Sesión cerrada exitosamente' };
+    console.log(`AuthService: Starting logout for userId: ${userId}`);
+    try {
+      console.log(`AuthService: Invalidating database sessions for user ${userId}`);
+      // Invalidate all active sessions in database
+      const updateResult = await this.sessionRepository.update(
+        { usuario: { id: userId }, isActive: true },
+        { isActive: false },
+      );
+      console.log(`AuthService: Database update result:`, updateResult);
+
+      // Try to invalidate session in Redis cache (with error handling)
+      try {
+        console.log(`AuthService: Deleting Redis session for user ${userId}`);
+        await this.cacheManager.del(`session:${userId}`);
+        console.log(`AuthService: Redis session deleted successfully`);
+      } catch (redisError) {
+        this.logger.warn(`Failed to delete Redis session for user ${userId}:`, redisError.message);
+        // Continue with logout even if Redis fails
+      }
+
+      console.log(`AuthService: Logout completed successfully for user ${userId}`);
+      return { message: 'Sesión cerrada exitosamente' };
+    } catch (error) {
+      console.error(`AuthService: Logout failed for user ${userId}:`, error);
+      // Even if database update fails, try to clear Redis
+      try {
+        await this.cacheManager.del(`session:${userId}`);
+      } catch (redisError) {
+        this.logger.warn(`Failed to delete Redis session for user ${userId} during error recovery:`, redisError.message);
+      }
+      throw error;
+    }
   }
 
   async getUserPermissions(userId: string): Promise<CreatePermisoDto[]> {

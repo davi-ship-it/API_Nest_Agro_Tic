@@ -18,7 +18,9 @@ export class LotesInventarioService {
   }
 
   async findAll(): Promise<LotesInventario[]> {
-    return await this.lotesInventarioRepo.find({ relations: ['producto', 'producto.unidadMedida', 'bodega', 'reservas'] });
+    return await this.lotesInventarioRepo.find({
+      relations: ['producto', 'producto.unidadMedida', 'bodega', 'reservas'],
+    });
   }
 
   async findOne(id: string): Promise<LotesInventario> {
@@ -26,11 +28,15 @@ export class LotesInventarioService {
       where: { id },
       relations: ['producto', 'bodega', 'reservas'],
     });
-    if (!entity) throw new NotFoundException(`LotesInventario con ID ${id} no encontrado`);
+    if (!entity)
+      throw new NotFoundException(`LotesInventario con ID ${id} no encontrado`);
     return entity;
   }
 
-  async update(id: string, updateDto: UpdateLotesInventarioDto): Promise<LotesInventario> {
+  async update(
+    id: string,
+    updateDto: UpdateLotesInventarioDto,
+  ): Promise<LotesInventario> {
     const entity = await this.findOne(id);
     Object.assign(entity, updateDto);
     return await this.lotesInventarioRepo.save(entity);
@@ -42,19 +48,29 @@ export class LotesInventarioService {
   }
 
   async search(query: string, page: number = 1, limit: number = 10) {
-    console.log(`Starting search for query: "${query}", page: ${page}, limit: ${limit}`);
+    console.log(
+      `Starting search for query: "${query}", page: ${page}, limit: ${limit}`,
+    );
 
     try {
       const skip = (page - 1) * limit;
 
       // First, get all lotes that match the product name search
       const lotes = await this.lotesInventarioRepo.find({
-        where: query ? {
-          producto: {
-            nombre: ILike(`%${query}%`),
-          },
-        } : {},
-        relations: ['producto', 'producto.categoria', 'producto.unidadMedida', 'bodega', 'reservas'],
+        where: query
+          ? {
+              producto: {
+                nombre: ILike(`%${query}%`),
+              },
+            }
+          : {},
+        relations: [
+          'producto',
+          'producto.categoria',
+          'producto.unidadMedida',
+          'bodega',
+          'reservas',
+        ],
       });
 
       console.log(`Found ${lotes.length} lotes matching product name search`);
@@ -84,18 +100,25 @@ export class LotesInventarioService {
         productData.lotes.push(lote);
 
         // Calculate available quantity for this lote
-        const availableInLote = lote.cantidadDisponible - lote.cantidadReservada;
+        const availableInLote =
+          lote.cantidadDisponible - lote.cantidadReservada;
         productData.totalAvailable += availableInLote;
-        console.log(`Lote ${lote.id}: available ${availableInLote}, total for product now ${productData.totalAvailable}`);
+        console.log(
+          `Lote ${lote.id}: available ${availableInLote}, total for product now ${productData.totalAvailable}`,
+        );
 
         // Calculate partial returns from reservations
         if (lote.reservas) {
-          console.log(`Lote ${lote.id} has ${lote.reservas.length} reservations`);
+          console.log(
+            `Lote ${lote.id} has ${lote.reservas.length} reservations`,
+          );
           for (const reserva of lote.reservas) {
             if (reserva.cantidadDevuelta && reserva.cantidadDevuelta > 0) {
               productData.totalPartialReturns += reserva.cantidadDevuelta;
               productData.hasPartialReturns = true;
-              console.log(`Reservation ${reserva.id}: devuelta ${reserva.cantidadDevuelta}`);
+              console.log(
+                `Reservation ${reserva.id}: devuelta ${reserva.cantidadDevuelta}`,
+              );
             }
           }
         } else {
@@ -107,26 +130,32 @@ export class LotesInventarioService {
 
       // Convert to array and sort: products with partial returns first, then by availability
       const products = Array.from(productMap.values())
-        .filter(item => item.totalAvailable > 0) // Only show products with available quantity
+        .filter((item) => item.totalAvailable > 0) // Only show products with available quantity
         .sort((a, b) => {
           if (a.hasPartialReturns && !b.hasPartialReturns) return -1;
           if (!a.hasPartialReturns && b.hasPartialReturns) return 1;
           return b.totalAvailable - a.totalAvailable; // Sort by availability descending
         });
 
-      console.log(`After filtering available products: ${products.length} products`);
+      console.log(
+        `After filtering available products: ${products.length} products`,
+      );
 
       // Apply pagination to the results
       const total = products.length;
       const paginatedProducts = products.slice(skip, skip + limit);
 
-      console.log(`Returning page ${page} with ${paginatedProducts.length} products (total: ${total})`);
+      console.log(
+        `Returning page ${page} with ${paginatedProducts.length} products (total: ${total})`,
+      );
 
       // Log activity for search in reservation context
-      console.log(`Search activity logged: Query "${query}" returned ${total} available products`);
+      console.log(
+        `Search activity logged: Query "${query}" returned ${total} available products`,
+      );
 
       // Return in frontend-friendly format
-      const result = paginatedProducts.map(item => ({
+      const result = paginatedProducts.map((item) => ({
         id: item.product.id,
         nombre: item.product.nombre,
         descripcion: item.product.descripcion,
@@ -140,7 +169,7 @@ export class LotesInventarioService {
         stock_devuelto: item.totalPartialReturns,
         stock_sobrante: item.totalPartialReturns, // Assuming surplus is the partial returns available
         tieneDevolucionesParciales: item.hasPartialReturns,
-        lotes: item.lotes.map(l => ({
+        lotes: item.lotes.map((l) => ({
           id: l.id,
           cantidadDisponible: l.cantidadDisponible,
           cantidadReservada: l.cantidadReservada,
@@ -161,7 +190,12 @@ export class LotesInventarioService {
     const skip = (page - 1) * limit;
 
     const [items, total] = await this.lotesInventarioRepo.findAndCount({
-      relations: ['producto', 'producto.categoria', 'producto.unidadMedida', 'bodega'],
+      relations: [
+        'producto',
+        'producto.categoria',
+        'producto.unidadMedida',
+        'bodega',
+      ],
       skip,
       take: limit,
     });
@@ -174,7 +208,12 @@ export class LotesInventarioService {
       console.log('Starting getAvailableProducts');
       // Get all lotes with product and reservation relations
       const lotes = await this.lotesInventarioRepo.find({
-        relations: ['producto', 'producto.categoria', 'producto.unidadMedida', 'reservas'],
+        relations: [
+          'producto',
+          'producto.categoria',
+          'producto.unidadMedida',
+          'reservas',
+        ],
       });
       console.log(`Found ${lotes.length} lotes`);
 
@@ -182,7 +221,9 @@ export class LotesInventarioService {
       const productMap = new Map();
 
       for (const lote of lotes) {
-        console.log(`Processing lote ${lote.id}, producto: ${lote.producto ? lote.producto.id : 'null'}`);
+        console.log(
+          `Processing lote ${lote.id}, producto: ${lote.producto ? lote.producto.id : 'null'}`,
+        );
         // Skip if product relation is not loaded
         if (!lote.producto) {
           console.log(`Skipping lote ${lote.id} - no producto`);
@@ -202,18 +243,25 @@ export class LotesInventarioService {
         const productData = productMap.get(productId);
 
         // Calculate available quantity for this lote
-        const availableInLote = lote.cantidadDisponible - lote.cantidadReservada;
+        const availableInLote =
+          lote.cantidadDisponible - lote.cantidadReservada;
         productData.totalAvailable += availableInLote;
-        console.log(`Lote ${lote.id}: available ${availableInLote}, total now ${productData.totalAvailable}`);
+        console.log(
+          `Lote ${lote.id}: available ${availableInLote}, total now ${productData.totalAvailable}`,
+        );
 
         // Calculate partial returns from reservations
         if (lote.reservas) {
-          console.log(`Lote ${lote.id} has ${lote.reservas.length} reservations`);
+          console.log(
+            `Lote ${lote.id} has ${lote.reservas.length} reservations`,
+          );
           for (const reserva of lote.reservas) {
             if (reserva.cantidadDevuelta && reserva.cantidadDevuelta > 0) {
               productData.totalPartialReturns += reserva.cantidadDevuelta;
               productData.hasPartialReturns = true;
-              console.log(`Reservation ${reserva.id}: devuelta ${reserva.cantidadDevuelta}`);
+              console.log(
+                `Reservation ${reserva.id}: devuelta ${reserva.cantidadDevuelta}`,
+              );
             }
           }
         } else {
@@ -231,7 +279,7 @@ export class LotesInventarioService {
 
       console.log(`Returning ${products.length} products`);
       // Return in frontend-friendly format
-      const result = products.map(item => {
+      const result = products.map((item) => {
         console.log(`Mapping product ${item.product.id}`);
         return {
           id: item.product.id,

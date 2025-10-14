@@ -21,10 +21,10 @@ export class LotesInventario {
   @Column({ name: 'fk_bodega_id', type: 'uuid' })
   fkBodegaId: string;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0.00 })
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0.0 })
   cantidadDisponible: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0.00 })
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0.0 })
   cantidadReservada: number;
 
   @Column({ type: 'int', default: 0 })

@@ -12,13 +12,17 @@ export class MovimientosInventarioService {
     private readonly movimientosInventarioRepo: Repository<MovimientosInventario>,
   ) {}
 
-  async create(createDto: CreateMovimientosInventarioDto): Promise<MovimientosInventario> {
+  async create(
+    createDto: CreateMovimientosInventarioDto,
+  ): Promise<MovimientosInventario> {
     const entity = this.movimientosInventarioRepo.create(createDto);
     return await this.movimientosInventarioRepo.save(entity);
   }
 
   async findAll(): Promise<MovimientosInventario[]> {
-    return await this.movimientosInventarioRepo.find({ relations: ['lote', 'reserva', 'tipoMovimiento'] });
+    return await this.movimientosInventarioRepo.find({
+      relations: ['lote', 'reserva', 'tipoMovimiento'],
+    });
   }
 
   async findOne(id: string): Promise<MovimientosInventario> {
@@ -26,11 +30,17 @@ export class MovimientosInventarioService {
       where: { id },
       relations: ['lote', 'reserva', 'tipoMovimiento'],
     });
-    if (!entity) throw new NotFoundException(`MovimientosInventario con ID ${id} no encontrado`);
+    if (!entity)
+      throw new NotFoundException(
+        `MovimientosInventario con ID ${id} no encontrado`,
+      );
     return entity;
   }
 
-  async update(id: string, updateDto: UpdateMovimientosInventarioDto): Promise<MovimientosInventario> {
+  async update(
+    id: string,
+    updateDto: UpdateMovimientosInventarioDto,
+  ): Promise<MovimientosInventario> {
     const entity = await this.findOne(id);
     Object.assign(entity, updateDto);
     return await this.movimientosInventarioRepo.save(entity);

@@ -38,24 +38,57 @@ export class ActividadesService {
   async findByDate(date: string): Promise<Actividad[]> {
     return await this.actividadesRepo.find({
       where: { fechaAsignacion: new Date(date) },
-      relations: ['categoriaActividad', 'cultivoVariedadZona', 'cultivoVariedadZona.cultivoXVariedad', 'cultivoVariedadZona.cultivoXVariedad.cultivo', 'cultivoVariedadZona.cultivoXVariedad.variedad', 'cultivoVariedadZona.cultivoXVariedad.variedad.tipoCultivo', 'cultivoVariedadZona.zona', 'usuariosAsignados', 'usuariosAsignados.usuario', 'usuariosAsignados.usuario.ficha', 'reservas', 'reservas.lote', 'reservas.lote.producto', 'reservas.lote.producto.unidadMedida', 'reservas.estado'],
+      relations: [
+        'categoriaActividad',
+        'cultivoVariedadZona',
+        'cultivoVariedadZona.cultivoXVariedad',
+        'cultivoVariedadZona.cultivoXVariedad.cultivo',
+        'cultivoVariedadZona.cultivoXVariedad.variedad',
+        'cultivoVariedadZona.cultivoXVariedad.variedad.tipoCultivo',
+        'cultivoVariedadZona.zona',
+        'usuariosAsignados',
+        'usuariosAsignados.usuario',
+        'usuariosAsignados.usuario.ficha',
+        'reservas',
+        'reservas.lote',
+        'reservas.lote.producto',
+        'reservas.lote.producto.unidadMedida',
+        'reservas.estado',
+      ],
     });
   }
 
   async findByDateWithActive(date: string): Promise<Actividad[]> {
     const actividades = await this.findByDate(date);
     // Filter relations to only active
-    return actividades.map(act => ({
+    return actividades.map((act) => ({
       ...act,
-      usuariosAsignados: act.usuariosAsignados?.filter(u => u.activo !== false) || [],
-      reservas: act.reservas?.filter(r => r.estado?.id === 1) || [], // Assuming 1 is 'Reservado' or active state
+      usuariosAsignados:
+        act.usuariosAsignados?.filter((u) => u.activo !== false) || [],
+      reservas: act.reservas?.filter((r) => r.estado?.id === 1) || [], // Assuming 1 is 'Reservado' or active state
     }));
   }
 
   async findByDateRange(start: string, end: string): Promise<Actividad[]> {
     return await this.actividadesRepo.find({
       where: { fechaAsignacion: Between(new Date(start), new Date(end)) },
-      relations: ['categoriaActividad', 'cultivoVariedadZona', 'cultivoVariedadZona.cultivoXVariedad', 'cultivoVariedadZona.cultivoXVariedad.cultivo', 'cultivoVariedadZona.cultivoXVariedad.variedad', 'cultivoVariedadZona.cultivoXVariedad.variedad.tipoCultivo', 'cultivoVariedadZona.zona', 'usuariosAsignados', 'usuariosAsignados.usuario', 'usuariosAsignados.usuario.ficha', 'reservas', 'reservas.lote', 'reservas.lote.producto', 'reservas.lote.producto.unidadMedida', 'reservas.estado'],
+      relations: [
+        'categoriaActividad',
+        'cultivoVariedadZona',
+        'cultivoVariedadZona.cultivoXVariedad',
+        'cultivoVariedadZona.cultivoXVariedad.cultivo',
+        'cultivoVariedadZona.cultivoXVariedad.variedad',
+        'cultivoVariedadZona.cultivoXVariedad.variedad.tipoCultivo',
+        'cultivoVariedadZona.zona',
+        'usuariosAsignados',
+        'usuariosAsignados.usuario',
+        'usuariosAsignados.usuario.ficha',
+        'reservas',
+        'reservas.lote',
+        'reservas.lote.producto',
+        'reservas.lote.producto.unidadMedida',
+        'reservas.estado',
+      ],
     });
   }
 
@@ -77,7 +110,13 @@ export class ActividadesService {
     await this.actividadesRepo.remove(actividad);
   }
 
-  async finalizar(id: string, observacion?: string, imgUrl?: string, horas?: number, precioHora?: number): Promise<Actividad> {
+  async finalizar(
+    id: string,
+    observacion?: string,
+    imgUrl?: string,
+    horas?: number,
+    precioHora?: number,
+  ): Promise<Actividad> {
     const actividad = await this.findOne(id);
     actividad.estado = false;
     actividad.fechaFinalizacion = new Date();
@@ -90,7 +129,12 @@ export class ActividadesService {
 
   // New methods for reservation management
 
-  async createReservation(actividadId: string, loteId: string, cantidadReservada: number, estadoId: number = 1): Promise<ReservasXActividad> {
+  async createReservation(
+    actividadId: string,
+    loteId: string,
+    cantidadReservada: number,
+    estadoId: number = 1,
+  ): Promise<ReservasXActividad> {
     const dto: CreateReservasXActividadDto = {
       fkActividadId: actividadId,
       fkLoteId: loteId,
@@ -100,7 +144,12 @@ export class ActividadesService {
     return await this.reservasXActividadService.create(dto);
   }
 
-  async createReservationByProduct(actividadId: string, productId: string, cantidadReservada: number, estadoId: number = 1): Promise<ReservasXActividad> {
+  async createReservationByProduct(
+    actividadId: string,
+    productId: string,
+    cantidadReservada: number,
+    estadoId: number = 1,
+  ): Promise<ReservasXActividad> {
     // Find an available lote for this product
     const lotes = await this.actividadesRepo.manager.find(LotesInventario, {
       where: { fkProductoId: productId },
@@ -109,17 +158,31 @@ export class ActividadesService {
 
     // Find a lote with enough available quantity
     for (const lote of lotes) {
-      const reserved = lote.reservas?.reduce((sum, r) => sum + (r.cantidadReservada - (r.cantidadDevuelta || 0)), 0) || 0;
+      const reserved =
+        lote.reservas?.reduce(
+          (sum, r) => sum + (r.cantidadReservada - (r.cantidadDevuelta || 0)),
+          0,
+        ) || 0;
       const available = lote.cantidadDisponible - reserved;
       if (available >= cantidadReservada) {
-        return this.createReservation(actividadId, lote.id, cantidadReservada, estadoId);
+        return this.createReservation(
+          actividadId,
+          lote.id,
+          cantidadReservada,
+          estadoId,
+        );
       }
     }
 
-    throw new Error(`No hay suficiente stock disponible para el producto ${productId}`);
+    throw new Error(
+      `No hay suficiente stock disponible para el producto ${productId}`,
+    );
   }
 
-  async confirmUsage(reservaId: string, cantidadUsada: number): Promise<ReservasXActividad> {
+  async confirmUsage(
+    reservaId: string,
+    cantidadUsada: number,
+  ): Promise<ReservasXActividad> {
     const reserva = await this.reservasXActividadService.findOne(reservaId);
     reserva.cantidadUsada = cantidadUsada;
     reserva.fkEstadoId = 2; // Assuming 2 is 'Usado'
@@ -128,7 +191,9 @@ export class ActividadesService {
 
   async calculateCost(actividadId: string): Promise<number> {
     const reservas = await this.reservasXActividadService.findAll();
-    const actividadReservas = reservas.filter(r => r.fkActividadId === actividadId && r.cantidadUsada);
+    const actividadReservas = reservas.filter(
+      (r) => r.fkActividadId === actividadId && r.cantidadUsada,
+    );
     let totalCost = 0;
     for (const reserva of actividadReservas) {
       // Assuming cost is cantidadUsada * some price, but since no price in entities, perhaps placeholder
@@ -138,10 +203,17 @@ export class ActividadesService {
     return totalCost;
   }
 
-  async getReservationsByActivity(actividadId: string): Promise<ReservasXActividad[]> {
+  async getReservationsByActivity(
+    actividadId: string,
+  ): Promise<ReservasXActividad[]> {
     return await this.reservasXActividadRepo.find({
       where: { fkActividadId: actividadId },
-      relations: ['lote', 'lote.producto', 'lote.producto.unidadMedida', 'estado']
+      relations: [
+        'lote',
+        'lote.producto',
+        'lote.producto.unidadMedida',
+        'estado',
+      ],
     });
   }
 }

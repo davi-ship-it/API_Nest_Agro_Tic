@@ -23,11 +23,15 @@ export class UnidadesMedidaService {
 
   async findOne(id: string): Promise<UnidadMedida> {
     const entity = await this.unidadMedidaRepo.findOne({ where: { id } });
-    if (!entity) throw new NotFoundException(`UnidadMedida con ID ${id} no encontrado`);
+    if (!entity)
+      throw new NotFoundException(`UnidadMedida con ID ${id} no encontrado`);
     return entity;
   }
 
-  async update(id: string, updateDto: UpdateUnidadesMedidaDto): Promise<UnidadMedida> {
+  async update(
+    id: string,
+    updateDto: UpdateUnidadesMedidaDto,
+  ): Promise<UnidadMedida> {
     const entity = await this.findOne(id);
     Object.assign(entity, updateDto);
     return await this.unidadMedidaRepo.save(entity);

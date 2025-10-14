@@ -12,8 +12,12 @@ export class CategoriaActividadService {
     private readonly categoriaRepository: Repository<CategoriaActividad>,
   ) {}
 
-  async create(createCategoriaActividadDto: CreateCategoriaActividadDto): Promise<CategoriaActividad> {
-    const categoria = this.categoriaRepository.create(createCategoriaActividadDto);
+  async create(
+    createCategoriaActividadDto: CreateCategoriaActividadDto,
+  ): Promise<CategoriaActividad> {
+    const categoria = this.categoriaRepository.create(
+      createCategoriaActividadDto,
+    );
     return await this.categoriaRepository.save(categoria);
   }
 
@@ -42,12 +46,17 @@ export class CategoriaActividadService {
   async findOne(id: string): Promise<CategoriaActividad> {
     const categoria = await this.categoriaRepository.findOne({ where: { id } });
     if (!categoria) {
-      throw new NotFoundException(`CategoriaActividad con ID ${id} no encontrada`);
+      throw new NotFoundException(
+        `CategoriaActividad con ID ${id} no encontrada`,
+      );
     }
     return categoria;
   }
 
-  async update(id: string, updateCategoriaActividadDto: UpdateCategoriaActividadDto): Promise<CategoriaActividad> {
+  async update(
+    id: string,
+    updateCategoriaActividadDto: UpdateCategoriaActividadDto,
+  ): Promise<CategoriaActividad> {
     const categoria = await this.findOne(id);
     Object.assign(categoria, updateCategoriaActividadDto);
     return await this.categoriaRepository.save(categoria);

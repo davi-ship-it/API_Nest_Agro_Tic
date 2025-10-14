@@ -23,11 +23,15 @@ export class TiposMovimientoService {
 
   async findOne(id: number): Promise<TipoMovimiento> {
     const entity = await this.tipoMovimientoRepo.findOne({ where: { id } });
-    if (!entity) throw new NotFoundException(`TipoMovimiento con ID ${id} no encontrado`);
+    if (!entity)
+      throw new NotFoundException(`TipoMovimiento con ID ${id} no encontrado`);
     return entity;
   }
 
-  async update(id: number, updateDto: UpdateTiposMovimientoDto): Promise<TipoMovimiento> {
+  async update(
+    id: number,
+    updateDto: UpdateTiposMovimientoDto,
+  ): Promise<TipoMovimiento> {
     const entity = await this.findOne(id);
     Object.assign(entity, updateDto);
     return await this.tipoMovimientoRepo.save(entity);

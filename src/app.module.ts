@@ -31,6 +31,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-store';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AuthModule } from './auth/auth.module';
 import { PermisosModule } from './permisos/permisos.module';
 import { RecursosModule } from './recursos/recursos.module';
@@ -45,6 +46,7 @@ import { ReservasXActividadModule } from './reservas_x_actividad/reservas_x_acti
 import { MovimientosInventarioModule } from './movimientos_inventario/movimientos_inventario.module';
 import { TiposMovimientoModule } from './tipos_movimiento/tipos_movimiento.module';
 import { EstadosReservaModule } from './estados_reserva/estados_reserva.module';
+import { PermissionsWsModule } from './permissions-ws/permissions-ws.module';
 
 @Module({
   imports: [
@@ -55,6 +57,9 @@ import { EstadosReservaModule } from './estados_reserva/estados_reserva.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+
+    // 1. Módulo de EventEmitter
+    EventEmitterModule.forRoot(),
 
     // 2. Módulo de Cache (Redis)
     CacheModule.registerAsync({
@@ -163,16 +168,12 @@ import { EstadosReservaModule } from './estados_reserva/estados_reserva.module';
     MovimientosInventarioModule,
     TiposMovimientoModule,
     EstadosReservaModule,
+    PermissionsWsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
   // Exporta los módulos para que otros módulos que importen AppModule (como SeederModule)
   // puedan acceder a los servicios que estos exportan.
-  exports: [
-    PermisosModule,
-    UsuariosModule,
-    BodegaModule,
-    CategoriaModule,
-  ],
+  exports: [PermisosModule, UsuariosModule, BodegaModule, CategoriaModule],
 })
 export class AppModule {}

@@ -7,7 +7,9 @@ import { Actividad } from '../actividades/entities/actividades.entity';
 import { EstadoReserva } from '../estados_reserva/entities/estados_reserva.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ReservasXActividad, Actividad, EstadoReserva])],
+  imports: [
+    TypeOrmModule.forFeature([ReservasXActividad, Actividad, EstadoReserva]),
+  ],
   controllers: [ReservasXActividadController],
   providers: [ReservasXActividadService],
   exports: [ReservasXActividadService],

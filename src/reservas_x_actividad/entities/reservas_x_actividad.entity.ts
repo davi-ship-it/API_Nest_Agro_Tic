@@ -24,13 +24,30 @@ export class ReservasXActividad {
   @Column({ name: 'fk_estado_id', type: 'int' })
   fkEstadoId: number;
 
-  @Column({ name: 'cantidad_reservada', type: 'decimal', precision: 10, scale: 2 })
+  @Column({
+    name: 'cantidad_reservada',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+  })
   cantidadReservada: number;
 
-  @Column({ name: 'cantidad_usada', type: 'decimal', precision: 10, scale: 2, nullable: true })
+  @Column({
+    name: 'cantidad_usada',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    nullable: true,
+  })
   cantidadUsada?: number;
 
-  @Column({ name: 'cantidad_devuelta', type: 'decimal', precision: 10, scale: 2, nullable: true })
+  @Column({
+    name: 'cantidad_devuelta',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    nullable: true,
+  })
   cantidadDevuelta?: number;
 
   @ManyToOne(() => Actividad, (a) => a.reservas)

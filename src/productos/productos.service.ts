@@ -18,7 +18,9 @@ export class ProductosService {
   }
 
   async findAll(): Promise<Producto[]> {
-    return await this.productoRepo.find({ relations: ['categoria', 'unidadMedida'] });
+    return await this.productoRepo.find({
+      relations: ['categoria', 'unidadMedida'],
+    });
   }
 
   async findOne(id: string): Promise<Producto> {
@@ -26,7 +28,8 @@ export class ProductosService {
       where: { id },
       relations: ['categoria', 'unidadMedida'],
     });
-    if (!entity) throw new NotFoundException(`Producto con ID ${id} no encontrado`);
+    if (!entity)
+      throw new NotFoundException(`Producto con ID ${id} no encontrado`);
     return entity;
   }
 

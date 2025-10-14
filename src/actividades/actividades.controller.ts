@@ -88,7 +88,8 @@ export class ActividadesController {
       storage: diskStorage({
         destination: './uploads/evidencias',
         filename: (req, file, cb) => {
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
           cb(null, `${uniqueSuffix}${extname(file.originalname)}`);
         },
       }),
@@ -100,7 +101,13 @@ export class ActividadesController {
     @UploadedFile() file?: Express.Multer.File,
   ) {
     const imgUrl = file ? `/uploads/evidencias/${file.filename}` : undefined;
-    return this.actividadesService.finalizar(id, body.observacion, imgUrl, body.horas, body.precioHora);
+    return this.actividadesService.finalizar(
+      id,
+      body.observacion,
+      imgUrl,
+      body.horas,
+      body.precioHora,
+    );
   }
 
   @Post('upload')
@@ -109,7 +116,8 @@ export class ActividadesController {
       storage: diskStorage({
         destination: './uploads/evidencias',
         filename: (req, file, cb) => {
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
           cb(null, `${uniqueSuffix}${extname(file.originalname)}`);
         },
       }),
@@ -124,7 +132,8 @@ export class ActividadesController {
   @Post(':id/reservas')
   createReservation(
     @Param('id') actividadId: string,
-    @Body() body: { loteId: string; cantidadReservada: number; estadoId?: number },
+    @Body()
+    body: { loteId: string; cantidadReservada: number; estadoId?: number },
   ) {
     return this.actividadesService.createReservation(
       actividadId,
@@ -137,7 +146,8 @@ export class ActividadesController {
   @Post(':id/reservas/producto')
   createReservationByProduct(
     @Param('id') actividadId: string,
-    @Body() body: { productId: string; cantidadReservada: number; estadoId?: number },
+    @Body()
+    body: { productId: string; cantidadReservada: number; estadoId?: number },
   ) {
     return this.actividadesService.createReservationByProduct(
       actividadId,

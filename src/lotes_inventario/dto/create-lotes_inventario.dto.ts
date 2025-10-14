@@ -1,4 +1,10 @@
-import { IsUUID, IsNumber, IsBoolean, IsOptional, IsDateString } from 'class-validator';
+import {
+  IsUUID,
+  IsNumber,
+  IsBoolean,
+  IsOptional,
+  IsDateString,
+} from 'class-validator';
 
 export class CreateLotesInventarioDto {
   @IsUUID()

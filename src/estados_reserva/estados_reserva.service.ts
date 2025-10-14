@@ -22,12 +22,19 @@ export class EstadosReservaService {
   }
 
   async findOne(id: number): Promise<EstadoReserva> {
-    const entity = await this.estadoReservaRepo.findOne({ where: { id }, relations: ['reservas'] });
-    if (!entity) throw new NotFoundException(`EstadoReserva con ID ${id} no encontrado`);
+    const entity = await this.estadoReservaRepo.findOne({
+      where: { id },
+      relations: ['reservas'],
+    });
+    if (!entity)
+      throw new NotFoundException(`EstadoReserva con ID ${id} no encontrado`);
     return entity;
   }
 
-  async update(id: number, updateDto: UpdateEstadosReservaDto): Promise<EstadoReserva> {
+  async update(
+    id: number,
+    updateDto: UpdateEstadosReservaDto,
+  ): Promise<EstadoReserva> {
     const entity = await this.findOne(id);
     Object.assign(entity, updateDto);
     return await this.estadoReservaRepo.save(entity);
