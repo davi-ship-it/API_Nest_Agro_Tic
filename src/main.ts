@@ -11,7 +11,7 @@ async function bootstrap() {
 
   app.use(
     cors({
-      origin: configService.get('FRONTEND_URL'),
+      origin: true, // Allow all origins for development (mobile testing)
       credentials: true,
     }),
   );

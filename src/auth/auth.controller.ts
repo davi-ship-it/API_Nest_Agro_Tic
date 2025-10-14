@@ -63,7 +63,7 @@ export class AuthController {
       maxAge: refreshMaxAge,
     });
     console.log('Login response sent');
-    return { message: result.message };
+    return result; // Return tokens for mobile apps
   }
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
