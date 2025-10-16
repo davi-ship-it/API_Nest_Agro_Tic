@@ -25,13 +25,13 @@ export class LotesInventario {
   cantidadDisponible: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0.0 })
-  cantidadReservada: number;
-
-  @Column({ type: 'int', default: 0 })
   stock: number;
 
   @Column({ type: 'boolean', default: false })
   esParcial: boolean;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0.0 })
+  cantidadParcial: number;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   fechaIngreso: Date;

@@ -4,6 +4,7 @@ import {
   IsNumber,
   IsOptional,
   ValidateNested,
+  IsString,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -24,4 +25,17 @@ export class FinalizeActivityDto {
   @ValidateNested({ each: true })
   @Type(() => FinalizeReservationDto)
   reservas: FinalizeReservationDto[];
+
+  @IsNumber({ maxDecimalPlaces: 2 })
+  horas: number;
+
+  @IsNumber({ maxDecimalPlaces: 2 })
+  precioHora: number;
+
+  @IsString()
+  observacion: string;
+
+  @IsOptional()
+  @IsString()
+  imgUrl?: string;
 }

@@ -4,6 +4,7 @@ import { Repository, ILike } from 'typeorm';
 import { LotesInventario } from './entities/lotes_inventario.entity';
 import { CreateLotesInventarioDto } from './dto/create-lotes_inventario.dto';
 import { UpdateLotesInventarioDto } from './dto/update-lotes_inventario.dto';
+import { Producto } from '../productos/entities/productos.entity';
 
 @Injectable()
 export class LotesInventarioService {
@@ -13,7 +14,21 @@ export class LotesInventarioService {
   ) {}
 
   async create(createDto: CreateLotesInventarioDto): Promise<LotesInventario> {
-    const entity = this.lotesInventarioRepo.create(createDto);
+    // Fetch the product to get capacidadPresentacion
+    const producto = await this.lotesInventarioRepo.manager.findOne(Producto, {
+      where: { id: createDto.fkProductoId },
+    });
+    if (!producto) {
+      throw new NotFoundException(`Producto con ID ${createDto.fkProductoId} no encontrado`);
+    }
+
+    // Calculate cantidadDisponible = stock * capacidadPresentacion
+    const cantidadDisponible = createDto.stock * (producto.capacidadPresentacion || 1);
+
+    const entity = this.lotesInventarioRepo.create({
+      ...createDto,
+      cantidadDisponible,
+    });
     return await this.lotesInventarioRepo.save(entity);
   }
 
@@ -70,6 +85,7 @@ export class LotesInventarioService {
           'producto.unidadMedida',
           'bodega',
           'reservas',
+          'reservas.estado',
         ],
       });
 
@@ -99,12 +115,27 @@ export class LotesInventarioService {
         const productData = productMap.get(productId);
         productData.lotes.push(lote);
 
-        // Calculate available quantity for this lote
-        const availableInLote =
-          lote.cantidadDisponible - lote.cantidadReservada;
+        // Calculate available quantity for this lote - handle null values and convert strings to numbers
+        const cantidadDisponible = (lote.cantidadDisponible !== null && lote.cantidadDisponible !== undefined) ? Number(lote.cantidadDisponible) : 0;
+        const cantidadParcial = (lote.cantidadParcial !== null && lote.cantidadParcial !== undefined) ? Number(lote.cantidadParcial) : 0;
+
+        // Calculate active reserved quantity (only reservations that are not 'Confirmada')
+        let cantidadReservadaActiva = 0;
+        if (lote.reservas) {
+          for (const reserva of lote.reservas) {
+            if (reserva.estado && reserva.estado.nombre !== 'Confirmada') {
+              cantidadReservadaActiva += Number(reserva.cantidadReservada || 0) - Number(reserva.cantidadDevuelta || 0);
+            }
+          }
+        }
+
+        console.log(`🔍 DEBUG Lote ${lote.id}: raw_disponible=${lote.cantidadDisponible} (type: ${typeof lote.cantidadDisponible}), raw_parcial=${lote.cantidadParcial} (type: ${typeof lote.cantidadParcial}), cantidad_reservada_activa=${cantidadReservadaActiva}`);
+        console.log(`🔍 DEBUG Lote ${lote.id}: converted_disponible=${cantidadDisponible} (type: ${typeof cantidadDisponible}), converted_parcial=${cantidadParcial} (type: ${typeof cantidadParcial}), reservada_activa=${cantidadReservadaActiva}`);
+
+        const availableInLote = cantidadDisponible + cantidadParcial - cantidadReservadaActiva;
         productData.totalAvailable += availableInLote;
         console.log(
-          `Lote ${lote.id}: available ${availableInLote}, total for product now ${productData.totalAvailable}`,
+          `🔍 Lote ${lote.id}: disponible=${cantidadDisponible}, parcial=${cantidadParcial}, reservada_activa=${cantidadReservadaActiva}, disponible_calculado=${availableInLote}, total_acumulado=${productData.totalAvailable}`,
         );
 
         // Calculate partial returns from reservations
@@ -130,7 +161,10 @@ export class LotesInventarioService {
 
       // Convert to array and sort: products with partial returns first, then by availability
       const products = Array.from(productMap.values())
-        .filter((item) => item.totalAvailable > 0) // Only show products with available quantity
+        .filter((item) => {
+          console.log(`🔍 Filtrando producto ${item.product.nombre}: totalAvailable=${item.totalAvailable}, hasPartialReturns=${item.hasPartialReturns}`);
+          return item.totalAvailable > 0; // Only show products with available quantity
+        })
         .sort((a, b) => {
           if (a.hasPartialReturns && !b.hasPartialReturns) return -1;
           if (!a.hasPartialReturns && b.hasPartialReturns) return 1;
@@ -172,7 +206,6 @@ export class LotesInventarioService {
         lotes: item.lotes.map((l) => ({
           id: l.id,
           cantidadDisponible: l.cantidadDisponible,
-          cantidadReservada: l.cantidadReservada,
           bodega: l.bodega,
         })),
       }));
@@ -195,12 +228,41 @@ export class LotesInventarioService {
         'producto.categoria',
         'producto.unidadMedida',
         'bodega',
+        'reservas',
+        'reservas.estado',
       ],
       skip,
       take: limit,
     });
 
-    return { items, total };
+    // Calculate real-time quantities for each item
+    const itemsWithCalculatedQuantities = items.map(item => {
+      // Calculate available quantity for reservation (cantidadDisponible + cantidadParcial - active reservations)
+      const cantidadDisponible = Number(item.cantidadDisponible || 0);
+      const cantidadParcial = Number(item.cantidadParcial || 0);
+
+      // Calculate active reserved quantity (only reservations that are not 'Confirmada')
+      let cantidadReservadaActiva = 0;
+      if (item.reservas) {
+        for (const reserva of item.reservas) {
+          if (reserva.estado && reserva.estado.nombre !== 'Confirmada') {
+            cantidadReservadaActiva += Number(reserva.cantidadReservada || 0) - Number(reserva.cantidadDevuelta || 0);
+          }
+        }
+      }
+
+      const cantidadDisponibleParaReservar = cantidadDisponible + cantidadParcial - cantidadReservadaActiva;
+      const stockTotal = cantidadDisponible + cantidadParcial;
+
+      return {
+        ...item,
+        stockTotal,
+        cantidadDisponibleParaReservar: Math.max(0, cantidadDisponibleParaReservar), // Ensure non-negative
+        cantidadReservada: cantidadReservadaActiva,
+      };
+    });
+
+    return { items: itemsWithCalculatedQuantities, total };
   }
 
   async getAvailableProducts() {
@@ -213,6 +275,7 @@ export class LotesInventarioService {
           'producto.categoria',
           'producto.unidadMedida',
           'reservas',
+          'reservas.estado',
         ],
       });
       console.log(`Found ${lotes.length} lotes`);
@@ -242,12 +305,24 @@ export class LotesInventarioService {
 
         const productData = productMap.get(productId);
 
-        // Calculate available quantity for this lote
-        const availableInLote =
-          lote.cantidadDisponible - lote.cantidadReservada;
+        // Calculate available quantity for this lote - handle null values properly
+        const cantidadDisponible = (lote.cantidadDisponible !== null && lote.cantidadDisponible !== undefined) ? lote.cantidadDisponible : 0;
+        const cantidadParcial = (lote.cantidadParcial !== null && lote.cantidadParcial !== undefined) ? lote.cantidadParcial : 0;
+
+        // Calculate active reserved quantity (only reservations that are not 'Confirmada')
+        let cantidadReservadaActiva = 0;
+        if (lote.reservas) {
+          for (const reserva of lote.reservas) {
+            if (reserva.estado && reserva.estado.nombre !== 'Confirmada') {
+              cantidadReservadaActiva += Number(reserva.cantidadReservada || 0) - Number(reserva.cantidadDevuelta || 0);
+            }
+          }
+        }
+
+        const availableInLote = cantidadDisponible + cantidadParcial - cantidadReservadaActiva;
         productData.totalAvailable += availableInLote;
         console.log(
-          `Lote ${lote.id}: available ${availableInLote}, total now ${productData.totalAvailable}`,
+          `🔍 Lote ${lote.id}: disponible=${cantidadDisponible}, parcial=${cantidadParcial}, reservada_activa=${cantidadReservadaActiva}, disponible_calculado=${availableInLote}, total_acumulado=${productData.totalAvailable}`,
         );
 
         // Calculate partial returns from reservations

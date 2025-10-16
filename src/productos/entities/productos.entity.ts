@@ -16,11 +16,11 @@ export class Producto {
   @Column({ type: 'varchar', length: 150 })
   nombre: string;
 
-  @Column({ type: 'text', nullable: true })
-  descripcion?: string;
+  @Column({ type: 'text' })
+  descripcion: string;
 
-  @Column({ type: 'varchar', length: 50, unique: true, nullable: true })
-  sku?: string;
+  @Column({ type: 'varchar', length: 50, unique: true })
+  sku: string;
 
   @Column({ type: 'decimal', precision: 12, scale: 2 })
   precioCompra: number;
@@ -31,11 +31,14 @@ export class Producto {
   @Column({ type: 'decimal', precision: 10, scale: 2, default: '1.00' })
   capacidadPresentacion: number;
 
-  @Column({ name: 'fk_categoria_id', nullable: true })
-  fkCategoriaId?: string;
+  @Column({ name: 'fk_categoria_id' })
+  fkCategoriaId: string;
 
-  @Column({ name: 'fk_unidad_medida_id', nullable: true })
-  fkUnidadMedidaId?: string;
+  @Column({ name: 'fk_unidad_medida_id' })
+  fkUnidadMedidaId: string;
+
+  @Column({ name: 'img_url', type: 'varchar', length: 255, nullable: true })
+  imgUrl?: string;
 
   @ManyToOne(() => Categoria)
   @JoinColumn({ name: 'fk_categoria_id' })

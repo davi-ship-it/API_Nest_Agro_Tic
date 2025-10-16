@@ -6,7 +6,10 @@ import {
   Patch,
   Param,
   Delete,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ReservasXActividadService } from './reservas_x_actividad.service';
 import { CreateReservasXActividadDto } from './dto/create-reservas_x_actividad.dto';
 import { UpdateReservasXActividadDto } from './dto/update-reservas_x_actividad.dto';
@@ -45,8 +48,26 @@ export class ReservasXActividadController {
   }
 
   @Post('finalize')
-  finalizeActivity(@Body() finalizeActivityDto: FinalizeActivityDto) {
-    return this.reservasXActividadService.finalizeActivity(finalizeActivityDto);
+  @UseInterceptors(FileInterceptor('imgUrl'))
+  finalizeActivity(
+    @Body() body: any,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    console.log('🔍 CONTROLLER: Raw body received:', body);
+    console.log('🔍 CONTROLLER: Received file:', file ? { originalname: file.originalname, size: file.size } : 'No file');
+
+    // Parse JSON fields from FormData
+    const finalizeActivityDto: FinalizeActivityDto = {
+      actividadId: body.actividadId,
+      reservas: JSON.parse(body.reservas),
+      horas: parseFloat(body.horas),
+      precioHora: parseFloat(body.precioHora),
+      observacion: body.observacion,
+      imgUrl: body.imgUrl,
+    };
+
+    console.log('🔍 CONTROLLER: Parsed finalizeActivityDto:', finalizeActivityDto);
+    return this.reservasXActividadService.finalizeActivity(finalizeActivityDto, file);
   }
 
   @Delete(':id')
