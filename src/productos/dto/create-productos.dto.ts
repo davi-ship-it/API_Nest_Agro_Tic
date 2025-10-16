@@ -24,9 +24,6 @@ export class CreateProductosDto {
   @IsNumber({ maxDecimalPlaces: 2 })
   precioCompra: number;
 
-  @IsBoolean()
-  esDivisible: boolean;
-
   @IsNumber({ maxDecimalPlaces: 2 })
   capacidadPresentacion: number;
 

@@ -25,9 +25,6 @@ export class Producto {
   @Column({ type: 'decimal', precision: 12, scale: 2 })
   precioCompra: number;
 
-  @Column({ type: 'boolean' })
-  esDivisible: boolean;
-
   @Column({ type: 'decimal', precision: 10, scale: 2, default: '1.00' })
   capacidadPresentacion: number;
 

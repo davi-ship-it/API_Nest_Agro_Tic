@@ -9,6 +9,9 @@ export class Categoria {
   @Column({ type: 'varchar', length: 100, unique: true })
   nombre: string;
 
+  @Column({ type: 'boolean', default: false })
+  esDivisible: boolean;
+
   @OneToMany(() => Producto, (p) => p.categoria)
   productos?: Producto[];
 }

@@ -405,20 +405,24 @@ export class SeederService {
       }
 
       // --- Crear Categorías ---
-      const categoriasNombres = ['Abono', 'Herramientas'];
+      const categoriasNombres = [
+        { nombre: 'Abono', esDivisible: true },
+        { nombre: 'Herramientas', esDivisible: false }
+      ];
       const categorias = await this.categoriaService.findAll();
 
-      for (const nombreCategoria of categoriasNombres) {
-        const categoria = categorias.find((c) => c.nombre === nombreCategoria);
+      for (const catData of categoriasNombres) {
+        const categoria = categorias.find((c) => c.nombre === catData.nombre);
 
         if (!categoria) {
           await this.categoriaService.create({
-            nombre: nombreCategoria,
+            nombre: catData.nombre,
+            esDivisible: catData.esDivisible,
           });
-          this.logger.log(`Categoría "${nombreCategoria}" creada.`, 'Seeder');
+          this.logger.log(`Categoría "${catData.nombre}" creada.`, 'Seeder');
         } else {
           this.logger.log(
-            `Categoría "${nombreCategoria}" ya existe. Omitiendo.`,
+            `Categoría "${catData.nombre}" ya existe. Omitiendo.`,
             'Seeder',
           );
         }
@@ -1387,7 +1391,6 @@ export class SeederService {
               descripcion: prodData.descripcion,
               sku: prodData.sku,
               precioCompra: prodData.precioCompra,
-              esDivisible: prodData.esDivisible,
               capacidadPresentacion: prodData.capacidadPresentacion,
               fkCategoriaId: categoria.id,
               fkUnidadMedidaId: unidad.id,
