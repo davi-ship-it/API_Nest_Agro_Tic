@@ -406,8 +406,31 @@ export class SeederService {
 
       // --- Crear Categorías ---
       const categoriasNombres = [
-        { nombre: 'Abono', esDivisible: true },
-        { nombre: 'Herramientas', esDivisible: false }
+        {
+          nombre: 'Nutrición y Suelo',
+          descripcion: 'Aportar nutrientes, modificar o mejorar las condiciones físico-químicas del terreno.',
+          esDivisible: true
+        },
+        {
+          nombre: 'Sanidad Vegetal',
+          descripcion: 'Proteger los cultivos del ataque de plagas, enfermedades y malezas.',
+          esDivisible: true
+        },
+        {
+          nombre: 'Material de Propagación',
+          descripcion: 'Iniciar, regenerar o reemplazar el cultivo.',
+          esDivisible: true
+        },
+        {
+          nombre: 'Equipo y Herramientas',
+          descripcion: 'Facilitar las labores de siembra, manejo y cosecha de forma manual o mecánica.',
+          esDivisible: false
+        },
+        {
+          nombre: 'Suministros Auxiliares',
+          descripcion: 'Dar soporte a la infraestructura del cultivo y garantizar la seguridad del personal.',
+          esDivisible: false
+        }
       ];
       const categorias = await this.categoriaService.findAll();
 
@@ -417,6 +440,7 @@ export class SeederService {
         if (!categoria) {
           await this.categoriaService.create({
             nombre: catData.nombre,
+            descripcion: catData.descripcion,
             esDivisible: catData.esDivisible,
           });
           this.logger.log(`Categoría "${catData.nombre}" creada.`, 'Seeder');
@@ -1275,9 +1299,8 @@ export class SeederService {
           descripcion: 'Fertilizante rico en nitrógeno para cultivos',
           sku: 'FERT-N-001',
           precioCompra: 25.5,
-          esDivisible: true,
           capacidadPresentacion: 25.0,
-          categoriaNombre: 'Abono',
+          categoriaNombre: 'Nutrición y Suelo',
           unidadNombre: 'Kilogramo',
         },
         {
@@ -1285,9 +1308,8 @@ export class SeederService {
           descripcion: 'Semillas de maíz híbrido de alta calidad',
           sku: 'SEM-MZ-001',
           precioCompra: 15.0,
-          esDivisible: false,
           capacidadPresentacion: 25.0,
-          categoriaNombre: 'Abono',
+          categoriaNombre: 'Material de Propagación',
           unidadNombre: 'Kilogramo',
         },
         {
@@ -1295,9 +1317,8 @@ export class SeederService {
           descripcion: 'Pesticida natural para control de plagas',
           sku: 'PEST-ORG-001',
           precioCompra: 35.0,
-          esDivisible: true,
           capacidadPresentacion: 5.0,
-          categoriaNombre: 'Abono',
+          categoriaNombre: 'Sanidad Vegetal',
           unidadNombre: 'Litro',
         },
         {
@@ -1305,9 +1326,8 @@ export class SeederService {
           descripcion: 'Herramienta manual para siembra precisa',
           sku: 'HERR-SIEM-001',
           precioCompra: 45.0,
-          esDivisible: false,
           capacidadPresentacion: 1.0,
-          categoriaNombre: 'Herramientas',
+          categoriaNombre: 'Equipo y Herramientas',
           unidadNombre: 'Unidad',
         },
         {
@@ -1315,9 +1335,8 @@ export class SeederService {
           descripcion: 'Pala resistente para excavación y movimiento de tierra',
           sku: 'HERR-PALA-001',
           precioCompra: 25.0,
-          esDivisible: false,
           capacidadPresentacion: 1.0,
-          categoriaNombre: 'Herramientas',
+          categoriaNombre: 'Equipo y Herramientas',
           unidadNombre: 'Unidad',
         },
         {
@@ -1325,9 +1344,8 @@ export class SeederService {
           descripcion: 'Carretilla metálica para transporte de materiales',
           sku: 'HERR-CARR-001',
           precioCompra: 80.0,
-          esDivisible: false,
           capacidadPresentacion: 1.0,
-          categoriaNombre: 'Herramientas',
+          categoriaNombre: 'Equipo y Herramientas',
           unidadNombre: 'Unidad',
         },
         {
@@ -1336,9 +1354,8 @@ export class SeederService {
             'Rastrillo para nivelación del suelo y recolección de residuos',
           sku: 'HERR-RAST-001',
           precioCompra: 15.0,
-          esDivisible: false,
           capacidadPresentacion: 1.0,
-          categoriaNombre: 'Herramientas',
+          categoriaNombre: 'Equipo y Herramientas',
           unidadNombre: 'Unidad',
         },
         {
@@ -1346,9 +1363,8 @@ export class SeederService {
           descripcion: 'Azadón para labranza y preparación del suelo',
           sku: 'HERR-AZAD-001',
           precioCompra: 30.0,
-          esDivisible: false,
           capacidadPresentacion: 1.0,
-          categoriaNombre: 'Herramientas',
+          categoriaNombre: 'Equipo y Herramientas',
           unidadNombre: 'Unidad',
         },
         {
@@ -1356,9 +1372,8 @@ export class SeederService {
           descripcion: 'Par de guantes resistentes para protección manual',
           sku: 'HERR-GUAN-001',
           precioCompra: 8.0,
-          esDivisible: false,
           capacidadPresentacion: 1.0,
-          categoriaNombre: 'Herramientas',
+          categoriaNombre: 'Suministros Auxiliares',
           unidadNombre: 'Unidad',
         },
         {
@@ -1366,9 +1381,8 @@ export class SeederService {
           descripcion: 'Machete afilado para corte de vegetación',
           sku: 'HERR-MACH-001',
           precioCompra: 20.0,
-          esDivisible: false,
           capacidadPresentacion: 1.0,
-          categoriaNombre: 'Herramientas',
+          categoriaNombre: 'Equipo y Herramientas',
           unidadNombre: 'Unidad',
         },
       ];
