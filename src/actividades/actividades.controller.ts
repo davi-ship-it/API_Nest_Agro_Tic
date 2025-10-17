@@ -67,6 +67,11 @@ export class ActividadesController {
     return this.actividadesService.findByDateRange(start, end);
   }
 
+  @Get('by-cultivo-variedad-zona/:cvzId')
+  findByCultivoVariedadZonaId(@Param('cvzId') cvzId: string) {
+    return this.actividadesService.findByCultivoVariedadZonaId(cvzId);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.actividadesService.findOne(id);

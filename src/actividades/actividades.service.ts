@@ -268,4 +268,27 @@ export class ActividadesService {
       ],
     });
   }
+  async findByCultivoVariedadZonaId(cvzId: string): Promise<Actividad[]> {
+    return await this.actividadesRepo.find({
+      where: { fkCultivoVariedadZonaId: cvzId },
+      relations: [
+        'categoriaActividad',
+        'cultivoVariedadZona',
+        'cultivoVariedadZona.cultivoXVariedad',
+        'cultivoVariedadZona.cultivoXVariedad.cultivo',
+        'cultivoVariedadZona.cultivoXVariedad.variedad',
+        'cultivoVariedadZona.cultivoXVariedad.variedad.tipoCultivo',
+        'cultivoVariedadZona.zona',
+        'usuariosAsignados',
+        'usuariosAsignados.usuario',
+        'usuariosAsignados.usuario.ficha',
+        'reservas',
+        'reservas.lote',
+        'reservas.lote.producto',
+        'reservas.lote.producto.unidadMedida',
+        'reservas.estado',
+      ],
+      order: { fechaAsignacion: 'DESC' },
+    });
+  }
 }
