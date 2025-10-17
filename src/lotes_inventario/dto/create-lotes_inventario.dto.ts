@@ -14,10 +14,7 @@ export class CreateLotesInventarioDto {
   fkBodegaId: string;
 
   @IsNumber({ maxDecimalPlaces: 2 })
-  cantidadDisponible: number;
-
-  @IsNumber({ maxDecimalPlaces: 2 })
-  cantidadReservada: number;
+  stock: number;
 
   @IsBoolean()
   esParcial: boolean;

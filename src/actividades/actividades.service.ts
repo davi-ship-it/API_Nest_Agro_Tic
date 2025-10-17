@@ -153,17 +153,25 @@ export class ActividadesService {
     // Find an available lote for this product
     const lotes = await this.actividadesRepo.manager.find(LotesInventario, {
       where: { fkProductoId: productId },
-      relations: ['reservas'],
+      relations: ['reservas', 'reservas.estado'],
     });
 
     // Find a lote with enough available quantity
     for (const lote of lotes) {
-      const reserved =
-        lote.reservas?.reduce(
-          (sum, r) => sum + (r.cantidadReservada - (r.cantidadDevuelta || 0)),
-          0,
-        ) || 0;
-      const available = lote.cantidadDisponible - reserved;
+      // Calculate active reserved quantity (only reservations that are not 'Confirmada')
+      let cantidadReservadaActiva = 0;
+      if (lote.reservas) {
+        for (const reserva of lote.reservas) {
+          if (reserva.estado && reserva.estado.nombre !== 'Confirmada') {
+            cantidadReservadaActiva += (reserva.cantidadReservada || 0) - (reserva.cantidadDevuelta || 0);
+          }
+        }
+      }
+
+      // Available quantity includes cantidadDisponible + cantidadParcial - active reservations
+      const cantidadDisponibleNum = Number(lote.cantidadDisponible) || 0;
+      const cantidadParcialNum = Number(lote.cantidadParcial) || 0;
+      const available = cantidadDisponibleNum + cantidadParcialNum - cantidadReservadaActiva;
       if (available >= cantidadReservada) {
         return this.createReservation(
           actividadId,

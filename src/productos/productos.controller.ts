@@ -10,6 +10,7 @@ import {
 import { ProductosService } from './productos.service';
 import { CreateProductosDto } from './dto/create-productos.dto';
 import { UpdateProductosDto } from './dto/update-productos.dto';
+import { CreateProductoWithLoteDto } from './dto/create-producto-with-lote.dto';
 
 @Controller('productos')
 export class ProductosController {
@@ -41,5 +42,10 @@ export class ProductosController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.productosService.remove(id);
+  }
+
+  @Post('with-lote')
+  createWithLote(@Body() createProductoWithLoteDto: CreateProductoWithLoteDto) {
+    return this.productosService.createWithLote(createProductoWithLoteDto);
   }
 }

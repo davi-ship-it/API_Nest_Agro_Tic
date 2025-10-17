@@ -2,12 +2,13 @@ import {
   IsString,
   IsOptional,
   IsNumber,
-  IsBoolean,
   IsUUID,
+  IsDateString,
   MaxLength,
 } from 'class-validator';
 
-export class CreateProductosDto {
+export class CreateProductoWithLoteDto {
+  // Product fields
   @IsString()
   @MaxLength(150)
   nombre: string;
@@ -34,4 +35,15 @@ export class CreateProductosDto {
   @IsUUID()
   @IsOptional()
   fkUnidadMedidaId?: string;
+
+  // Lot inventory fields
+  @IsUUID()
+  fkBodegaId: string;
+
+  @IsNumber({ maxDecimalPlaces: 2 })
+  stock: number;
+
+  @IsDateString()
+  @IsOptional()
+  fechaVencimiento?: string;
 }
