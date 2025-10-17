@@ -52,9 +52,44 @@ export class LotesInventarioService {
     id: string,
     updateDto: UpdateLotesInventarioDto,
   ): Promise<LotesInventario> {
+    console.log('DEBUG: update called with ID:', id);
+    console.log('DEBUG: updateDto:', updateDto);
+
     const entity = await this.findOne(id);
-    Object.assign(entity, updateDto);
-    return await this.lotesInventarioRepo.save(entity);
+    console.log('DEBUG: found entity:', entity);
+
+    // Handle product updates if provided
+    if (updateDto.nombre || updateDto.descripcion || updateDto.sku || updateDto.precioCompra || updateDto.capacidadPresentacion || updateDto.fkCategoriaId || updateDto.fkUnidadMedidaId) {
+      const producto = await entity.producto;
+      if (producto) {
+        if (updateDto.nombre) producto.nombre = updateDto.nombre;
+        if (updateDto.descripcion !== undefined) producto.descripcion = updateDto.descripcion;
+        if (updateDto.sku !== undefined) producto.sku = updateDto.sku;
+        if (updateDto.precioCompra) producto.precioCompra = updateDto.precioCompra;
+        if (updateDto.capacidadPresentacion) producto.capacidadPresentacion = updateDto.capacidadPresentacion;
+        if (updateDto.fkCategoriaId) producto.fkCategoriaId = updateDto.fkCategoriaId;
+        if (updateDto.fkUnidadMedidaId) producto.fkUnidadMedidaId = updateDto.fkUnidadMedidaId;
+
+        await this.lotesInventarioRepo.manager.save(producto);
+        console.log('DEBUG: producto updated');
+      }
+    }
+
+    // Handle lote inventory updates
+    if (updateDto.fkBodegaId) entity.fkBodegaId = updateDto.fkBodegaId;
+    if (updateDto.stock) {
+      entity.stock = updateDto.stock;
+      // Recalculate cantidadDisponible
+      const producto = await entity.producto;
+      if (producto) {
+        entity.cantidadDisponible = updateDto.stock * (producto.capacidadPresentacion || 1);
+      }
+    }
+    if (updateDto.fechaVencimiento !== undefined) entity.fechaVencimiento = updateDto.fechaVencimiento ? new Date(updateDto.fechaVencimiento) : undefined;
+
+    const savedEntity = await this.lotesInventarioRepo.save(entity);
+    console.log('DEBUG: lote updated:', savedEntity);
+    return savedEntity;
   }
 
   async remove(id: string): Promise<void> {
