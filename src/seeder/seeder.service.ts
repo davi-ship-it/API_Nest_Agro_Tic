@@ -1041,10 +1041,9 @@ export class SeederService {
           const actividad = this.actividadRepository.create({
             descripcion: `Actividad de ${categoria.nombre}`,
             fechaAsignacion,
-            horasDedicadas: 8,
             observacion: `Observación de la actividad de ${categoria.nombre}`,
             estado: isFinished ? false : true,
-            imgUrl: isFinished ? '/uploads/evidencias/evidence.jpg' : 'url',
+            imgUrl: isFinished ? '/uploads/evidencias/evidence.jpg' : undefined,
             fkCultivoVariedadZonaId: cvz.id,
             fkCategoriaActividadId: categoria.id,
           });

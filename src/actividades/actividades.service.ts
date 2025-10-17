@@ -31,13 +31,13 @@ export class ActividadesService {
 
   async countByDate(date: string): Promise<number> {
     return await this.actividadesRepo.count({
-      where: { fechaAsignacion: new Date(date) },
+      where: { fechaAsignacion: new Date(date), estado: true },
     });
   }
 
   async findByDate(date: string): Promise<Actividad[]> {
     return await this.actividadesRepo.find({
-      where: { fechaAsignacion: new Date(date) },
+      where: { fechaAsignacion: new Date(date), estado: true },
       relations: [
         'categoriaActividad',
         'cultivoVariedadZona',
@@ -71,7 +71,7 @@ export class ActividadesService {
 
   async findByDateRange(start: string, end: string): Promise<Actividad[]> {
     return await this.actividadesRepo.find({
-      where: { fechaAsignacion: Between(new Date(start), new Date(end)) },
+      where: { fechaAsignacion: Between(new Date(start), new Date(end)), estado: true },
       relations: [
         'categoriaActividad',
         'cultivoVariedadZona',
