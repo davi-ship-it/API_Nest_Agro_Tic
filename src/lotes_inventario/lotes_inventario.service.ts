@@ -254,11 +254,16 @@ export class LotesInventarioService {
       const cantidadDisponibleParaReservar = cantidadDisponible + cantidadParcial - cantidadReservadaActiva;
       const stockTotal = cantidadDisponible + cantidadParcial;
 
+      // Get unit abbreviation from product
+      const unidadAbreviatura = item.producto?.unidadMedida?.abreviatura || '';
+
       return {
         ...item,
+        stock: Number(item.stock || 0), // Original stock from lote
         stockTotal,
         cantidadDisponibleParaReservar: Math.max(0, cantidadDisponibleParaReservar), // Ensure non-negative
         cantidadReservada: cantidadReservadaActiva,
+        unidadAbreviatura,
       };
     });
 
