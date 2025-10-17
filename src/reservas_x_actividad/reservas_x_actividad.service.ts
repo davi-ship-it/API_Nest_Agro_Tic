@@ -12,6 +12,8 @@ import { FinalizeActivityDto } from './dto/finalize-activity.dto';
 import { Actividad } from '../actividades/entities/actividades.entity';
 import { EstadoReserva } from '../estados_reserva/entities/estados_reserva.entity';
 import { LotesInventario } from '../lotes_inventario/entities/lotes_inventario.entity';
+import { MovimientosInventario } from '../movimientos_inventario/entities/movimientos_inventario.entity';
+import { TipoMovimiento } from '../tipos_movimiento/entities/tipos_movimiento.entity';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -26,6 +28,10 @@ export class ReservasXActividadService {
     private readonly estadoReservaRepo: Repository<EstadoReserva>,
     @InjectRepository(LotesInventario)
     private readonly lotesInventarioRepo: Repository<LotesInventario>,
+    @InjectRepository(MovimientosInventario)
+    private readonly movimientosInventarioRepo: Repository<MovimientosInventario>,
+    @InjectRepository(TipoMovimiento)
+    private readonly tipoMovimientoRepo: Repository<TipoMovimiento>,
   ) {}
 
   async create(
@@ -77,9 +83,10 @@ export class ReservasXActividadService {
       file: file ? { originalname: file.originalname, size: file.size } : 'No file'
     });
 
-    // Find the activity
+    // Find the activity with relations
     const actividad = await this.actividadRepo.findOne({
       where: { id: finalizeDto.actividadId },
+      relations: ['categoriaActividad'],
     });
     if (!actividad) {
       throw new NotFoundException(
@@ -134,8 +141,20 @@ export class ReservasXActividadService {
       // Save the reservation
       await this.reservasXActividadRepo.save(reserva);
 
+      // Create movement record for DEVOLUCIÓN if there's a return
+      if (reserva.cantidadDevuelta > 0) {
+        const categoriaNombre = actividad.categoriaActividad?.nombre || 'Sin categoría';
+        const observacion = `Devolución por finalización de actividad agrícola: ${categoriaNombre}`;
+        await this.createMovementRecord(reserva.fkLoteId, reserva.id, 'Devolución', reserva.cantidadDevuelta, observacion);
+      }
+
       // Update inventory proportionally
       await this.updateLoteInventoryProportionally(reserva.fkLoteId, reserva.cantidadUsada);
+
+      // Create movement record for the usage with activity category
+      const categoriaNombre = actividad.categoriaActividad?.nombre || 'Sin categoría';
+      const observacion = `Salida por finalización de actividad agrícola: ${categoriaNombre}`;
+      await this.createMovementRecord(reserva.fkLoteId, reserva.id, 'Salida', reserva.cantidadUsada, observacion);
     }
 
     // Update activity with finalization data
@@ -251,5 +270,40 @@ export class ReservasXActividadService {
 
     await this.lotesInventarioRepo.save(lote);
     console.log(`✅ Lote ${loteId} actualizado correctamente`);
+  }
+
+  private async createMovementRecord(
+    loteId: string,
+    reservaId: string,
+    tipoMovimientoNombre: string,
+    cantidad: number,
+    observacion: string,
+  ): Promise<void> {
+    try {
+      // Find the movement type
+      const tipoMovimiento = await this.tipoMovimientoRepo.findOne({
+        where: { nombre: tipoMovimientoNombre },
+      });
+
+      if (!tipoMovimiento) {
+        console.warn(`Tipo de movimiento "${tipoMovimientoNombre}" no encontrado.`);
+        return;
+      }
+
+      // Create the movement record
+      const movimiento = this.movimientosInventarioRepo.create({
+        fkLoteId: loteId,
+        fkReservaId: reservaId,
+        fkTipoMovimientoId: tipoMovimiento.id,
+        cantidad: cantidad,
+        fechaMovimiento: new Date(),
+        observacion: observacion,
+      });
+
+      await this.movimientosInventarioRepo.save(movimiento);
+      console.log(`✅ Movimiento de ${tipoMovimientoNombre} registrado para lote ${loteId}`);
+    } catch (error) {
+      console.error(`❌ Error creando movimiento: ${error.message}`);
+    }
   }
 }

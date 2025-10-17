@@ -21,7 +21,7 @@ export class MovimientosInventarioService {
 
   async findAll(): Promise<MovimientosInventario[]> {
     return await this.movimientosInventarioRepo.find({
-      relations: ['lote', 'reserva', 'tipoMovimiento'],
+      relations: ['lote', 'lote.producto', 'lote.producto.categoria', 'lote.bodega', 'reserva', 'tipoMovimiento'],
     });
   }
 
@@ -49,5 +49,42 @@ export class MovimientosInventarioService {
   async remove(id: string): Promise<void> {
     const entity = await this.findOne(id);
     await this.movimientosInventarioRepo.remove(entity);
+  }
+
+  async filter(
+    startDate?: string,
+    endDate?: string,
+    productQuery?: string,
+  ): Promise<MovimientosInventario[]> {
+    const queryBuilder = this.movimientosInventarioRepo
+      .createQueryBuilder('movimiento')
+      .leftJoinAndSelect('movimiento.lote', 'lote')
+      .leftJoinAndSelect('lote.producto', 'producto')
+      .leftJoinAndSelect('producto.categoria', 'categoria')
+      .leftJoinAndSelect('lote.bodega', 'bodega')
+      .leftJoinAndSelect('movimiento.reserva', 'reserva')
+      .leftJoinAndSelect('movimiento.tipoMovimiento', 'tipoMovimiento')
+      .orderBy('movimiento.fechaMovimiento', 'DESC');
+
+    if (startDate) {
+      queryBuilder.andWhere('movimiento.fechaMovimiento >= :startDate', {
+        startDate: new Date(startDate),
+      });
+    }
+
+    if (endDate) {
+      queryBuilder.andWhere('movimiento.fechaMovimiento <= :endDate', {
+        endDate: new Date(endDate + ' 23:59:59'),
+      });
+    }
+
+    if (productQuery) {
+      queryBuilder.andWhere(
+        '(producto.nombre ILIKE :query OR producto.sku ILIKE :query)',
+        { query: `%${productQuery}%` },
+      );
+    }
+
+    return await queryBuilder.getMany();
   }
 }

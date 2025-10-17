@@ -6,12 +6,18 @@ import { CreateProductosDto } from './dto/create-productos.dto';
 import { UpdateProductosDto } from './dto/update-productos.dto';
 import { CreateProductoWithLoteDto } from './dto/create-producto-with-lote.dto';
 import { LotesInventario } from '../lotes_inventario/entities/lotes_inventario.entity';
+import { MovimientosInventario } from '../movimientos_inventario/entities/movimientos_inventario.entity';
+import { TipoMovimiento } from '../tipos_movimiento/entities/tipos_movimiento.entity';
 
 @Injectable()
 export class ProductosService {
   constructor(
     @InjectRepository(Producto)
     private readonly productoRepo: Repository<Producto>,
+    @InjectRepository(MovimientosInventario)
+    private readonly movimientosInventarioRepo: Repository<MovimientosInventario>,
+    @InjectRepository(TipoMovimiento)
+    private readonly tipoMovimientoRepo: Repository<TipoMovimiento>,
   ) {}
 
   async create(createDto: CreateProductosDto): Promise<Producto> {
@@ -46,6 +52,40 @@ export class ProductosService {
     await this.productoRepo.remove(entity);
   }
 
+  private async createMovementRecord(
+    queryRunner: any,
+    loteId: string,
+    tipoMovimientoNombre: string,
+    cantidad: number,
+    observacion: string,
+  ): Promise<void> {
+    try {
+      // Find the movement type
+      const tipoMovimiento = await queryRunner.manager.findOne(TipoMovimiento, {
+        where: { nombre: tipoMovimientoNombre },
+      });
+
+      if (!tipoMovimiento) {
+        console.warn(`Tipo de movimiento "${tipoMovimientoNombre}" no encontrado.`);
+        return;
+      }
+
+      // Create the movement record
+      const movimiento = queryRunner.manager.create(MovimientosInventario, {
+        fkLoteId: loteId,
+        fkTipoMovimientoId: tipoMovimiento.id,
+        cantidad: cantidad,
+        fechaMovimiento: new Date(),
+        observacion: observacion,
+      });
+
+      await queryRunner.manager.save(MovimientosInventario, movimiento);
+      console.log(`✅ Movimiento de ${tipoMovimientoNombre} registrado para lote ${loteId}`);
+    } catch (error) {
+      console.error(`❌ Error creando movimiento: ${error.message}`);
+    }
+  }
+
   async createWithLote(createDto: CreateProductoWithLoteDto): Promise<Producto> {
     // Start transaction
     const queryRunner = this.productoRepo.manager.connection.createQueryRunner();
@@ -78,7 +118,10 @@ export class ProductosService {
         cantidadParcial: 0, // Default to 0
         fechaVencimiento: createDto.fechaVencimiento ? new Date(createDto.fechaVencimiento) : undefined,
       });
-      await queryRunner.manager.save(LotesInventario, loteInventario);
+      const savedLote = await queryRunner.manager.save(LotesInventario, loteInventario);
+
+      // Create movement record for ENTRADA
+      await this.createMovementRecord(queryRunner, savedLote.id, 'Entrada', cantidadDisponible, `Entrada de producto: ${savedProducto.nombre}`);
 
       // Commit transaction
       await queryRunner.commitTransaction();

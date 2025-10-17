@@ -141,7 +141,51 @@ export class ActividadesService {
       cantidadReservada,
       fkEstadoId: estadoId,
     };
-    return await this.reservasXActividadService.create(dto);
+    const reserva = await this.reservasXActividadService.create(dto);
+
+    // Create movement record for RESERVA
+    await this.createMovementRecord(loteId, reserva.id, 'Reserva', cantidadReservada, `Reserva para actividad agrícola`);
+
+    return reserva;
+  }
+
+  private async createMovementRecord(
+    loteId: string,
+    reservaId: string,
+    tipoMovimientoNombre: string,
+    cantidad: number,
+    observacion: string,
+  ): Promise<void> {
+    try {
+      // Import required entities and repositories
+      const { MovimientosInventario } = await import('../movimientos_inventario/entities/movimientos_inventario.entity');
+      const { TipoMovimiento } = await import('../tipos_movimiento/entities/tipos_movimiento.entity');
+
+      // Find the movement type
+      const tipoMovimiento = await this.reservasXActividadRepo.manager.findOne(TipoMovimiento, {
+        where: { nombre: tipoMovimientoNombre },
+      });
+
+      if (!tipoMovimiento) {
+        console.warn(`Tipo de movimiento "${tipoMovimientoNombre}" no encontrado.`);
+        return;
+      }
+
+      // Create the movement record
+      const movimiento = this.reservasXActividadRepo.manager.create(MovimientosInventario, {
+        fkLoteId: loteId,
+        fkReservaId: reservaId,
+        fkTipoMovimientoId: tipoMovimiento.id,
+        cantidad: cantidad,
+        fechaMovimiento: new Date(),
+        observacion: observacion,
+      });
+
+      await this.reservasXActividadRepo.manager.save(MovimientosInventario, movimiento);
+      console.log(`✅ Movimiento de ${tipoMovimientoNombre} registrado para lote ${loteId}`);
+    } catch (error) {
+      console.error(`❌ Error creando movimiento: ${error.message}`);
+    }
   }
 
   async createReservationByProduct(

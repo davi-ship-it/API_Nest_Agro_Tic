@@ -5,12 +5,18 @@ import { LotesInventario } from './entities/lotes_inventario.entity';
 import { CreateLotesInventarioDto } from './dto/create-lotes_inventario.dto';
 import { UpdateLotesInventarioDto } from './dto/update-lotes_inventario.dto';
 import { Producto } from '../productos/entities/productos.entity';
+import { MovimientosInventario } from '../movimientos_inventario/entities/movimientos_inventario.entity';
+import { TipoMovimiento } from '../tipos_movimiento/entities/tipos_movimiento.entity';
 
 @Injectable()
 export class LotesInventarioService {
   constructor(
     @InjectRepository(LotesInventario)
     private readonly lotesInventarioRepo: Repository<LotesInventario>,
+    @InjectRepository(MovimientosInventario)
+    private readonly movimientosInventarioRepo: Repository<MovimientosInventario>,
+    @InjectRepository(TipoMovimiento)
+    private readonly tipoMovimientoRepo: Repository<TipoMovimiento>,
   ) {}
 
   async create(createDto: CreateLotesInventarioDto): Promise<LotesInventario> {
@@ -58,6 +64,10 @@ export class LotesInventarioService {
     const entity = await this.findOne(id);
     console.log('DEBUG: found entity:', entity);
 
+    // Store original values for movement calculation
+    const originalStock = entity.stock;
+    const originalCantidadDisponible = entity.cantidadDisponible;
+
     // Handle product updates if provided
     if (updateDto.nombre || updateDto.descripcion || updateDto.sku || updateDto.precioCompra || updateDto.capacidadPresentacion || updateDto.fkCategoriaId || updateDto.fkUnidadMedidaId) {
       const producto = await entity.producto;
@@ -89,12 +99,54 @@ export class LotesInventarioService {
 
     const savedEntity = await this.lotesInventarioRepo.save(entity);
     console.log('DEBUG: lote updated:', savedEntity);
+
+    // Create movement record for AJUSTE if stock was modified
+    if (updateDto.stock && updateDto.stock !== originalStock) {
+      const cantidadAjuste = savedEntity.cantidadDisponible - originalCantidadDisponible;
+      if (cantidadAjuste !== 0) {
+        await this.createMovementRecord(savedEntity.id, 'Ajuste', Math.abs(cantidadAjuste), `Ajuste manual de inventario: ${cantidadAjuste > 0 ? 'incremento' : 'decremento'} de ${Math.abs(cantidadAjuste)} unidades`);
+      }
+    }
+
     return savedEntity;
   }
 
   async remove(id: string): Promise<void> {
     const entity = await this.findOne(id);
     await this.lotesInventarioRepo.remove(entity);
+  }
+
+  private async createMovementRecord(
+    loteId: string,
+    tipoMovimientoNombre: string,
+    cantidad: number,
+    observacion: string,
+  ): Promise<void> {
+    try {
+      // Find the movement type
+      const tipoMovimiento = await this.tipoMovimientoRepo.findOne({
+        where: { nombre: tipoMovimientoNombre },
+      });
+
+      if (!tipoMovimiento) {
+        console.warn(`Tipo de movimiento "${tipoMovimientoNombre}" no encontrado.`);
+        return;
+      }
+
+      // Create the movement record
+      const movimiento = this.movimientosInventarioRepo.create({
+        fkLoteId: loteId,
+        fkTipoMovimientoId: tipoMovimiento.id,
+        cantidad: cantidad,
+        fechaMovimiento: new Date(),
+        observacion: observacion,
+      });
+
+      await this.movimientosInventarioRepo.save(movimiento);
+      console.log(`✅ Movimiento de ${tipoMovimientoNombre} registrado para lote ${loteId}`);
+    } catch (error) {
+      console.error(`❌ Error creando movimiento: ${error.message}`);
+    }
   }
 
   async search(query: string, page: number = 1, limit: number = 10) {
