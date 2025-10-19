@@ -16,4 +16,8 @@ export class CreateCosechaDto {
   @IsString()
   @IsNotEmpty()
   fkCultivosVariedadXZonaId: string;
+
+  @IsOptional()
+  @IsNumber()
+  cantidad_plantas_cosechadas?: number;
 }

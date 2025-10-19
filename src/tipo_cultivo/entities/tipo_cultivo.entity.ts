@@ -12,6 +12,9 @@ export class TipoCultivo {
   @Column({ name: 'tpc_nombre', type: 'varchar', length: 50 })
   nombre: string;
 
+  @Column({ name: 'tpc_es_perenne', type: 'boolean', default: false })
+  esPerenne: boolean;
+
   @OneToMany(() => Variedad, (v) => v.tipoCultivo)
   variedades?: Variedad[];
 }

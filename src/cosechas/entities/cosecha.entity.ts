@@ -24,6 +24,12 @@ export class Cosecha {
   @Column({ name: 'cos_fecha', type: 'date', nullable: true })
   fecha?: string;
 
+  @Column({ name: 'cos_rendimiento_por_planta', type: 'numeric', precision: 10, scale: 2, nullable: true })
+  rendimientoPorPlanta?: number;
+
+  @Column({ name: 'cos_cantidad_plantas_cosechadas', type: 'integer', nullable: true })
+  cantidadPlantasCosechadas?: number;
+
   @Column({ name: 'fk_id_cultivos_variedad_x_zona' })
   fkCultivosVariedadXZonaId: string;
 

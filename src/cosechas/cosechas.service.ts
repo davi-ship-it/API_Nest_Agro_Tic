@@ -27,6 +27,11 @@ export class CosechasService {
       createCosechaDto.fecha = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
     }
 
+    // Calcular rendimiento por planta si se proporciona cantidad de plantas cosechadas
+    if (createCosechaDto.cantidad_plantas_cosechadas && createCosechaDto.cantidad_plantas_cosechadas > 0) {
+      (createCosechaDto as any).rendimientoPorPlanta = createCosechaDto.cantidad / createCosechaDto.cantidad_plantas_cosechadas;
+    }
+
     const cosecha = this.cosechaRepository.create(createCosechaDto);
     const savedCosecha = await this.cosechaRepository.save(cosecha);
 

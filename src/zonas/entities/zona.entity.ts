@@ -28,6 +28,9 @@ export class Zona {
   @Column({ name: 'zon_coor_y', type: 'numeric', precision: 10, scale: 2 })
   coorY: number;
 
+  @Column({ name: 'zon_area_metros_cuadrados', type: 'numeric', precision: 10, scale: 2, nullable: true })
+  areaMetrosCuadrados?: number;
+
   @Column({ name: 'fk_id_mapa' })
   fkMapaId: string;
 

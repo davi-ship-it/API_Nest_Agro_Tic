@@ -32,6 +32,7 @@ import { ReservasXActividad } from '../reservas_x_actividad/entities/reservas_x_
 import { MovimientosInventario } from '../movimientos_inventario/entities/movimientos_inventario.entity';
 import { TipoMovimiento } from '../tipos_movimiento/entities/tipos_movimiento.entity';
 import { EstadoReserva } from '../estados_reserva/entities/estados_reserva.entity';
+import { EstadoFenologico } from '../estados_fenologicos/entities/estado_fenologico.entity';
 
 // Acciones comunes para reutilizar y mantener consistencia
 const ACCIONES_CRUD = ['leer', 'crear', 'actualizar', 'eliminar'];
@@ -138,6 +139,8 @@ export class SeederService {
     private readonly tipoMovimientoRepository: Repository<TipoMovimiento>,
     @InjectRepository(EstadoReserva)
     private readonly estadoReservaRepository: Repository<EstadoReserva>,
+    @InjectRepository(EstadoFenologico)
+    private readonly estadoFenologicoRepository: Repository<EstadoFenologico>,
   ) {}
 
   async seed() {
@@ -195,6 +198,7 @@ export class SeederService {
     await this.seedVariedad();
     await this.seedMapa();
     await this.seedZona();
+    await this.seedEstadosFenologicos();
     await this.seedCultivo();
     await this.seedCultivosXVariedad();
     await this.seedCultivosVariedadXZona();
@@ -985,15 +989,31 @@ export class SeederService {
     try {
       const cxvs = await this.cultivosXVariedadRepository.find();
       const zonas = await this.zonaRepository.find();
+      const estadosFenologicos = await this.estadoFenologicoRepository.find();
 
       // Crear una relación simple: cada cxv con una zona
       for (let i = 0; i < cxvs.length; i++) {
+        const cantidadInicial = Math.floor(Math.random() * 100) + 50; // 50-150 plantas iniciales
+        const estadoId = estadosFenologicos.length > 0 ? estadosFenologicos[0].id : undefined;
+
         const cvz = this.cultivosVariedadXZonaRepository.create({
           fkCultivosXVariedadId: cxvs[i].id,
           fkZonaId: zonas[i % zonas.length].id,
+          cantidadPlantasInicial: cantidadInicial,
+          cantidadPlantasActual: cantidadInicial, // Inicialmente igual a la cantidad inicial
+          fkEstadoFenologicoId: estadoId,
         });
-        await this.cultivosVariedadXZonaRepository.save(cvz);
-        this.logger.log(`Relación cultivo-variedad-zona creada.`, 'Seeder');
+
+        const savedCvz = await this.cultivosVariedadXZonaRepository.save(cvz);
+        console.log('🌱 CVZ SEEDER - Datos guardados:', {
+          id: savedCvz.id,
+          cantidadPlantasInicial: savedCvz.cantidadPlantasInicial,
+          cantidadPlantasActual: savedCvz.cantidadPlantasActual,
+          fkEstadoFenologicoId: savedCvz.fkEstadoFenologicoId,
+          fechaActualizacion: savedCvz.fechaActualizacion
+        });
+
+        this.logger.log(`Relación cultivo-variedad-zona creada con datos coherentes.`, 'Seeder');
       }
     } catch (error) {
       this.logger.error(
@@ -1215,6 +1235,38 @@ export class SeederService {
       );
     } catch (error) {
       this.logger.error(`Error creando cosechas: ${error.message}`, 'Seeder');
+    }
+  }
+
+  private async seedEstadosFenologicos() {
+    this.logger.log('Creando estados fenológicos base...', 'Seeder');
+    try {
+      const estados = [
+        { nombre: 'Germinación', descripcion: 'Fase inicial de crecimiento de la semilla', orden: 1 },
+        { nombre: 'Crecimiento Vegetativo', descripcion: 'Desarrollo de raíces, tallos y hojas', orden: 2 },
+        { nombre: 'Floración', descripcion: 'Aparición de flores en la planta', orden: 3 },
+        { nombre: 'Fructificación', descripcion: 'Formación y desarrollo de frutos', orden: 4 },
+        { nombre: 'Maduración', descripcion: 'Frutos alcanzan su punto óptimo de cosecha', orden: 5 },
+        { nombre: 'Senescencia', descripcion: 'Envejecimiento y finalización del ciclo', orden: 6 },
+      ];
+      for (const estado of estados) {
+        let estadoFenologico = await this.estadoFenologicoRepository.findOne({
+          where: { nombre: estado.nombre },
+        });
+        if (!estadoFenologico) {
+          estadoFenologico = this.estadoFenologicoRepository.create(estado);
+          await this.estadoFenologicoRepository.save(estadoFenologico);
+          this.logger.log(
+            `Estado fenológico "${estado.nombre}" creado.`,
+            'Seeder',
+          );
+        }
+      }
+    } catch (error) {
+      this.logger.error(
+        `Error creando estados fenológicos: ${error.message}`,
+        'Seeder',
+      );
     }
   }
 

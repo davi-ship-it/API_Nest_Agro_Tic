@@ -25,4 +25,12 @@ export class CreateCultivoDto {
   @Type(() => Date)
   @IsDate()
   siembra?: Date;
+
+  @IsNumber()
+  @IsOptional()
+  cantidad_plantas_inicial?: number;
+
+  @IsNumber()
+  @IsOptional()
+  fk_estado_fenologico?: number;
 }

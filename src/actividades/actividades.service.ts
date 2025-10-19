@@ -22,8 +22,20 @@ export class ActividadesService {
   async create(
     dto: CreateActividadeDto & { imgUrl: string },
   ): Promise<Actividad> {
+    console.log('ActividadesService create - dto.fechaAsignacion:', dto.fechaAsignacion);
+    console.log('ActividadesService create - dto.fechaAsignacion type:', typeof dto.fechaAsignacion);
+    console.log('ActividadesService create - dto.fechaAsignacion ISO:', dto.fechaAsignacion.toISOString());
+    console.log('ActividadesService create - dto.fechaAsignacion local:', dto.fechaAsignacion.toLocaleDateString());
+
     const actividad: Actividad = this.actividadesRepo.create(dto);
-    return await this.actividadesRepo.save(actividad);
+    console.log('ActividadesService create - actividad.fechaAsignacion after create:', actividad.fechaAsignacion);
+    console.log('ActividadesService create - actividad.fechaAsignacion ISO after create:', actividad.fechaAsignacion.toISOString());
+
+    const saved = await this.actividadesRepo.save(actividad);
+    console.log('ActividadesService create - saved.fechaAsignacion:', saved.fechaAsignacion);
+    console.log('ActividadesService create - saved.fechaAsignacion ISO:', saved.fechaAsignacion.toISOString());
+
+    return saved;
   }
   async findAll(): Promise<Actividad[]> {
     return await this.actividadesRepo.find();

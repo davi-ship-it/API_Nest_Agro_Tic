@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsString, IsOptional, IsNumber } from 'class-validator';
 
 export class CreateCultivosVariedadXZonaDto {
   @IsString()
@@ -8,4 +8,12 @@ export class CreateCultivosVariedadXZonaDto {
   @IsString()
   @IsNotEmpty()
   fkZonaId: string;
+
+  @IsNumber()
+  @IsOptional()
+  cantidadPlantasInicial?: number;
+
+  @IsNumber()
+  @IsOptional()
+  fkEstadoFenologicoId?: number;
 }

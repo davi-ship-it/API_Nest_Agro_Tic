@@ -38,6 +38,10 @@ export class ActividadesController {
     @Body() dto: CreateActividadeDto,
     @UploadedFile() file?: Express.Multer.File,
   ) {
+    console.log('ActividadesController create - dto.fechaAsignacion:', dto.fechaAsignacion);
+    console.log('ActividadesController create - dto.fechaAsignacion type:', typeof dto.fechaAsignacion);
+    console.log('ActividadesController create - dto.fechaAsignacion ISO:', dto.fechaAsignacion.toISOString());
+
     const imgUrl = file ? `/uploads/actividades/${file.filename}` : '';
     return this.actividadesService.create({ ...dto, imgUrl });
   }
