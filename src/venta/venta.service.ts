@@ -13,6 +13,11 @@ export class VentaService {
   ) {}
 
   async create(createVentaDto: CreateVentaDto): Promise<Venta> {
+    // Set default date if not provided or empty
+    if (!createVentaDto.fecha || createVentaDto.fecha.trim() === '') {
+      createVentaDto.fecha = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+    }
+
     const venta = this.ventaRepository.create(createVentaDto);
     return await this.ventaRepository.save(venta);
   }

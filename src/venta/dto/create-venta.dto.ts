@@ -6,8 +6,8 @@ export class CreateVentaDto {
   cantidad: number;
 
   @IsString()
-  @IsNotEmpty()
-  fecha: string;
+  @IsOptional()
+  fecha?: string;
 
   @IsString()
   @IsNotEmpty()

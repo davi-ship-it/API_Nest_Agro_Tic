@@ -32,7 +32,11 @@ export class CosechasService {
       (createCosechaDto as any).rendimientoPorPlanta = createCosechaDto.cantidad / createCosechaDto.cantidad_plantas_cosechadas;
     }
 
-    const cosecha = this.cosechaRepository.create(createCosechaDto);
+    const cosecha = this.cosechaRepository.create({
+      ...createCosechaDto,
+      cantidadPlantasCosechadas: createCosechaDto.cantidad_plantas_cosechadas,
+      rendimientoPorPlanta: (createCosechaDto as any).rendimientoPorPlanta,
+    });
     const savedCosecha = await this.cosechaRepository.save(cosecha);
 
     // Update cultivo estado to Finalizado (0)

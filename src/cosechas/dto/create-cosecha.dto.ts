@@ -20,4 +20,8 @@ export class CreateCosechaDto {
   @IsOptional()
   @IsNumber()
   cantidad_plantas_cosechadas?: number;
+
+  @IsOptional()
+  @IsNumber()
+  rendimiento_por_planta?: number;
 }
