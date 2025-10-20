@@ -204,8 +204,6 @@ export class SeederService {
     await this.seedCultivosVariedadXZona();
     await this.seedCosechas();
     await this.seedCategoriaActividad();
-    await this.seedActividad();
-    await this.seedUsuarioXActividad();
 
     // New reservation-related seeding
     await this.seedUnidadesMedida();
@@ -213,8 +211,6 @@ export class SeederService {
     await this.seedLotesInventario();
     await this.seedTiposMovimiento();
     await this.seedEstadosReserva();
-    await this.seedReservasXActividad();
-    await this.seedMovimientosInventario();
 
     this.logger.log('Seeding completado exitosamente.', 'Seeder');
   }
