@@ -1276,6 +1276,7 @@ export class SeederService {
         'Fitosanitario',
         'Mantenimiento',
         'Herramientas',
+        'observación',
       ];
       for (const nombre of categorias) {
         let categoria = await this.categoriaActividadRepository.findOne({
