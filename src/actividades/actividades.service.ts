@@ -147,11 +147,23 @@ export class ActividadesService {
     cantidadReservada: number,
     estadoId: number = 1,
   ): Promise<ReservasXActividad> {
+    // Get lote with product to get financial data
+    const lote = await this.actividadesRepo.manager.findOne(LotesInventario, {
+      where: { id: loteId },
+      relations: ['producto'],
+    });
+
+    if (!lote || !lote.producto) {
+      throw new NotFoundException(`Lote con ID ${loteId} no encontrado o sin producto`);
+    }
+
     const dto: CreateReservasXActividadDto = {
       fkActividadId: actividadId,
       fkLoteId: loteId,
       cantidadReservada,
       fkEstadoId: estadoId,
+      capacidadPresentacionProducto: lote.producto.capacidadPresentacion,
+      precioProducto: lote.producto.precioCompra,
     };
     const reserva = await this.reservasXActividadService.create(dto);
 

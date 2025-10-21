@@ -37,7 +37,25 @@ export class ReservasXActividadService {
   async create(
     createDto: CreateReservasXActividadDto,
   ): Promise<ReservasXActividad> {
-    const entity = this.reservasXActividadRepo.create(createDto);
+    // Get the lote with producto relation to copy financial data
+    const lote = await this.lotesInventarioRepo.findOne({
+      where: { id: createDto.fkLoteId },
+      relations: ['producto'],
+    });
+
+    if (!lote || !lote.producto) {
+      throw new BadRequestException(
+        `Lote con ID ${createDto.fkLoteId} no encontrado o no tiene producto asociado`,
+      );
+    }
+
+    // Copy financial data from product to ensure immutability
+    const entity = this.reservasXActividadRepo.create({
+      ...createDto,
+      capacidadPresentacionProducto: lote.producto.capacidadPresentacion,
+      precioProducto: lote.producto.precioCompra,
+    });
+
     return await this.reservasXActividadRepo.save(entity);
   }
 

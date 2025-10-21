@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class InitialSchema1761056074648 implements MigrationInterface {
-    name = 'InitialSchema1761056074648'
+export class InitialSchema1761071875047 implements MigrationInterface {
+    name = 'InitialSchema1761071875047'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`CREATE TABLE "mapas" ("pk_id_mapa" uuid NOT NULL DEFAULT uuid_generate_v4(), "map_nombre" character varying(51) NOT NULL, "map_url_img" character varying(255) NOT NULL, CONSTRAINT "PK_e0ecbeeebab5aff6c227dee4ec0" PRIMARY KEY ("pk_id_mapa"))`);
@@ -23,7 +23,7 @@ export class InitialSchema1761056074648 implements MigrationInterface {
         await queryRunner.query(`CREATE TABLE "bodega" ("pk_id_bodega" uuid NOT NULL DEFAULT uuid_generate_v4(), "bod_numero" character varying(15) NOT NULL, "bod_nombre" character varying(100) NOT NULL, CONSTRAINT "PK_f1488a686bf47ab88f6e9b079a8" PRIMARY KEY ("pk_id_bodega"))`);
         await queryRunner.query(`CREATE TABLE "lotes_inventario" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "fk_producto_id" uuid NOT NULL, "fk_bodega_id" uuid NOT NULL, "cantidadDisponible" numeric(10,2) NOT NULL DEFAULT '0', "stock" numeric(10,2) NOT NULL DEFAULT '0', "esParcial" boolean NOT NULL DEFAULT false, "cantidadParcial" numeric(10,2) NOT NULL DEFAULT '0', "fechaIngreso" TIMESTAMP NOT NULL DEFAULT now(), "fechaVencimiento" date, CONSTRAINT "PK_d53c42ed86b9c606e6e923e36ee" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TABLE "estados_reserva" ("id" SERIAL NOT NULL, "nombre" character varying(50) NOT NULL, CONSTRAINT "UQ_23c6cbdee88a8bbe1b1e383c46d" UNIQUE ("nombre"), CONSTRAINT "PK_86d5fa4092e03881e284db998f5" PRIMARY KEY ("id"))`);
-        await queryRunner.query(`CREATE TABLE "reservas_x_actividad" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "fk_actividad_id" uuid NOT NULL, "fk_lote_id" uuid NOT NULL, "fk_estado_id" integer NOT NULL, "cantidad_reservada" numeric(10,2) NOT NULL, "cantidad_usada" numeric(10,2), "cantidad_devuelta" numeric(10,2), CONSTRAINT "PK_fe5573623a0c475c374ba2c6e89" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "reservas_x_actividad" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "fk_actividad_id" uuid NOT NULL, "fk_lote_id" uuid NOT NULL, "fk_estado_id" integer NOT NULL, "cantidad_reservada" numeric(10,2) NOT NULL, "cantidad_usada" numeric(10,2), "cantidad_devuelta" numeric(10,2), "capacidad_presentacion_producto" numeric(10,2) NOT NULL, "precio_producto" numeric(12,2) NOT NULL, CONSTRAINT "PK_fe5573623a0c475c374ba2c6e89" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TABLE "actividades" ("pk_id_actividad" uuid NOT NULL DEFAULT uuid_generate_v4(), "act_descripcion" text NOT NULL, "act_fecha_asignacion" date NOT NULL, "act_horas_dedicadas" numeric, "act_precio_hora" numeric, "act_observacion" character varying(255), "act_estado" boolean DEFAULT true, "act_fecha_finalizacion" TIMESTAMP, "act_img_url" character varying(255), "fk_id_cultivo_variedad_x_zona" uuid NOT NULL, "fk_id_categoria_actividad" uuid NOT NULL, CONSTRAINT "PK_0da23a7b5690826fcc0853856ad" PRIMARY KEY ("pk_id_actividad"))`);
         await queryRunner.query(`CREATE TABLE "cosechas_ventas" ("pk_id_cosechas_ventas" uuid NOT NULL DEFAULT uuid_generate_v4(), "fk_id_cosecha" uuid NOT NULL, "fk_id_venta" uuid NOT NULL, "cv_cantidad_vendida" numeric(10,2) NOT NULL, CONSTRAINT "PK_d447866486f82a99ef2867f1d38" PRIMARY KEY ("pk_id_cosechas_ventas"))`);
         await queryRunner.query(`CREATE TABLE "venta" ("pk_id_venta" uuid NOT NULL DEFAULT uuid_generate_v4(), "ven_cantidad" numeric(10,2) NOT NULL, "ven_fecha" date NOT NULL, "fk_id_cosecha" uuid NOT NULL, "ven_precio_kilo" numeric, CONSTRAINT "PK_9e09d8f553efa44c3a81f51db78" PRIMARY KEY ("pk_id_venta"))`);
@@ -35,10 +35,10 @@ export class InitialSchema1761056074648 implements MigrationInterface {
         await queryRunner.query(`CREATE TABLE "sensor" ("pk_id_sensor" uuid NOT NULL DEFAULT uuid_generate_v4(), "sen_nombre" character varying(50) NOT NULL, "sen_coor_x" integer NOT NULL, "sen_coor_y" integer NOT NULL, "sen_rango_minimo" numeric(10,2), "sen_rango_maximo" numeric(10,2), "sen_img" character varying(255) NOT NULL, "sen_estado" smallint NOT NULL, "sen_fecha_instalacion" TIMESTAMP NOT NULL, "sen_fecha_ultimo_mantenimiento" TIMESTAMP, "fk_id_tipo_sensor" uuid NOT NULL, "fk_id_zona" uuid, CONSTRAINT "PK_29eb369add2b5d73d5d64f1f140" PRIMARY KEY ("pk_id_sensor"))`);
         await queryRunner.query(`CREATE TABLE "zonas" ("pk_id_zona" uuid NOT NULL DEFAULT uuid_generate_v4(), "zon_nombre" character varying(50) NOT NULL, "zon_tipo_lote" character varying(8) NOT NULL, "zon_coor_x" numeric(10,2) NOT NULL, "zon_coor_y" numeric(10,2) NOT NULL, "zon_area_metros_cuadrados" numeric(10,2), "fk_id_mapa" uuid NOT NULL, CONSTRAINT "PK_ed479402d4f4ca15c7d322f09a9" PRIMARY KEY ("pk_id_zona"))`);
         await queryRunner.query(`CREATE TABLE "tipos_movimiento" ("id" SERIAL NOT NULL, "nombre" character varying(50) NOT NULL, CONSTRAINT "UQ_8dc34bd609546a65f1702961433" UNIQUE ("nombre"), CONSTRAINT "PK_a006012b08b4c5d1249edfb727e" PRIMARY KEY ("id"))`);
-        await queryRunner.query(`CREATE TABLE "cultivos_x_epa" ("pk_id_cultivos_x_epa" uuid NOT NULL DEFAULT uuid_generate_v4(), "cxp_fecha_deteccion" date NOT NULL, "cxp_estado" smallint NOT NULL, "fk_id_cultivos_x_variedad" uuid NOT NULL, "fk_id_epa" uuid NOT NULL, CONSTRAINT "PK_50265e93fa52fa016463f1c1d91" PRIMARY KEY ("pk_id_cultivos_x_epa"))`);
-        await queryRunner.query(`CREATE TABLE "epa" ("pk_id_epa" uuid NOT NULL DEFAULT uuid_generate_v4(), "epa_nombre" character varying(100) NOT NULL, "epa_descripcion" text, "epa_img_url" character varying(255), "fk_id_tipo_epa" uuid NOT NULL, CONSTRAINT "PK_9a3b902c7db65928623ec6598a9" PRIMARY KEY ("pk_id_epa"))`);
-        await queryRunner.query(`CREATE TABLE "tipo_epa" ("pk_id_tipo_epa" uuid NOT NULL DEFAULT uuid_generate_v4(), "tipo_epa_nombre" character varying(50) NOT NULL, CONSTRAINT "UQ_d9e54d57338afcad4d7c91b0d7c" UNIQUE ("tipo_epa_nombre"), CONSTRAINT "PK_dcc91f7443ac39c48ed98eccdf9" PRIMARY KEY ("pk_id_tipo_epa"))`);
         await queryRunner.query(`CREATE TABLE "movimientos_inventario" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "fk_lote_id" uuid NOT NULL, "fk_reserva_id" uuid, "fk_tipo_movimiento_id" integer NOT NULL, "cantidad" numeric(10,2) NOT NULL, "fecha_movimiento" TIMESTAMP NOT NULL DEFAULT now(), "observacion" text, CONSTRAINT "PK_812f6e4f95b017981363c4b9ff9" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "cultivos_x_epa" ("pk_id_cultivos_x_epa" uuid NOT NULL DEFAULT uuid_generate_v4(), "cxp_fecha_deteccion" date NOT NULL, "cxp_estado" smallint NOT NULL, "fk_id_cultivos_x_variedad" uuid NOT NULL, "fk_id_epa" uuid NOT NULL, CONSTRAINT "PK_50265e93fa52fa016463f1c1d91" PRIMARY KEY ("pk_id_cultivos_x_epa"))`);
+        await queryRunner.query(`CREATE TABLE "tipo_epa" ("pk_id_tipo_epa" uuid NOT NULL DEFAULT uuid_generate_v4(), "tipo_epa_nombre" character varying(50) NOT NULL, CONSTRAINT "UQ_d9e54d57338afcad4d7c91b0d7c" UNIQUE ("tipo_epa_nombre"), CONSTRAINT "PK_dcc91f7443ac39c48ed98eccdf9" PRIMARY KEY ("pk_id_tipo_epa"))`);
+        await queryRunner.query(`CREATE TABLE "epa" ("pk_id_epa" uuid NOT NULL DEFAULT uuid_generate_v4(), "epa_nombre" character varying(100) NOT NULL, "epa_descripcion" text, "epa_img_url" character varying(255), "fk_id_tipo_epa" uuid NOT NULL, CONSTRAINT "PK_9a3b902c7db65928623ec6598a9" PRIMARY KEY ("pk_id_epa"))`);
         await queryRunner.query(`CREATE TABLE "sessions" ("pk_id_session" uuid NOT NULL DEFAULT uuid_generate_v4(), "session_token_hash" character varying(255) NOT NULL, "session_expires_at" TIMESTAMP NOT NULL, "session_is_active" boolean NOT NULL DEFAULT true, "session_created_at" TIMESTAMP NOT NULL DEFAULT now(), "session_updated_at" TIMESTAMP NOT NULL DEFAULT now(), "fk_id_usuario" uuid, CONSTRAINT "PK_854b0cbf57826eeb92786fd61fe" PRIMARY KEY ("pk_id_session"))`);
         await queryRunner.query(`CREATE TABLE "roles_permisos" ("rol_id" uuid NOT NULL, "permiso_id" uuid NOT NULL, CONSTRAINT "PK_0e1dbe0449ae37ef1b31b0d9474" PRIMARY KEY ("rol_id", "permiso_id"))`);
         await queryRunner.query(`CREATE INDEX "IDX_dc3cfbcce511233d4bef92d7e3" ON "roles_permisos" ("rol_id") `);
@@ -75,12 +75,12 @@ export class InitialSchema1761056074648 implements MigrationInterface {
         await queryRunner.query(`ALTER TABLE "sensor" ADD CONSTRAINT "FK_48052e061c57447d62f9e64b3da" FOREIGN KEY ("fk_id_tipo_sensor") REFERENCES "tipo_sensor"("pk_id_tipo_sensor") ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "sensor" ADD CONSTRAINT "FK_317e3ed127d5183a466383d910b" FOREIGN KEY ("fk_id_zona") REFERENCES "zonas"("pk_id_zona") ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "zonas" ADD CONSTRAINT "FK_c068ac2c1f04a99a59d1aaf74ed" FOREIGN KEY ("fk_id_mapa") REFERENCES "mapas"("pk_id_mapa") ON DELETE NO ACTION ON UPDATE NO ACTION`);
-        await queryRunner.query(`ALTER TABLE "cultivos_x_epa" ADD CONSTRAINT "FK_62ec7f2dad568439e62f7896b73" FOREIGN KEY ("fk_id_cultivos_x_variedad") REFERENCES "cultivos_x_variedad"("pk_id_cultivos_x_variedad") ON DELETE NO ACTION ON UPDATE NO ACTION`);
-        await queryRunner.query(`ALTER TABLE "cultivos_x_epa" ADD CONSTRAINT "FK_e93725ad163564397db9100ca2d" FOREIGN KEY ("fk_id_epa") REFERENCES "epa"("pk_id_epa") ON DELETE NO ACTION ON UPDATE NO ACTION`);
-        await queryRunner.query(`ALTER TABLE "epa" ADD CONSTRAINT "FK_25cd948e2b067f238871a478ce7" FOREIGN KEY ("fk_id_tipo_epa") REFERENCES "tipo_epa"("pk_id_tipo_epa") ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "movimientos_inventario" ADD CONSTRAINT "FK_b635c8408938f63578ad3a441d5" FOREIGN KEY ("fk_lote_id") REFERENCES "lotes_inventario"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "movimientos_inventario" ADD CONSTRAINT "FK_ed669516597c2d98f49817c9814" FOREIGN KEY ("fk_reserva_id") REFERENCES "reservas_x_actividad"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "movimientos_inventario" ADD CONSTRAINT "FK_8a915d5adf1b954fc3fb4469a2d" FOREIGN KEY ("fk_tipo_movimiento_id") REFERENCES "tipos_movimiento"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "cultivos_x_epa" ADD CONSTRAINT "FK_62ec7f2dad568439e62f7896b73" FOREIGN KEY ("fk_id_cultivos_x_variedad") REFERENCES "cultivos_x_variedad"("pk_id_cultivos_x_variedad") ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "cultivos_x_epa" ADD CONSTRAINT "FK_e93725ad163564397db9100ca2d" FOREIGN KEY ("fk_id_epa") REFERENCES "epa"("pk_id_epa") ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "epa" ADD CONSTRAINT "FK_25cd948e2b067f238871a478ce7" FOREIGN KEY ("fk_id_tipo_epa") REFERENCES "tipo_epa"("pk_id_tipo_epa") ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "sessions" ADD CONSTRAINT "FK_1ab7dcfb69b30ddcdab1d564750" FOREIGN KEY ("fk_id_usuario") REFERENCES "usuarios"("pk_id_usuario") ON DELETE CASCADE ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "roles_permisos" ADD CONSTRAINT "FK_dc3cfbcce511233d4bef92d7e3b" FOREIGN KEY ("rol_id") REFERENCES "roles"("pk_id_rol") ON DELETE CASCADE ON UPDATE CASCADE`);
         await queryRunner.query(`ALTER TABLE "roles_permisos" ADD CONSTRAINT "FK_ef10d9983fcb45f0024cc7000d3" FOREIGN KEY ("permiso_id") REFERENCES "permisos"("pk_id_permiso") ON DELETE CASCADE ON UPDATE CASCADE`);
@@ -94,12 +94,12 @@ export class InitialSchema1761056074648 implements MigrationInterface {
         await queryRunner.query(`ALTER TABLE "roles_permisos" DROP CONSTRAINT "FK_ef10d9983fcb45f0024cc7000d3"`);
         await queryRunner.query(`ALTER TABLE "roles_permisos" DROP CONSTRAINT "FK_dc3cfbcce511233d4bef92d7e3b"`);
         await queryRunner.query(`ALTER TABLE "sessions" DROP CONSTRAINT "FK_1ab7dcfb69b30ddcdab1d564750"`);
-        await queryRunner.query(`ALTER TABLE "movimientos_inventario" DROP CONSTRAINT "FK_8a915d5adf1b954fc3fb4469a2d"`);
-        await queryRunner.query(`ALTER TABLE "movimientos_inventario" DROP CONSTRAINT "FK_ed669516597c2d98f49817c9814"`);
-        await queryRunner.query(`ALTER TABLE "movimientos_inventario" DROP CONSTRAINT "FK_b635c8408938f63578ad3a441d5"`);
         await queryRunner.query(`ALTER TABLE "epa" DROP CONSTRAINT "FK_25cd948e2b067f238871a478ce7"`);
         await queryRunner.query(`ALTER TABLE "cultivos_x_epa" DROP CONSTRAINT "FK_e93725ad163564397db9100ca2d"`);
         await queryRunner.query(`ALTER TABLE "cultivos_x_epa" DROP CONSTRAINT "FK_62ec7f2dad568439e62f7896b73"`);
+        await queryRunner.query(`ALTER TABLE "movimientos_inventario" DROP CONSTRAINT "FK_8a915d5adf1b954fc3fb4469a2d"`);
+        await queryRunner.query(`ALTER TABLE "movimientos_inventario" DROP CONSTRAINT "FK_ed669516597c2d98f49817c9814"`);
+        await queryRunner.query(`ALTER TABLE "movimientos_inventario" DROP CONSTRAINT "FK_b635c8408938f63578ad3a441d5"`);
         await queryRunner.query(`ALTER TABLE "zonas" DROP CONSTRAINT "FK_c068ac2c1f04a99a59d1aaf74ed"`);
         await queryRunner.query(`ALTER TABLE "sensor" DROP CONSTRAINT "FK_317e3ed127d5183a466383d910b"`);
         await queryRunner.query(`ALTER TABLE "sensor" DROP CONSTRAINT "FK_48052e061c57447d62f9e64b3da"`);
@@ -136,10 +136,10 @@ export class InitialSchema1761056074648 implements MigrationInterface {
         await queryRunner.query(`DROP INDEX "public"."IDX_dc3cfbcce511233d4bef92d7e3"`);
         await queryRunner.query(`DROP TABLE "roles_permisos"`);
         await queryRunner.query(`DROP TABLE "sessions"`);
-        await queryRunner.query(`DROP TABLE "movimientos_inventario"`);
-        await queryRunner.query(`DROP TABLE "tipo_epa"`);
         await queryRunner.query(`DROP TABLE "epa"`);
+        await queryRunner.query(`DROP TABLE "tipo_epa"`);
         await queryRunner.query(`DROP TABLE "cultivos_x_epa"`);
+        await queryRunner.query(`DROP TABLE "movimientos_inventario"`);
         await queryRunner.query(`DROP TABLE "tipos_movimiento"`);
         await queryRunner.query(`DROP TABLE "zonas"`);
         await queryRunner.query(`DROP TABLE "sensor"`);

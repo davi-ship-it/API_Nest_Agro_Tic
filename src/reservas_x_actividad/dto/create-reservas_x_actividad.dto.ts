@@ -20,4 +20,10 @@ export class CreateReservasXActividadDto {
   @IsNumber({ maxDecimalPlaces: 2 })
   @IsOptional()
   cantidadDevuelta?: number;
+
+  @IsNumber({ maxDecimalPlaces: 2 })
+  capacidadPresentacionProducto: number;
+
+  @IsNumber({ maxDecimalPlaces: 2 })
+  precioProducto: number;
 }
