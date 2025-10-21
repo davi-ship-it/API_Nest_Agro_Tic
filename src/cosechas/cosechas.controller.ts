@@ -22,7 +22,7 @@ export class CosechasController {
 
   @Get()
   findAll() {
-    return this.cosechasService.findAll();
+    return this.cosechasService.findAllWithDisponible();
   }
 
   @Get(':id')
@@ -38,5 +38,40 @@ export class CosechasController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.cosechasService.remove(id);
+  }
+
+  @Post(':id/close')
+  closeHarvest(@Param('id') id: string) {
+    return this.cosechasService.closeHarvest(id);
+  }
+
+  @Post(':id/close-sales')
+  closeHarvestSales(@Param('id') id: string) {
+    return this.cosechasService.closeHarvestSales(id);
+  }
+
+  @Post('cultivo/:cvzId/close-all-sales')
+  closeAllHarvestSalesByCultivo(@Param('cvzId') cvzId: string) {
+    return this.cosechasService.closeAllHarvestSalesByCultivo(cvzId);
+  }
+
+  @Get(':id/disponible')
+  getCantidadDisponible(@Param('id') id: string) {
+    return this.cosechasService.getCantidadDisponible(id);
+  }
+
+  @Get('cultivo/:cvzId')
+  getCosechasByCultivo(@Param('cvzId') cvzId: string) {
+    return this.cosechasService.getCosechasByCultivo(cvzId);
+  }
+
+  @Get('cultivo/:cvzId/abiertas')
+  getCosechasAbiertasByCultivo(@Param('cvzId') cvzId: string) {
+    return this.cosechasService.getCosechasAbiertasByCultivo(cvzId);
+  }
+
+  @Post('cultivo/:cvzId/close-all')
+  closeAllHarvestsByCultivo(@Param('cvzId') cvzId: string) {
+    return this.cosechasService.closeAllHarvestsByCultivo(cvzId);
   }
 }

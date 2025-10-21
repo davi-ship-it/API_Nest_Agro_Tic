@@ -166,8 +166,10 @@ export class CultivosService {
         'cvz.fechaActualizacion as fecha_actualizacion',
         'ef.nombre as estado_fenologico_nombre',
         'ef.descripcion as estado_fenologico_descripcion',
+        'tc.tpc_nombre as tipo_cultivo_nombre',
+        'tc.tpc_es_perenne as tipo_cultivo_es_perenne',
       ])
-        .groupBy('cvz.id, c.id, z.nombre, c.siembra, c.estado, v.var_nombre, ef.nombre, ef.descripcion')
+        .groupBy('cvz.id, c.id, z.nombre, c.siembra, c.estado, v.var_nombre, ef.nombre, ef.descripcion, tc.tpc_nombre, tc.tpc_es_perenne')
         .orderBy('cvz.id');
 
       console.log('Generated Query:', qb.getQuery());
@@ -197,5 +199,11 @@ export class CultivosService {
       // Devolver array vacío en caso de error para evitar crash
       return [];
     }
+  }
+
+  async finalize(id: string): Promise<Cultivo> {
+    const cultivo = await this.findOne(id);
+    cultivo.estado = 0; // Cambiar estado a finalizado
+    return await this.cultivoRepo.save(cultivo);
   }
 }

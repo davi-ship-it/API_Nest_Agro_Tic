@@ -32,8 +32,10 @@ import { ReservasXActividad } from '../reservas_x_actividad/entities/reservas_x_
 import { MovimientosInventario } from '../movimientos_inventario/entities/movimientos_inventario.entity';
 import { TipoMovimiento } from '../tipos_movimiento/entities/tipos_movimiento.entity';
 import { EstadoReserva } from '../estados_reserva/entities/estados_reserva.entity';
-import { EstadoFenologico } from '../estados_fenologicos/entities/estado_fenologico.entity';
-
+import { EstadoFenologico }
+  from '../estados_fenologicos/entities/estado_fenologico.entity';
+import { CosechasVentas } from '../cosechas_ventas/entities/cosechas_ventas.entity';
+import { Venta } from '../venta/entities/venta.entity';
 // Acciones comunes para reutilizar y mantener consistencia
 const ACCIONES_CRUD = ['leer', 'crear', 'actualizar', 'eliminar'];
 const ACCION_VER = ['ver'];
@@ -141,6 +143,10 @@ export class SeederService {
     private readonly estadoReservaRepository: Repository<EstadoReserva>,
     @InjectRepository(EstadoFenologico)
     private readonly estadoFenologicoRepository: Repository<EstadoFenologico>,
+    @InjectRepository(CosechasVentas)
+    private readonly cosechasVentasRepository: Repository<CosechasVentas>,
+    @InjectRepository(Venta)
+    private readonly ventaRepository: Repository<Venta>,
   ) {}
 
   async seed() {
@@ -203,6 +209,7 @@ export class SeederService {
     await this.seedCultivosXVariedad();
     await this.seedCultivosVariedadXZona();
     await this.seedCosechas();
+    await this.seedVentas();
     await this.seedCategoriaActividad();
 
     // New reservation-related seeding
@@ -765,17 +772,28 @@ export class SeederService {
   }
 
   private async seedTipoCultivo() {
-    this.logger.log('Creando tipos de cultivo base...', 'Seeder');
+    this.logger.log('Creando tipos de cultivo base con clasificación perenne/transitorio...', 'Seeder');
     try {
-      const tipos = ['Tomate', 'Papa', 'Maíz'];
-      for (const nombre of tipos) {
+      const tipos = [
+        { nombre: 'Tomate', esPerenne: false },
+        { nombre: 'Papa', esPerenne: false },
+        { nombre: 'Maíz', esPerenne: false },
+        { nombre: 'Café', esPerenne: true },
+        { nombre: 'Cacao', esPerenne: true },
+        { nombre: 'Plátano', esPerenne: true },
+      ];
+      for (const tipoData of tipos) {
         let tipo = await this.tipoCultivoRepository.findOne({
-          where: { nombre },
+          where: { nombre: tipoData.nombre },
         });
         if (!tipo) {
-          tipo = this.tipoCultivoRepository.create({ nombre });
+          tipo = this.tipoCultivoRepository.create({
+            nombre: tipoData.nombre,
+            esPerenne: tipoData.esPerenne
+          });
           await this.tipoCultivoRepository.save(tipo);
-          this.logger.log(`Tipo de cultivo "${nombre}" creado.`, 'Seeder');
+          const tipoTexto = tipoData.esPerenne ? 'perenne' : 'transitorio';
+          this.logger.log(`Tipo de cultivo "${tipoData.nombre}" (${tipoTexto}) creado.`, 'Seeder');
         }
       }
     } catch (error) {
@@ -787,12 +805,23 @@ export class SeederService {
   }
 
   private async seedVariedad() {
-    this.logger.log('Creando variedades base...', 'Seeder');
+    this.logger.log('Creando variedades base para tipos perennes y transitorios...', 'Seeder');
     try {
       const variedades = [
+        // Transitorios
         { nombre: 'Cherry', tipo: 'Tomate' },
+        { nombre: 'Roma', tipo: 'Tomate' },
         { nombre: 'Criolla', tipo: 'Papa' },
+        { nombre: 'Pastusa', tipo: 'Papa' },
         { nombre: 'Dulce', tipo: 'Maíz' },
+        { nombre: 'Amarillo', tipo: 'Maíz' },
+        // Perennes
+        { nombre: 'Caturra', tipo: 'Café' },
+        { nombre: 'Catimor', tipo: 'Café' },
+        { nombre: 'Criollo', tipo: 'Cacao' },
+        { nombre: 'Trinitario', tipo: 'Cacao' },
+        { nombre: 'Cavendish', tipo: 'Plátano' },
+        { nombre: 'Bucatán', tipo: 'Plátano' },
       ];
       for (const v of variedades) {
         const tipo = await this.tipoCultivoRepository.findOne({
@@ -808,7 +837,8 @@ export class SeederService {
               fkTipoCultivoId: tipo.id,
             });
             await this.variedadRepository.save(variedad);
-            this.logger.log(`Variedad "${v.nombre}" creada.`, 'Seeder');
+            const tipoTexto = tipo.esPerenne ? 'perenne' : 'transitorio';
+            this.logger.log(`Variedad "${v.nombre}" (${tipoTexto}) creada.`, 'Seeder');
           }
         }
       }
@@ -934,8 +964,8 @@ export class SeederService {
       }
 
       const cultivosCreados: any[] = [];
-      for (let i = 0; i < 3; i++) {
-        // Crear solo 3 cultivos
+      // Crear 6 cultivos: 3 perennes y 3 transitorios
+      for (let i = 0; i < 6; i++) {
         // Mezcla de estados: 70% en curso, 30% finalizado
         const estado = Math.random() > 0.7 ? 0 : 1;
 
@@ -961,16 +991,34 @@ export class SeederService {
     this.logger.log('Creando relaciones cultivos x variedad...', 'Seeder');
     try {
       const cultivos = await this.cultivoRepository.find();
-      const variedades = await this.variedadRepository.find();
+      const variedades = await this.variedadRepository.find({
+        relations: ['tipoCultivo']
+      });
 
-      // Crear una relación simple: cada cultivo con una variedad
-      for (let i = 0; i < Math.min(cultivos.length, variedades.length); i++) {
+      // Separar variedades por tipo de cultivo
+      const variedadesPerennes = variedades.filter(v => v.tipoCultivo?.esPerenne);
+      const variedadesTransitorias = variedades.filter(v => !v.tipoCultivo?.esPerenne);
+
+      // Crear relaciones: primeros 3 cultivos con variedades perennes, siguientes 3 con transitorias
+      for (let i = 0; i < cultivos.length; i++) {
+        let variedadId;
+        if (i < 3 && variedadesPerennes.length > 0) {
+          // Primeros 3 cultivos: perennes
+          variedadId = variedadesPerennes[i % variedadesPerennes.length].id;
+        } else if (i >= 3 && variedadesTransitorias.length > 0) {
+          // Siguientes 3 cultivos: transitorios
+          variedadId = variedadesTransitorias[(i - 3) % variedadesTransitorias.length].id;
+        } else {
+          // Fallback si no hay suficientes variedades del tipo correcto
+          variedadId = variedades[i % variedades.length].id;
+        }
+
         const cxv = this.cultivosXVariedadRepository.create({
           fkCultivoId: cultivos[i].id,
-          fkVariedadId: variedades[i % variedades.length].id,
+          fkVariedadId: variedadId,
         });
         await this.cultivosXVariedadRepository.save(cxv);
-        this.logger.log(`Relación cultivo-variedad creada.`, 'Seeder');
+        this.logger.log(`Relación cultivo-variedad creada (cultivo ${i + 1}).`, 'Seeder');
       }
     } catch (error) {
       this.logger.error(
@@ -1169,34 +1217,35 @@ export class SeederService {
 
   private async seedCosechas() {
     this.logger.log(
-      'Creando cosechas para varios cultivos finalizados con fechas variadas...',
+      'Creando cosechas para cultivos activos (no finalizados) siguiendo nueva lógica...',
       'Seeder',
     );
     try {
-      // Obtener CVZ con relaciones para filtrar cultivos finalizados (estado 0)
+      // Obtener CVZ con relaciones para filtrar cultivos activos (estado 1)
       const cvzs = await this.cultivosVariedadXZonaRepository.find({
-        relations: ['cultivoXVariedad', 'cultivoXVariedad.cultivo'],
+        relations: ['cultivoXVariedad', 'cultivoXVariedad.cultivo', 'cultivoXVariedad.variedad', 'cultivoXVariedad.variedad.tipoCultivo'],
       });
 
-      // Filtrar CVZ que pertenecen a cultivos finalizados (estado 0)
-      const cvzsFinalizados = cvzs.filter(
-        (cvz) => cvz.cultivoXVariedad?.cultivo?.estado === 0,
+      // Filtrar CVZ que pertenecen a cultivos activos (estado 1)
+      const cvzsActivos = cvzs.filter(
+        (cvz) => cvz.cultivoXVariedad?.cultivo?.estado === 1,
       );
 
-      if (cvzsFinalizados.length === 0) {
+      if (cvzsActivos.length === 0) {
         this.logger.warn(
-          'No hay cultivos finalizados para crear cosechas.',
+          'No hay cultivos activos para crear cosechas.',
           'Seeder',
         );
         return;
       }
 
-      // Crear cosechas para varios cultivos finalizados
-      const numCosechas = cvzsFinalizados.length; // Crear una por cada CVZ de cultivos finalizados
+      // Crear cosechas para cultivos activos
+      const numCosechas = cvzsActivos.length; // Crear una por cada CVZ de cultivos activos
 
       for (let i = 0; i < numCosechas; i++) {
-        const cvz = cvzsFinalizados[i];
+        const cvz = cvzsActivos[i];
         const cultivo = cvz.cultivoXVariedad?.cultivo;
+        const tipoCultivo = cvz.cultivoXVariedad?.variedad?.tipoCultivo;
 
         // Generar fecha variada: desde la fecha de siembra hasta hoy
         let fechaCosecha: Date;
@@ -1218,15 +1267,18 @@ export class SeederService {
           cantidad: Math.floor(Math.random() * 200) + 50, // Cantidad aleatoria entre 50-250
           fecha: fechaCosecha.toISOString().split('T')[0],
           fkCultivosVariedadXZonaId: cvz.id,
+          cerrado: false, // Nueva lógica: cosechas empiezan abiertas
         });
         await this.cosechaRepository.save(cosecha);
+
+        const tipoTexto = tipoCultivo?.esPerenne ? 'perenne' : 'transitorio';
         this.logger.log(
-          `Cosecha creada para cultivo finalizado (CVZ ${cvz.id}), fecha: ${cosecha.fecha}.`,
+          `Cosecha creada para cultivo ${tipoTexto} activo (CVZ ${cvz.id}), fecha: ${cosecha.fecha}, cerrada: ${cosecha.cerrado}.`,
           'Seeder',
         );
       }
       this.logger.log(
-        `Creadas ${numCosechas} cosechas para cultivos finalizados.`,
+        `Creadas ${numCosechas} cosechas para cultivos activos.`,
         'Seeder',
       );
     } catch (error) {
@@ -1848,6 +1900,107 @@ export class SeederService {
         `Error creando movimientos de inventario: ${error.message}`,
         'Seeder',
       );
+    }
+  }
+
+  private async seedVentas() {
+    this.logger.log('Creando ventas de prueba con relación muchos a muchos siguiendo nueva lógica...', 'Seeder');
+    try {
+      // Obtener solo cosechas abiertas (cerrado = false) para ventas
+      const cosechasAbiertas = await this.cosechaRepository.find({
+        where: { cerrado: false },
+        relations: ['cultivosVariedadXZona', 'cultivosVariedadXZona.cultivoXVariedad', 'cultivosVariedadXZona.cultivoXVariedad.variedad', 'cultivosVariedadXZona.cultivoXVariedad.variedad.tipoCultivo'],
+      });
+
+      if (cosechasAbiertas.length === 0) {
+        this.logger.warn('No hay cosechas abiertas disponibles para ventas. Saltando ventas.', 'Seeder');
+        return;
+      }
+
+      // Crear algunas ventas de prueba solo con cosechas abiertas
+      const ventasData = [
+        {
+          cantidad: 25.5,
+          fecha: '2024-10-15',
+          precioKilo: 2.5,
+          cosechas: [cosechasAbiertas[0]], // Venta de una sola cosecha abierta
+        },
+        {
+          cantidad: 45.0,
+          fecha: '2024-10-20',
+          precioKilo: 3.0,
+          cosechas: cosechasAbiertas.slice(0, 2), // Venta de múltiples cosechas abiertas
+        },
+        {
+          cantidad: 30.0,
+          fecha: '2024-10-25',
+          precioKilo: 2.8,
+          cosechas: cosechasAbiertas.slice(0, 3), // Venta de múltiples cosechas abiertas
+        },
+      ];
+
+      for (const ventaData of ventasData) {
+        // Calcular total disponible de las cosechas seleccionadas
+        let totalDisponible = 0;
+        for (const cosecha of ventaData.cosechas) {
+          const cantidadVendida = cosecha.cosechasVentas?.reduce((total, cv) => total + cv.cantidadVendida, 0) || 0;
+          totalDisponible += cosecha.cantidad - cantidadVendida;
+        }
+
+        if (totalDisponible < ventaData.cantidad) {
+          this.logger.warn(
+            `Cantidad insuficiente para venta (${ventaData.cantidad}kg requeridos, ${totalDisponible}kg disponibles). Saltando.`,
+            'Seeder',
+          );
+          continue;
+        }
+
+        // Crear la venta principal
+        const venta = this.ventaRepository.create({
+          cantidad: ventaData.cantidad,
+          fecha: ventaData.fecha,
+          precioKilo: ventaData.precioKilo,
+          fkCosechaId: ventaData.cosechas[0].id, // Usar primera cosecha como referencia
+        });
+
+        const savedVenta = await this.ventaRepository.save(venta);
+
+        // Distribuir la venta usando FIFO
+        let remainingQuantity = ventaData.cantidad;
+        const cosechasSorted = ventaData.cosechas.sort((a, b) => {
+          const dateA = a.fecha ? new Date(a.fecha).getTime() : 0;
+          const dateB = b.fecha ? new Date(b.fecha).getTime() : 0;
+          return dateA - dateB;
+        });
+
+        for (const cosecha of cosechasSorted) {
+          if (remainingQuantity <= 0) break;
+
+          const cantidadVendida = cosecha.cosechasVentas?.reduce((total, cv) => total + cv.cantidadVendida, 0) || 0;
+          const disponible = cosecha.cantidad - cantidadVendida;
+          const quantityToTake = Math.min(remainingQuantity, disponible);
+
+          if (quantityToTake > 0) {
+            const cosechasVentas = this.cosechasVentasRepository.create({
+              fkCosechaId: cosecha.id,
+              fkVentaId: savedVenta.id,
+              cantidadVendida: quantityToTake,
+            });
+
+            await this.cosechasVentasRepository.save(cosechasVentas);
+            remainingQuantity -= quantityToTake;
+          }
+        }
+
+        this.logger.log(
+          `Venta de ${ventaData.cantidad}kg creada con ${ventaData.cosechas.length} cosechas abiertas.`,
+          'Seeder',
+        );
+      }
+
+      this.logger.log('Ventas de prueba creadas para cosechas abiertas.', 'Seeder');
+    } catch (error) {
+      this.logger.error(`Error creando ventas: ${error.message}`, 'Seeder');
     }
   }
 }

@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { CultivosVariedadXZona } from '../../cultivos_variedad_x_zona/entities/cultivos_variedad_x_zona.entity';
 import { Venta } from '../../venta/entities/venta.entity';
+import { CosechasVentas } from '../../cosechas_ventas/entities/cosechas_ventas.entity';
 
 @Entity('cosechas')
 export class Cosecha {
@@ -30,6 +31,10 @@ export class Cosecha {
   @Column({ name: 'cos_cantidad_plantas_cosechadas', type: 'integer', nullable: true })
   cantidadPlantasCosechadas?: number;
 
+
+  @Column({ name: 'cos_cerrado', type: 'boolean', default: false })
+  cerrado: boolean;
+
   @Column({ name: 'fk_id_cultivos_variedad_x_zona' })
   fkCultivosVariedadXZonaId: string;
 
@@ -39,4 +44,7 @@ export class Cosecha {
 
   @OneToMany(() => Venta, (v) => v.cosecha)
   ventas?: Venta[];
+
+  @OneToMany(() => CosechasVentas, (cv) => cv.cosecha)
+  cosechasVentas?: CosechasVentas[];
 }

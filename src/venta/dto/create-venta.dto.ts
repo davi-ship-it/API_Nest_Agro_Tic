@@ -1,4 +1,14 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString, IsArray, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+
+class MultipleHarvestDto {
+  @IsString()
+  @IsNotEmpty()
+  id: string;
+
+  @IsNumber()
+  cantidad: number;
+}
 
 export class CreateVentaDto {
   @IsNumber()
@@ -16,4 +26,10 @@ export class CreateVentaDto {
   @IsNumber()
   @IsOptional()
   precioKilo?: number;
+
+  @IsArray()
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => MultipleHarvestDto)
+  multipleHarvests?: MultipleHarvestDto[];
 }

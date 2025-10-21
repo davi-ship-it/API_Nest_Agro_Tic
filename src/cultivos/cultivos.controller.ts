@@ -48,4 +48,9 @@ export class CultivosController {
   search(@Body() dto: SearchCultivoDto) {
     return this.cultivosService.search(dto);
   }
+
+  @Patch(':id/finalize')
+  finalize(@Param('id') id: string) {
+    return this.cultivosService.finalize(id);
+  }
 }

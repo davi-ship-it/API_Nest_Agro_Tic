@@ -4,9 +4,11 @@ import {
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
+  OneToMany,
   JoinColumn,
 } from 'typeorm';
 import { Cosecha } from '../../cosechas/entities/cosecha.entity';
+import { CosechasVentas } from '../../cosechas_ventas/entities/cosechas_ventas.entity';
 
 @Entity('venta')
 export class Venta {
@@ -28,4 +30,7 @@ export class Venta {
   @ManyToOne(() => Cosecha, (c) => c.ventas)
   @JoinColumn({ name: 'fk_id_cosecha' })
   cosecha?: Cosecha;
+
+  @OneToMany(() => CosechasVentas, (cv) => cv.venta)
+  cosechasVentas?: CosechasVentas[];
 }
