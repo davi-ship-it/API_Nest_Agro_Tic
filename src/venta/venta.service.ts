@@ -7,6 +7,7 @@ import { UpdateVentaDto } from './dto/update-venta.dto';
 import { Cosecha } from '../cosechas/entities/cosecha.entity';
 import { CosechasVentas } from '../cosechas_ventas/entities/cosechas_ventas.entity';
 import { Cultivo } from '../cultivos/entities/cultivo.entity';
+import { convertirPrecioAKilo, convertirAKilos, convertirALibras } from '../utils/conversion-unidades.util';
 
 @Injectable()
 export class VentaService {
@@ -47,31 +48,45 @@ export class VentaService {
       throw new NotFoundException(`Cosecha con id ${createVentaDto.fkCosechaId} no encontrada`);
     }
 
-    // Calculate available quantity dynamically
+    // Calculate available quantity dynamically (cosechas are always in KG)
     const cantidadVendida = cosecha.cosechasVentas?.reduce((total, cv) => total + parseFloat(cv.cantidadVendida.toString()), 0) || 0;
     const cantidadDisponible = parseFloat(cosecha.cantidad.toString()) - cantidadVendida;
 
-    if (cantidadDisponible < createVentaDto.cantidad) {
+    // Convert requested quantity to KG for comparison
+    const cantidadSolicitadaEnKg = convertirAKilos(createVentaDto.cantidad, createVentaDto.unidadMedida);
+
+    if (cantidadDisponible < cantidadSolicitadaEnKg) {
       throw new BadRequestException(
-        `Cantidad insuficiente disponible. Disponible: ${cantidadDisponible}, Solicitado: ${createVentaDto.cantidad}`
+        `Cantidad insuficiente disponible. Disponible: ${cantidadDisponible} KG, Solicitado: ${cantidadSolicitadaEnKg} KG`
       );
     }
 
+    // Calculate precioKilo from unit price and unit
+    const precioKilo = convertirPrecioAKilo(createVentaDto.precioUnitario, createVentaDto.unidadMedida);
+
+    // Convert sale quantity to KG for inventory tracking
+    const cantidadEnKg = convertirAKilos(createVentaDto.cantidad, createVentaDto.unidadMedida);
+
     // Create the sale
     const venta = this.ventaRepository.create({
-      cantidad: createVentaDto.cantidad,
+      cantidad: createVentaDto.cantidad, // Keep original quantity for display
       fecha: createVentaDto.fecha,
       fkCosechaId: createVentaDto.fkCosechaId,
-      precioKilo: createVentaDto.precioKilo,
+      unidadMedida: createVentaDto.unidadMedida,
+      precioUnitario: createVentaDto.precioUnitario,
+      precioKilo: precioKilo,
     });
 
     const savedVenta = await this.ventaRepository.save(venta);
 
     // Create the relationship record for single harvest sale
+    // Store the quantity in KG for inventory tracking
+    const cantidadVendidaEnKg = convertirAKilos(createVentaDto.cantidad, createVentaDto.unidadMedida);
+
     const cosechasVentas = this.cosechasVentasRepository.create({
       fkCosechaId: createVentaDto.fkCosechaId,
       fkVentaId: savedVenta.id,
-      cantidadVendida: createVentaDto.cantidad,
+      cantidadVendida: cantidadVendidaEnKg, // Always store in KG
     });
 
     await this.cosechasVentasRepository.save(cosechasVentas);
@@ -100,6 +115,7 @@ export class VentaService {
       cosecha: Cosecha;
       disponible: number;
       solicitado: number;
+      solicitadoEnKg: number;
     }> = [];
 
     for (const harvest of multipleHarvests) {
@@ -119,39 +135,55 @@ export class VentaService {
       const cantidadVendida = cosecha.cosechasVentas?.reduce((total, cv) => total + parseFloat(cv.cantidadVendida.toString()), 0) || 0;
       const cantidadDisponible = parseFloat(cosecha.cantidad.toString()) - cantidadVendida;
 
+      // Convert requested quantity to KG for comparison
+      const solicitadoEnKg = convertirAKilos(harvest.cantidad, createVentaDto.unidadMedida);
+
       console.log(`[DEBUG] Cosecha ${harvest.id} en venta múltiple:`);
-      console.log(`  - Cantidad total: ${cosecha.cantidad}`);
-      console.log(`  - Cantidad vendida: ${cantidadVendida}`);
-      console.log(`  - Cantidad disponible: ${cantidadDisponible}`);
-      console.log(`  - Cantidad solicitada en esta venta: ${harvest.cantidad}`);
+      console.log(`  - Cantidad total: ${cosecha.cantidad} KG`);
+      console.log(`  - Cantidad vendida: ${cantidadVendida} KG`);
+      console.log(`  - Cantidad disponible: ${cantidadDisponible} KG`);
+      console.log(`  - Cantidad solicitada: ${harvest.cantidad} ${createVentaDto.unidadMedida} (${solicitadoEnKg} KG)`);
       console.log(`  - Ventas registradas:`, cosecha.cosechasVentas?.map(cv => ({ id: cv.id, cantidad: cv.cantidadVendida })) || []);
 
       cosechasData.push({
         cosecha,
         disponible: cantidadDisponible,
         solicitado: harvest.cantidad,
+        solicitadoEnKg: solicitadoEnKg,
       });
 
       totalDisponible += cantidadDisponible;
     }
 
-    console.log(`[DEBUG] Total disponible en todas las cosechas seleccionadas: ${totalDisponible}`);
+    console.log(`[DEBUG] Total disponible en todas las cosechas seleccionadas: ${totalDisponible} KG`);
+    console.log(`[DEBUG] Total solicitado: ${convertirAKilos(totalCantidad, createVentaDto.unidadMedida)} KG`);
 
-    if (totalDisponible < totalCantidad) {
+    // Convert total requested quantity to KG for comparison
+    const totalCantidadEnKg = convertirAKilos(totalCantidad, createVentaDto.unidadMedida);
+
+    if (totalDisponible < totalCantidadEnKg) {
       throw new BadRequestException(
-        `Cantidad insuficiente en las cosechas seleccionadas. Disponible total: ${totalDisponible}, Solicitado: ${totalCantidad}`
+        `Cantidad insuficiente en las cosechas seleccionadas. Disponible total: ${totalDisponible} KG, Solicitado: ${totalCantidadEnKg} KG`
       );
     }
+
+    // Calculate precioKilo from unit price and unit
+    const precioKilo = convertirPrecioAKilo(createVentaDto.precioUnitario, createVentaDto.unidadMedida);
 
     // Create the main sale record (use first harvest as reference)
     const venta = this.ventaRepository.create({
       cantidad: totalCantidad,
       fecha: createVentaDto.fecha,
       fkCosechaId: multipleHarvests[0].id, // Use first harvest as reference
-      precioKilo: createVentaDto.precioKilo,
+      unidadMedida: createVentaDto.unidadMedida,
+      precioUnitario: createVentaDto.precioUnitario,
+      precioKilo: precioKilo,
     });
 
     const savedVenta = await this.ventaRepository.save(venta);
+
+    // Convert total quantity to KG for distribution
+    const totalCantidadEnKgParaDistribucion = convertirAKilos(totalCantidad, createVentaDto.unidadMedida);
 
     // Distribute the sale across harvests using FIFO logic
     await this.distributeSaleAcrossHarvests(savedVenta, cosechasData, totalCantidad);
@@ -166,10 +198,12 @@ export class VentaService {
 
   private async distributeSaleAcrossHarvests(
     venta: Venta,
-    cosechasData: Array<{ cosecha: Cosecha; disponible: number; solicitado: number }>,
+    cosechasData: Array<{ cosecha: Cosecha; disponible: number; solicitado: number; solicitadoEnKg: number }>,
     totalCantidad: number
   ): Promise<void> {
-    let remainingQuantity = totalCantidad;
+    // Convert total quantity to KG for distribution
+    const totalCantidadEnKgDistribucion = convertirAKilos(totalCantidad, venta.unidadMedida);
+    let remainingQuantity = totalCantidadEnKgDistribucion;
 
     console.log(`[DEBUG] distributeSaleAcrossHarvests - Total cantidad a distribuir: ${totalCantidad}`);
     console.log(`[DEBUG] distributeSaleAcrossHarvests - Cosechas antes de ordenar:`, cosechasData.map(d => ({

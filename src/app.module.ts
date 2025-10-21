@@ -45,6 +45,7 @@ import { LotesInventarioModule } from './lotes_inventario/lotes_inventario.modul
 import { ReservasXActividadModule } from './reservas_x_actividad/reservas_x_actividad.module';
 import { MovimientosInventarioModule } from './movimientos_inventario/movimientos_inventario.module';
 import { TiposMovimientoModule } from './tipos_movimiento/tipos_movimiento.module';
+import { FinanzasModule } from './finanzas/finanzas.module';
 import { EstadosReservaModule } from './estados_reserva/estados_reserva.module';
 import { EstadosFenologicosModule } from './estados_fenologicos/estados_fenologicos.module';
 import { PermissionsWsModule } from './permissions-ws/permissions-ws.module';
@@ -168,6 +169,7 @@ import { PermissionsWsModule } from './permissions-ws/permissions-ws.module';
     ReservasXActividadModule,
     MovimientosInventarioModule,
     TiposMovimientoModule,
+    FinanzasModule,
     EstadosReservaModule,
     EstadosFenologicosModule,
     PermissionsWsModule,

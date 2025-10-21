@@ -219,6 +219,10 @@ export class SeederService {
     await this.seedTiposMovimiento();
     await this.seedEstadosReserva();
 
+    // Seed reservations and movements for financial testing
+    await this.seedReservasXActividad();
+    await this.seedMovimientosInventario();
+
     this.logger.log('Seeding completado exitosamente.', 'Seeder');
   }
 
@@ -1841,7 +1845,7 @@ export class SeederService {
   }
 
   private async seedReservasXActividad() {
-    this.logger.log('Creando reservas por actividad...', 'Seeder');
+    this.logger.log('Creando reservas por actividad con datos financieros inmutables...', 'Seeder');
     try {
       const actividades = await this.actividadRepository.find();
       const lotes = await this.lotesInventarioRepository.find({
@@ -1872,15 +1876,15 @@ export class SeederService {
         return;
       }
 
-      // Crear reservas para algunas actividades
+      // Crear reservas con datos financieros inmutables para testing
       const reservasData = [
         {
           actividadIndex: 0,
           loteIndex: 0,
           estado: estadoConfirmada,
           cantidadReservada: 10.0,
-          cantidadUsada: null,
-          cantidadDevuelta: null,
+          cantidadUsada: 8.0, // Usado para cálculos financieros
+          cantidadDevuelta: 2.0,
         },
         {
           actividadIndex: 1,
@@ -1895,7 +1899,23 @@ export class SeederService {
           loteIndex: 2,
           estado: estadoConfirmada,
           cantidadReservada: 2.0,
-          cantidadUsada: null,
+          cantidadUsada: 1.5,
+          cantidadDevuelta: 0.5,
+        },
+        {
+          actividadIndex: 3,
+          loteIndex: 3,
+          estado: estadoConfirmada,
+          cantidadReservada: 15.0,
+          cantidadUsada: 12.0,
+          cantidadDevuelta: 3.0,
+        },
+        {
+          actividadIndex: 4,
+          loteIndex: 4,
+          estado: estadoEnUso,
+          cantidadReservada: 8.0,
+          cantidadUsada: 6.0,
           cantidadDevuelta: null,
         },
       ];
@@ -1905,7 +1925,8 @@ export class SeederService {
           actividades[resData.actividadIndex % actividades.length];
         const lote = lotes[resData.loteIndex % lotes.length];
 
-        if (actividad && lote) {
+        if (actividad && lote && lote.producto) {
+          // Copiar datos financieros inmutables del producto
           const reserva = this.reservasXActividadRepository.create({
             fkActividadId: actividad.id,
             fkLoteId: lote.id,
@@ -1913,16 +1934,24 @@ export class SeederService {
             cantidadReservada: resData.cantidadReservada,
             cantidadUsada: resData.cantidadUsada,
             cantidadDevuelta: resData.cantidadDevuelta,
+            capacidadPresentacionProducto: lote.producto.capacidadPresentacion,
+            precioProducto: lote.producto.precioCompra,
           } as any);
           await this.reservasXActividadRepository.save(reserva);
+
+          // Calcular costo financiero para logging
+          const costoInventario = resData.cantidadUsada ?
+            (resData.cantidadUsada * lote.producto.precioCompra) / lote.producto.capacidadPresentacion : 0;
+
           this.logger.log(
-            `Reserva para actividad ${actividad.id} y lote ${lote.id} creada.`,
+            `Reserva financiera creada - Actividad: ${actividad.id}, Lote: ${lote.id}, ` +
+            `Producto: ${lote.producto.nombre}, Costo: $${costoInventario.toFixed(2)}`,
             'Seeder',
           );
         }
       }
 
-      this.logger.log('Reservas por actividad creadas.', 'Seeder');
+      this.logger.log('Reservas por actividad con datos financieros creadas.', 'Seeder');
     } catch (error) {
       this.logger.error(
         `Error creando reservas por actividad: ${error.message}`,
@@ -2014,7 +2043,7 @@ export class SeederService {
   }
 
   private async seedVentas() {
-    this.logger.log('Creando ventas completas para cosechas cerradas de cultivos finalizados...', 'Seeder');
+    this.logger.log('Creando ventas con conversión de unidades para testing financiero...', 'Seeder');
     try {
       // Obtener solo cosechas cerradas (cerrado = true) de cultivos finalizados para ventas completas
       const cosechasCerradas = await this.cosechaRepository.find({
@@ -2038,12 +2067,23 @@ export class SeederService {
         return;
       }
 
-      // Crear ventas que vendan TODA la cosecha (ventas completas para cultivos finalizados)
-      for (let i = 0; i < cosechasFinalizadas.length; i++) {
-        const cosecha = cosechasFinalizadas[i];
+      // Crear ventas con diferentes unidades para testing de conversión
+      const ventasData = [
+        { cosechaIndex: 0, cantidad: 50, unidadMedida: 'kg', precioUnitario: 2500 }, // $25/kg
+        { cosechaIndex: 1, cantidad: 110.23, unidadMedida: 'lb', precioUnitario: 1136.36 }, // Equivale a $25/kg
+        { cosechaIndex: 0, cantidad: 25, unidadMedida: 'kg', precioUnitario: 3000 }, // $30/kg
+        { cosechaIndex: 1, cantidad: 55.12, unidadMedida: 'lb', precioUnitario: 1363.64 }, // Equivale a $30/kg
+      ];
+
+      for (let i = 0; i < ventasData.length; i++) {
+        const ventaData = ventasData[i];
+        const cosecha = cosechasFinalizadas[ventaData.cosechaIndex % cosechasFinalizadas.length];
+
+        if (!cosecha) continue;
+
         const tipoCultivo = cosecha.cultivosVariedadXZona?.cultivoXVariedad?.variedad?.tipoCultivo;
 
-        // Calcular cantidad disponible (toda la cosecha ya que está cerrada)
+        // Calcular cantidad disponible
         const cantidadVendida = cosecha.cosechasVentas?.reduce((total, cv) => total + cv.cantidadVendida, 0) || 0;
         const cantidadDisponible = cosecha.cantidad - cantidadVendida;
 
@@ -2052,43 +2092,52 @@ export class SeederService {
           continue;
         }
 
+        // Limitar la venta a la cantidad disponible
+        const cantidadAVender = Math.min(ventaData.cantidad, cantidadDisponible);
+
         // Generar fecha de venta posterior a la fecha de cosecha
         const fechaCosecha = new Date(cosecha.fecha || Date.now());
-        const diasDespues = Math.floor(Math.random() * 30) + 1; // 1-30 días después
+        const diasDespues = Math.floor(Math.random() * 30) + 1;
         const fechaVenta = new Date(fechaCosecha.getTime() + diasDespues * 24 * 60 * 60 * 1000);
 
-        // Precio por kilo variable según el tipo de cultivo
-        const precioKilo = tipoCultivo?.esPerenne ?
-          Math.random() * 2 + 3 : // Perennes: $3-5/kg
-          Math.random() * 1.5 + 2; // Transitorios: $2-3.5/kg
+        // Calcular precio por kilo (siempre en $/kg para análisis financiero)
+        const precioKilo = ventaData.unidadMedida === 'kg' ?
+          ventaData.precioUnitario :
+          ventaData.precioUnitario / 0.453592; // Convertir lb a kg
 
-        // Crear la venta principal
+        // Crear la venta con campos de conversión
         const venta = this.ventaRepository.create({
-          cantidad: cantidadDisponible, // Vender toda la cantidad disponible
+          cantidad: cantidadAVender,
           fecha: fechaVenta.toISOString().split('T')[0],
-          precioKilo: Math.round(precioKilo * 100) / 100, // Redondear a 2 decimales
+          unidadMedida: ventaData.unidadMedida,
+          precioUnitario: ventaData.precioUnitario,
+          precioKilo: Math.round(precioKilo * 100) / 100, // Siempre en $/kg
           fkCosechaId: cosecha.id,
         });
 
         const savedVenta = await this.ventaRepository.save(venta);
 
-        // Crear relación cosecha-venta (vender toda la cantidad disponible)
+        // Crear relación cosecha-venta
         const cosechasVentas = this.cosechasVentasRepository.create({
           fkCosechaId: cosecha.id,
           fkVentaId: savedVenta.id,
-          cantidadVendida: cantidadDisponible,
+          cantidadVendida: cantidadAVender,
         });
 
         await this.cosechasVentasRepository.save(cosechasVentas);
 
         const tipoTexto = tipoCultivo?.esPerenne ? 'perenne' : 'transitorio';
+        const ingresoTotal = cantidadAVender * precioKilo;
+
         this.logger.log(
-          `Venta COMPLETA de ${cantidadDisponible}kg creada para cosecha cerrada de cultivo ${tipoTexto} finalizado. Fecha venta: ${venta.fecha}, Precio/kg: $${venta.precioKilo}`,
+          `Venta financiera creada - Cosecha: ${cosecha.id}, Cantidad: ${cantidadAVender}${ventaData.unidadMedida}, ` +
+          `Precio unitario: $${ventaData.precioUnitario}/${ventaData.unidadMedida}, ` +
+          `Precio/kg: $${precioKilo.toFixed(2)}, Ingreso: $${ingresoTotal.toFixed(2)}`,
           'Seeder',
         );
       }
 
-      this.logger.log(`Ventas completas creadas para ${cosechasFinalizadas.length} cosechas cerradas de cultivos finalizados.`, 'Seeder');
+      this.logger.log(`Ventas con conversión de unidades creadas para testing financiero.`, 'Seeder');
     } catch (error) {
       this.logger.error(`Error creando ventas: ${error.message}`, 'Seeder');
     }

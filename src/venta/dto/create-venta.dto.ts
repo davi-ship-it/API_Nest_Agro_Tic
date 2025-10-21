@@ -23,6 +23,14 @@ export class CreateVentaDto {
   @IsNotEmpty()
   fkCosechaId: string;
 
+  @IsString()
+  @IsNotEmpty()
+  unidadMedida: string;
+
+  @IsNumber()
+  @IsNotEmpty()
+  precioUnitario: number;
+
   @IsNumber()
   @IsOptional()
   precioKilo?: number;
