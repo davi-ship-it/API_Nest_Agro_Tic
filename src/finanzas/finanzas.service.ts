@@ -147,7 +147,7 @@ export class FinanzasService {
         where: { id: cosechaId },
         relations: ['cultivosVariedadXZona']
       }))?.cultivosVariedadXZona?.id },
-      relations: ['reservas'],
+      relations: ['reservas', 'reservas.lote', 'reservas.lote.producto', 'reservas.lote.producto.categoria'],
     });
 
     let costoTotal = 0;
@@ -155,10 +155,32 @@ export class FinanzasService {
     for (const actividad of actividades) {
       if (actividad.reservas) {
         for (const reserva of actividad.reservas) {
-          // Costo = cantidad usada * precio producto / capacidad presentación
-          const costoReserva = (reserva.cantidadUsada || 0) *
-            (reserva.precioProducto / reserva.capacidadPresentacionProducto);
-          costoTotal += costoReserva;
+          // Verificar si el producto es divisible (consumible) o no divisible (herramienta)
+          const esDivisible = reserva.lote?.producto?.categoria?.esDivisible ?? true; // Default true para compatibilidad
+
+          if (esDivisible) {
+            // Lógica actual para productos divisibles (consumibles)
+            const costoReserva = (reserva.cantidadUsada || 0) *
+              (reserva.precioProducto / reserva.capacidadPresentacionProducto);
+            costoTotal += costoReserva;
+          } else {
+            // Nueva lógica para productos no divisibles (herramientas) - consumo por uso
+            const vidaUtilPromedioPorUsos = reserva.lote?.producto?.vidaUtilPromedioPorUsos;
+
+            if (vidaUtilPromedioPorUsos && vidaUtilPromedioPorUsos > 0) {
+              // Valor residual = 10% del precio del producto
+              const valorResidual = reserva.precioProducto * 0.1;
+              const costoPorUso = (reserva.precioProducto - valorResidual) / vidaUtilPromedioPorUsos;
+
+              // Cada reserva cuenta como 1 uso
+              costoTotal += costoPorUso;
+            } else {
+              // Fallback: si no hay vida útil definida, usar lógica normal
+              const costoReserva = (reserva.cantidadUsada || 0) *
+                (reserva.precioProducto / reserva.capacidadPresentacionProducto);
+              costoTotal += costoReserva;
+            }
+          }
         }
       }
     }

@@ -1543,6 +1543,7 @@ export class SeederService {
           capacidadPresentacion: 1.0,
           categoriaNombre: 'Equipo y Herramientas',
           unidadNombre: 'Unidad',
+          vidaUtilPromedioPorUsos: 800,
         },
         {
           nombre: 'Pala',
@@ -1552,6 +1553,7 @@ export class SeederService {
           capacidadPresentacion: 1.0,
           categoriaNombre: 'Equipo y Herramientas',
           unidadNombre: 'Unidad',
+          vidaUtilPromedioPorUsos: 1200,
         },
         {
           nombre: 'Carretilla',
@@ -1561,6 +1563,7 @@ export class SeederService {
           capacidadPresentacion: 1.0,
           categoriaNombre: 'Equipo y Herramientas',
           unidadNombre: 'Unidad',
+          vidaUtilPromedioPorUsos: 2000,
         },
         {
           nombre: 'Rastrillo',
@@ -1571,6 +1574,7 @@ export class SeederService {
           capacidadPresentacion: 1.0,
           categoriaNombre: 'Equipo y Herramientas',
           unidadNombre: 'Unidad',
+          vidaUtilPromedioPorUsos: 600,
         },
         {
           nombre: 'Azadón',
@@ -1580,6 +1584,7 @@ export class SeederService {
           capacidadPresentacion: 1.0,
           categoriaNombre: 'Equipo y Herramientas',
           unidadNombre: 'Unidad',
+          vidaUtilPromedioPorUsos: 1000,
         },
         {
           nombre: 'Guantes de Trabajo',
@@ -1589,6 +1594,7 @@ export class SeederService {
           capacidadPresentacion: 1.0,
           categoriaNombre: 'Suministros Auxiliares',
           unidadNombre: 'Unidad',
+          vidaUtilPromedioPorUsos: 150,
         },
         {
           nombre: 'Machete',
@@ -1598,6 +1604,7 @@ export class SeederService {
           capacidadPresentacion: 1.0,
           categoriaNombre: 'Equipo y Herramientas',
           unidadNombre: 'Unidad',
+          vidaUtilPromedioPorUsos: 500,
         },
       ];
 
@@ -1622,6 +1629,7 @@ export class SeederService {
               capacidadPresentacion: prodData.capacidadPresentacion,
               fkCategoriaId: categoria.id,
               fkUnidadMedidaId: unidad.id,
+              vidaUtilPromedioPorUsos: prodData.vidaUtilPromedioPorUsos,
             });
             await this.productoRepository.save(existing);
             this.logger.log(`Producto "${prodData.nombre}" creado.`, 'Seeder');

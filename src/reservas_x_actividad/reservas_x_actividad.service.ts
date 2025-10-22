@@ -50,9 +50,13 @@ export class ReservasXActividadService {
     }
 
     // Copy financial data from product to ensure immutability
+    // For non-divisible products (tools), capacity is always 1
+    const esDivisible = lote.producto.categoria?.esDivisible ?? true;
+    const capacidadPresentacion = esDivisible ? lote.producto.capacidadPresentacion : 1;
+
     const entity = this.reservasXActividadRepo.create({
       ...createDto,
-      capacidadPresentacionProducto: lote.producto.capacidadPresentacion,
+      capacidadPresentacionProducto: capacidadPresentacion,
       precioProducto: lote.producto.precioCompra,
     });
 

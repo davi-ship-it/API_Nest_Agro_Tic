@@ -69,7 +69,7 @@ export class LotesInventarioService {
     const originalCantidadDisponible = entity.cantidadDisponible;
 
     // Handle product updates if provided
-    if (updateDto.nombre || updateDto.descripcion || updateDto.sku || updateDto.precioCompra || updateDto.capacidadPresentacion || updateDto.fkCategoriaId || updateDto.fkUnidadMedidaId) {
+    if (updateDto.nombre || updateDto.descripcion || updateDto.sku || updateDto.precioCompra || updateDto.capacidadPresentacion || updateDto.fkCategoriaId || updateDto.fkUnidadMedidaId || updateDto.vidaUtilPromedioPorUsos !== undefined) {
       const producto = await entity.producto;
       if (producto) {
         if (updateDto.nombre) producto.nombre = updateDto.nombre;
@@ -79,6 +79,7 @@ export class LotesInventarioService {
         if (updateDto.capacidadPresentacion) producto.capacidadPresentacion = updateDto.capacidadPresentacion;
         if (updateDto.fkCategoriaId) producto.fkCategoriaId = updateDto.fkCategoriaId;
         if (updateDto.fkUnidadMedidaId) producto.fkUnidadMedidaId = updateDto.fkUnidadMedidaId;
+        if (updateDto.vidaUtilPromedioPorUsos !== undefined) producto.vidaUtilPromedioPorUsos = updateDto.vidaUtilPromedioPorUsos;
 
         await this.lotesInventarioRepo.manager.save(producto);
         console.log('DEBUG: producto updated');

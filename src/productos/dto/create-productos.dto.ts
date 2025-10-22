@@ -34,4 +34,8 @@ export class CreateProductosDto {
   @IsUUID()
   @IsOptional()
   fkUnidadMedidaId?: string;
+
+  @IsNumber()
+  @IsOptional()
+  vidaUtilPromedioPorUsos?: number;
 }

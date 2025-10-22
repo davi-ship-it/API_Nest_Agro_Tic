@@ -37,6 +37,14 @@ export class Producto {
   @Column({ name: 'img_url', type: 'varchar', length: 255, nullable: true })
   imgUrl?: string;
 
+  @Column({
+    name: 'vida_util_promedio_por_usos',
+    type: 'int',
+    nullable: true,
+    comment: 'Vida útil promedio en usos para productos no divisibles (herramientas)'
+  })
+  vidaUtilPromedioPorUsos?: number;
+
   @ManyToOne(() => Categoria)
   @JoinColumn({ name: 'fk_categoria_id' })
   categoria?: Categoria;
