@@ -9,7 +9,6 @@ import {
 } from 'typeorm';
 import { TipoSensor } from '../../tipo_sensor/entities/tipo_sensor.entity';
 import { Zona } from '../../zonas/entities/zona.entity';
-import { MedicionSensor } from '../../medicion_sensor/entities/medicion_sensor.entity';
 
 @Entity('sensor')
 export class Sensor {
@@ -73,6 +72,4 @@ export class Sensor {
   @JoinColumn({ name: 'fk_id_zona' })
   zona?: Zona;
 
-  @OneToMany(() => MedicionSensor, (m) => m.sensor)
-  mediciones?: MedicionSensor[];
 }

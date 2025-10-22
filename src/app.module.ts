@@ -15,7 +15,6 @@ import { CultivosXVariedadModule } from './cultivos_x_variedad/cultivos_x_varied
 import { EpaModule } from './epa/epa.module';
 import { CategoriaModule } from './categoria/categoria.module';
 import { MapasModule } from './mapas/mapas.module';
-import { MedicionSensorModule } from './medicion_sensor/medicion_sensor.module';
 import { SensorModule } from './sensor/sensor.module';
 import { TipoCultivoModule } from './tipo_cultivo/tipo_cultivo.module';
 import { TipoSensorModule } from './tipo_sensor/tipo_sensor.module';
@@ -47,9 +46,12 @@ import { MovimientosInventarioModule } from './movimientos_inventario/movimiento
 import { TiposMovimientoModule } from './tipos_movimiento/tipos_movimiento.module';
 import { EstadosReservaModule } from './estados_reserva/estados_reserva.module';
 
+// 🔹 Importa el servicio MQTT
+import { MqttService } from '../mosquitto/mqtt/mqtt.service';
+
 @Module({
   imports: [
-    ServeStaticModule.forRoot({
+    ServeStaticModule.forRoot({    
       rootPath: join(__dirname, '..', 'uploads'),
       serveRoot: '/uploads',
     }),
@@ -59,17 +61,14 @@ import { EstadosReservaModule } from './estados_reserva/estados_reserva.module';
 
     // 2. Módulo de Cache (Redis)
     CacheModule.registerAsync({
-      isGlobal: true, // Hace el módulo disponible globalmente
+      isGlobal: true,
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
         store: await redisStore({
           socket: {
             host: configService.get<string>('REDIS_HOST'),
-            port: parseInt(
-              configService.get<string>('REDIS_PORT') || '6379',
-              10,
-            ),
+            port: parseInt(configService.get<string>('REDIS_PORT') || '6379', 10),
           },
         }),
       }),
@@ -85,8 +84,10 @@ import { EstadosReservaModule } from './estados_reserva/estados_reserva.module';
           expiresIn: configService.get<string>('JWT_EXPIRATION_TIME'),
         },
       }),
-      global: true, // Hace el módulo JWT disponible globalmente
+      global: true,
     }),
+
+    // 4. Módulo Mailer
     MailerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -94,7 +95,7 @@ import { EstadosReservaModule } from './estados_reserva/estados_reserva.module';
         transport: {
           host: configService.get<string>('MAIL_HOST'),
           port: configService.get<number>('MAIL_PORT'),
-          secure: true, // O true si usas SSL/TLS
+          secure: true,
           auth: {
             user: configService.get<string>('MAIL_USER'),
             pass: configService.get<string>('MAIL_PASSWORD'),
@@ -103,16 +104,10 @@ import { EstadosReservaModule } from './estados_reserva/estados_reserva.module';
         defaults: {
           from: `"No Responder" <${configService.get<string>('MAIL_FROM')}>`,
         },
-        // Aquí puedes configurar tu motor de plantillas (ej. Pug, EJS, Handlebars)
-        // template: {
-        //   dir: join(__dirname, 'templates'),
-        //   adapter: new HandlebarsAdapter(),
-        //   options: {
-        //     strict: true,
-        //   },
-        // },
       }),
     }),
+
+    // 5. Módulo TypeORM
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -130,6 +125,7 @@ import { EstadosReservaModule } from './estados_reserva/estados_reserva.module';
       }),
     }),
 
+    // 🔹 Todos tus módulos
     ActividadesModule,
     BodegaModule,
     CosechasModule,
@@ -140,12 +136,11 @@ import { EstadosReservaModule } from './estados_reserva/estados_reserva.module';
     EpaModule,
     CategoriaModule,
     MapasModule,
-    MedicionSensorModule,
     SensorModule,
     TipoCultivoModule,
     TipoSensorModule,
     TipoUnidadModule,
-    UsuariosModule, // Solo una vez
+    UsuariosModule,
     UsuariosXActividadesModule,
     VariedadModule,
     VentaModule,
@@ -167,9 +162,10 @@ import { EstadosReservaModule } from './estados_reserva/estados_reserva.module';
     EstadosReservaModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
-  // Exporta los módulos para que otros módulos que importen AppModule (como SeederModule)
-  // puedan acceder a los servicios que estos exportan.
+  providers: [
+    AppService,
+    MqttService, // 👈 Agregado aquí
+  ],
   exports: [
     PermisosModule,
     UsuariosModule,
