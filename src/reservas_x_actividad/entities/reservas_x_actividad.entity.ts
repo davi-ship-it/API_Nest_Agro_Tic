@@ -50,6 +50,22 @@ export class ReservasXActividad {
   })
   cantidadDevuelta?: number;
 
+  @Column({
+    name: 'capacidad_presentacion_producto',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+  })
+  capacidadPresentacionProducto: number;
+
+  @Column({
+    name: 'precio_producto',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+  })
+  precioProducto: number;
+
   @ManyToOne(() => Actividad, (a) => a.reservas)
   @JoinColumn({ name: 'fk_actividad_id' })
   actividad?: Actividad;

@@ -46,4 +46,8 @@ export class CreateProductoWithLoteDto {
   @IsDateString()
   @IsOptional()
   fechaVencimiento?: string;
+
+  @IsNumber()
+  @IsOptional()
+  vidaUtilPromedioPorUsos?: number;
 }

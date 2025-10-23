@@ -44,4 +44,8 @@ export class UpdateLotesInventarioDto extends PartialType(
   @IsOptional()
   @IsString()
   fechaVencimiento?: string;
+
+  @IsOptional()
+  @IsNumber()
+  vidaUtilPromedioPorUsos?: number;
 }

@@ -38,6 +38,10 @@ export class ActividadesController {
     @Body() dto: CreateActividadeDto,
     @UploadedFile() file?: Express.Multer.File,
   ) {
+    console.log('ActividadesController create - dto.fechaAsignacion:', dto.fechaAsignacion);
+    console.log('ActividadesController create - dto.fechaAsignacion type:', typeof dto.fechaAsignacion);
+    console.log('ActividadesController create - dto.fechaAsignacion ISO:', dto.fechaAsignacion.toISOString());
+
     const imgUrl = file ? `/uploads/actividades/${file.filename}` : '';
     return this.actividadesService.create({ ...dto, imgUrl });
   }
@@ -65,6 +69,11 @@ export class ActividadesController {
   @Get('by-date-range')
   findByDateRange(@Query('start') start: string, @Query('end') end: string) {
     return this.actividadesService.findByDateRange(start, end);
+  }
+
+  @Get('by-cultivo-variedad-zona/:cvzId')
+  findByCultivoVariedadZonaId(@Param('cvzId') cvzId: string) {
+    return this.actividadesService.findByCultivoVariedadZonaId(cvzId);
   }
 
   @Get(':id')

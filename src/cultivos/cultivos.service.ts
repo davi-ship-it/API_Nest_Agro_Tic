@@ -66,8 +66,17 @@ export class CultivosService {
     const cvz = this.cvzRepo.create({
       fkCultivosXVariedadId: savedCxv.id,
       fkZonaId: dto.zonaId,
+      cantidadPlantasInicial: dto.cantidad_plantas_inicial || 0,
+      cantidadPlantasActual: dto.cantidad_plantas_inicial || 0,
+      fkEstadoFenologicoId: dto.fk_estado_fenologico || 1,
     });
-    await this.cvzRepo.save(cvz);
+    const savedCvz = await this.cvzRepo.save(cvz);
+    console.log('🌱 CULTIVOS SERVICE - CVZ creado:', {
+      id: savedCvz.id,
+      cantidadPlantasInicial: savedCvz.cantidadPlantasInicial,
+      cantidadPlantasActual: savedCvz.cantidadPlantasActual,
+      fkEstadoFenologicoId: savedCvz.fkEstadoFenologicoId,
+    });
 
     return savedCultivo;
   } /**
@@ -111,7 +120,8 @@ export class CultivosService {
         .leftJoin('a.usuariosAsignados', 'uxa')
         .leftJoin('uxa.usuario', 'u')
         .leftJoin('u.ficha', 'f')
-        .leftJoin('cvz.cosechas', 'cos');
+        .leftJoin('cvz.cosechas', 'cos')
+        .leftJoin('cvz.estadoFenologico', 'ef');
 
       // Aplicar filtros
       if (dto.estado_cultivo !== undefined && dto.estado_cultivo !== null) {
@@ -150,8 +160,16 @@ export class CultivosService {
         'MAX(cos.cos_fecha) as fechacosecha',
         'COUNT(cos.id) as numCosechas',
         '(SELECT cos2.pk_id_cosecha FROM cosechas cos2 WHERE cos2.fk_id_cultivos_variedad_x_zona = cvz.pk_id_cv_zona ORDER BY cos2.cos_fecha DESC LIMIT 1) as cosechaid',
+        'cvz.cantidadPlantasInicial as cantidad_plantas_inicial',
+        'cvz.cantidadPlantasActual as cantidad_plantas_actual',
+        'cvz.fkEstadoFenologicoId as fk_estado_fenologico',
+        'cvz.fechaActualizacion as fecha_actualizacion',
+        'ef.nombre as estado_fenologico_nombre',
+        'ef.descripcion as estado_fenologico_descripcion',
+        'tc.tpc_nombre as tipo_cultivo_nombre',
+        'tc.tpc_es_perenne as tipo_cultivo_es_perenne',
       ])
-        .groupBy('cvz.id, c.id, z.nombre, c.siembra, c.estado, v.var_nombre')
+        .groupBy('cvz.id, c.id, z.nombre, c.siembra, c.estado, v.var_nombre, ef.nombre, ef.descripcion, tc.tpc_nombre, tc.tpc_es_perenne')
         .orderBy('cvz.id');
 
       console.log('Generated Query:', qb.getQuery());
@@ -181,5 +199,11 @@ export class CultivosService {
       // Devolver array vacío en caso de error para evitar crash
       return [];
     }
+  }
+
+  async finalize(id: string): Promise<Cultivo> {
+    const cultivo = await this.findOne(id);
+    cultivo.estado = 0; // Cambiar estado a finalizado
+    return await this.cultivoRepo.save(cultivo);
   }
 }

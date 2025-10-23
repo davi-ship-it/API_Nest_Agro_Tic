@@ -35,6 +35,8 @@ import { ReservasXActividad } from 'src/reservas_x_actividad/entities/reservas_x
 import { MovimientosInventario } from 'src/movimientos_inventario/entities/movimientos_inventario.entity';
 import { TipoMovimiento } from 'src/tipos_movimiento/entities/tipos_movimiento.entity';
 import { EstadoReserva } from 'src/estados_reserva/entities/estados_reserva.entity';
+import { EstadoFenologico } from 'src/estados_fenologicos/entities/estado_fenologico.entity';
+import { CosechasVentas } from 'src/cosechas_ventas/entities/cosechas_ventas.entity';
 
 @Module({
   imports: [
@@ -78,6 +80,8 @@ import { EstadoReserva } from 'src/estados_reserva/entities/estados_reserva.enti
       MovimientosInventario,
       TipoMovimiento,
       EstadoReserva,
+      EstadoFenologico,
+      CosechasVentas,
     ]),
   ],
   providers: [SeederService, Logger],

@@ -22,8 +22,20 @@ export class ActividadesService {
   async create(
     dto: CreateActividadeDto & { imgUrl: string },
   ): Promise<Actividad> {
+    console.log('ActividadesService create - dto.fechaAsignacion:', dto.fechaAsignacion);
+    console.log('ActividadesService create - dto.fechaAsignacion type:', typeof dto.fechaAsignacion);
+    console.log('ActividadesService create - dto.fechaAsignacion ISO:', dto.fechaAsignacion.toISOString());
+    console.log('ActividadesService create - dto.fechaAsignacion local:', dto.fechaAsignacion.toLocaleDateString());
+
     const actividad: Actividad = this.actividadesRepo.create(dto);
-    return await this.actividadesRepo.save(actividad);
+    console.log('ActividadesService create - actividad.fechaAsignacion after create:', actividad.fechaAsignacion);
+    console.log('ActividadesService create - actividad.fechaAsignacion ISO after create:', actividad.fechaAsignacion.toISOString());
+
+    const saved = await this.actividadesRepo.save(actividad);
+    console.log('ActividadesService create - saved.fechaAsignacion:', saved.fechaAsignacion);
+    console.log('ActividadesService create - saved.fechaAsignacion ISO:', saved.fechaAsignacion.toISOString());
+
+    return saved;
   }
   async findAll(): Promise<Actividad[]> {
     return await this.actividadesRepo.find();
@@ -31,13 +43,13 @@ export class ActividadesService {
 
   async countByDate(date: string): Promise<number> {
     return await this.actividadesRepo.count({
-      where: { fechaAsignacion: new Date(date) },
+      where: { fechaAsignacion: new Date(date), estado: true },
     });
   }
 
   async findByDate(date: string): Promise<Actividad[]> {
     return await this.actividadesRepo.find({
-      where: { fechaAsignacion: new Date(date) },
+      where: { fechaAsignacion: new Date(date), estado: true },
       relations: [
         'categoriaActividad',
         'cultivoVariedadZona',
@@ -71,7 +83,7 @@ export class ActividadesService {
 
   async findByDateRange(start: string, end: string): Promise<Actividad[]> {
     return await this.actividadesRepo.find({
-      where: { fechaAsignacion: Between(new Date(start), new Date(end)) },
+      where: { fechaAsignacion: Between(new Date(start), new Date(end)), estado: true },
       relations: [
         'categoriaActividad',
         'cultivoVariedadZona',
@@ -135,13 +147,69 @@ export class ActividadesService {
     cantidadReservada: number,
     estadoId: number = 1,
   ): Promise<ReservasXActividad> {
+    // Get lote with product to get financial data
+    const lote = await this.actividadesRepo.manager.findOne(LotesInventario, {
+      where: { id: loteId },
+      relations: ['producto'],
+    });
+
+    if (!lote || !lote.producto) {
+      throw new NotFoundException(`Lote con ID ${loteId} no encontrado o sin producto`);
+    }
+
     const dto: CreateReservasXActividadDto = {
       fkActividadId: actividadId,
       fkLoteId: loteId,
       cantidadReservada,
       fkEstadoId: estadoId,
+      capacidadPresentacionProducto: lote.producto.capacidadPresentacion,
+      precioProducto: lote.producto.precioCompra,
     };
-    return await this.reservasXActividadService.create(dto);
+    const reserva = await this.reservasXActividadService.create(dto);
+
+    // Create movement record for RESERVA
+    await this.createMovementRecord(loteId, reserva.id, 'Reserva', cantidadReservada, `Reserva para actividad agrícola`);
+
+    return reserva;
+  }
+
+  private async createMovementRecord(
+    loteId: string,
+    reservaId: string,
+    tipoMovimientoNombre: string,
+    cantidad: number,
+    observacion: string,
+  ): Promise<void> {
+    try {
+      // Import required entities and repositories
+      const { MovimientosInventario } = await import('../movimientos_inventario/entities/movimientos_inventario.entity');
+      const { TipoMovimiento } = await import('../tipos_movimiento/entities/tipos_movimiento.entity');
+
+      // Find the movement type
+      const tipoMovimiento = await this.reservasXActividadRepo.manager.findOne(TipoMovimiento, {
+        where: { nombre: tipoMovimientoNombre },
+      });
+
+      if (!tipoMovimiento) {
+        console.warn(`Tipo de movimiento "${tipoMovimientoNombre}" no encontrado.`);
+        return;
+      }
+
+      // Create the movement record
+      const movimiento = this.reservasXActividadRepo.manager.create(MovimientosInventario, {
+        fkLoteId: loteId,
+        fkReservaId: reservaId,
+        fkTipoMovimientoId: tipoMovimiento.id,
+        cantidad: cantidad,
+        fechaMovimiento: new Date(),
+        observacion: observacion,
+      });
+
+      await this.reservasXActividadRepo.manager.save(MovimientosInventario, movimiento);
+      console.log(`✅ Movimiento de ${tipoMovimientoNombre} registrado para lote ${loteId}`);
+    } catch (error) {
+      console.error(`❌ Error creando movimiento: ${error.message}`);
+    }
   }
 
   async createReservationByProduct(
@@ -222,6 +290,29 @@ export class ActividadesService {
         'lote.producto.unidadMedida',
         'estado',
       ],
+    });
+  }
+  async findByCultivoVariedadZonaId(cvzId: string): Promise<Actividad[]> {
+    return await this.actividadesRepo.find({
+      where: { fkCultivoVariedadZonaId: cvzId },
+      relations: [
+        'categoriaActividad',
+        'cultivoVariedadZona',
+        'cultivoVariedadZona.cultivoXVariedad',
+        'cultivoVariedadZona.cultivoXVariedad.cultivo',
+        'cultivoVariedadZona.cultivoXVariedad.variedad',
+        'cultivoVariedadZona.cultivoXVariedad.variedad.tipoCultivo',
+        'cultivoVariedadZona.zona',
+        'usuariosAsignados',
+        'usuariosAsignados.usuario',
+        'usuariosAsignados.usuario.ficha',
+        'reservas',
+        'reservas.lote',
+        'reservas.lote.producto',
+        'reservas.lote.producto.unidadMedida',
+        'reservas.estado',
+      ],
+      order: { fechaAsignacion: 'DESC' },
     });
   }
 }

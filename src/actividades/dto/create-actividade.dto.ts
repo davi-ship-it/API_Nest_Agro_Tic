@@ -20,12 +20,12 @@ export class CreateActividadeDto {
   fechaAsignacion: Date;
 
   @IsNumber()
-  @IsNotEmpty()
-  horasDedicadas: number;
+  @IsOptional()
+  horasDedicadas?: number;
 
   @IsString()
-  @IsNotEmpty()
-  observacion: string;
+  @IsOptional()
+  observacion?: string;
 
   @IsBoolean()
   @IsOptional()

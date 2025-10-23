@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { MovimientosInventarioService } from './movimientos_inventario.service';
 import { CreateMovimientosInventarioDto } from './dto/create-movimientos_inventario.dto';
@@ -29,6 +30,15 @@ export class MovimientosInventarioController {
   @Get()
   findAll() {
     return this.movimientosInventarioService.findAll();
+  }
+
+  @Get('filter')
+  filter(
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('productQuery') productQuery?: string,
+  ) {
+    return this.movimientosInventarioService.filter(startDate, endDate, productQuery);
   }
 
   @Get(':id')
