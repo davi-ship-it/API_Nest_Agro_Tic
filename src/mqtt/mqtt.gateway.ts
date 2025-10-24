@@ -36,4 +36,9 @@ export class MqttGateway implements OnGatewayConnection, OnGatewayDisconnect {
   emitEstadoConexion(estado: { zonaId: string; conectado: boolean; mensaje?: string }) {
     this.server.emit('estadoConexion', estado);
   }
+
+  // Emitir señal de inicio de conexión (opcional, para feedback inmediato)
+  emitInicioConexion(zonaId: string, mensaje: string) {
+    this.server.emit('inicioConexion', { zonaId, mensaje });
+  }
 }

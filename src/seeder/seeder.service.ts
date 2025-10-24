@@ -853,58 +853,46 @@ export class SeederService {
   }
 
   private async seedZona() {
-    this.logger.log('Creando zonas base sin mapas...', 'Seeder');
+    this.logger.log('Creando zonas base en Tecnoparque Agroecológico Yamboro...', 'Seeder');
     try {
+      // Coordenadas del Tecnoparque Agroecológico Yamboro (aproximadas)
+      // Latitud: 1.8921903999999965, Longitud: -76.0903752
+      const baseLat = 1.8921903999999965;
+      const baseLng = -76.0903752;
+
       const zonas = [
         {
+          nombre: 'Zona Principal',
+          coorX: baseLng,
+          coorY: baseLat,
+          areaMetrosCuadrados: 5000,
+        },
+        {
           nombre: 'Zona Norte',
-          tipoLote: 'Lote',
-          coorX: 10.5,
-          coorY: 20.3,
+          coorX: baseLng + 0.0005, // Pequeña variación para no solaparse
+          coorY: baseLat + 0.0005,
+          areaMetrosCuadrados: 1500,
         },
         {
           nombre: 'Zona Sur',
-          tipoLote: 'Lote',
-          coorX: 15.2,
-          coorY: 25.7,
+          coorX: baseLng - 0.0005,
+          coorY: baseLat - 0.0005,
+          areaMetrosCuadrados: 1200,
         },
         {
-          nombre: 'Lote N.1',
-          tipoLote: 'Lote',
-          coorX: 12.0,
-          coorY: 18.5,
+          nombre: 'Zona Este',
+          coorX: baseLng + 0.0008,
+          coorY: baseLat - 0.0002,
+          areaMetrosCuadrados: 1800,
         },
         {
-          nombre: 'Lote N.2',
-          tipoLote: 'Lote',
-          coorX: 14.5,
-          coorY: 22.1,
-        },
-        {
-          nombre: 'Lote N.3',
-          tipoLote: 'Lote',
-          coorX: 16.8,
-          coorY: 19.9,
-        },
-        {
-          nombre: 'Lote S.1',
-          tipoLote: 'Lote',
-          coorX: 11.2,
-          coorY: 24.3,
-        },
-        {
-          nombre: 'Lote S.2',
-          tipoLote: 'Lote',
-          coorX: 13.7,
-          coorY: 26.8,
-        },
-        {
-          nombre: 'Lote S.3',
-          tipoLote: 'Lote',
-          coorX: 17.1,
-          coorY: 23.4,
+          nombre: 'Zona Oeste',
+          coorX: baseLng - 0.0008,
+          coorY: baseLat + 0.0002,
+          areaMetrosCuadrados: 1600,
         },
       ];
+
       for (const z of zonas) {
         let zona = await this.zonaRepository.findOne({
           where: { nombre: z.nombre },
@@ -912,7 +900,7 @@ export class SeederService {
         if (!zona) {
           zona = this.zonaRepository.create(z);
           await this.zonaRepository.save(zona);
-          this.logger.log(`Zona "${z.nombre}" creada.`, 'Seeder');
+          this.logger.log(`Zona "${z.nombre}" creada en Tecnoparque Yamboro (Lat: ${z.coorY}, Lng: ${z.coorX}).`, 'Seeder');
         }
       }
     } catch (error) {

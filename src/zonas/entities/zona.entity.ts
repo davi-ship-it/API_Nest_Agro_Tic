@@ -21,23 +21,17 @@ export class Zona {
   @Column({ name: 'zon_nombre', type: 'varchar', length: 50 })
   nombre: string;
 
-  @Column({ name: 'zon_tipo_lote', type: 'varchar', length: 8 })
-  tipoLote: string;
-
   @Column({ name: 'zon_coor_x', type: 'numeric', precision: 10, scale: 2 })
   coorX: number;
 
   @Column({ name: 'zon_coor_y', type: 'numeric', precision: 10, scale: 2 })
   coorY: number;
 
-  @Column({ name: 'zon_area_metros_cuadrados', type: 'numeric', precision: 10, scale: 2, nullable: true })
-  areaMetrosCuadrados?: number;
+  @Column({ name: 'zon_area_metros_cuadrados', type: 'numeric', precision: 10, scale: 2 })
+  areaMetrosCuadrados: number;
 
   @Column({ name: 'zon_coordenadas', type: 'jsonb', nullable: true })
   coordenadas?: any; // Array de puntos [{lat: number, lng: number}]
-
-  @Column({ name: 'fk_id_mapa', nullable: true })
-  fkMapaId?: string;
 
   @OneToMany(() => CultivosVariedadXZona, (cvz) => cvz.zona)
   cultivosVariedad?: CultivosVariedadXZona[];
