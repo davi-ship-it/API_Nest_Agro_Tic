@@ -14,7 +14,6 @@ import { CultivosXEpaModule } from './cultivos_x_epa/cultivos_x_epa.module';
 import { CultivosXVariedadModule } from './cultivos_x_variedad/cultivos_x_variedad.module';
 import { EpaModule } from './epa/epa.module';
 import { CategoriaModule } from './categoria/categoria.module';
-import { MapasModule } from './mapas/mapas.module';
 import { MedicionSensorModule } from './medicion_sensor/medicion_sensor.module';
 import { SensorModule } from './sensor/sensor.module';
 import { TipoCultivoModule } from './tipo_cultivo/tipo_cultivo.module';
@@ -166,7 +165,6 @@ import { MqttModule } from './mqtt/mqtt.module';
     CultivosXVariedadModule,
     EpaModule,
     CategoriaModule,
-    MapasModule,
     MedicionSensorModule,
     SensorModule,
     TipoCultivoModule,

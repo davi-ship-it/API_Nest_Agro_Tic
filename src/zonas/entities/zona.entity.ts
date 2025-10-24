@@ -8,7 +8,6 @@ import {
   OneToOne,
   JoinColumn,
 } from 'typeorm';
-import { Mapa } from '../../mapas/entities/mapa.entity';
 import { CultivosVariedadXZona } from '../../cultivos_variedad_x_zona/entities/cultivos_variedad_x_zona.entity';
 import { Sensor } from '../../sensor/entities/sensor.entity';
 import { MqttConfig } from '../../mqtt_config/entities/mqtt_config.entity';
@@ -37,12 +36,8 @@ export class Zona {
   @Column({ name: 'zon_coordenadas', type: 'jsonb', nullable: true })
   coordenadas?: any; // Array de puntos [{lat: number, lng: number}]
 
-  @Column({ name: 'fk_id_mapa' })
-  fkMapaId: string;
-
-  @ManyToOne(() => Mapa, (m) => m.zonas)
-  @JoinColumn({ name: 'fk_id_mapa' })
-  mapa?: Mapa;
+  @Column({ name: 'fk_id_mapa', nullable: true })
+  fkMapaId?: string;
 
   @OneToMany(() => CultivosVariedadXZona, (cvz) => cvz.zona)
   cultivosVariedad?: CultivosVariedadXZona[];
