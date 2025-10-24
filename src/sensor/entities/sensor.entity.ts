@@ -73,6 +73,6 @@ export class Sensor {
   @JoinColumn({ name: 'fk_id_zona' })
   zona?: Zona;
 
-  @OneToMany(() => MedicionSensor, (m) => m.sensor)
+  @OneToMany(() => MedicionSensor, (m) => m.mqttConfig)
   mediciones?: MedicionSensor[];
 }

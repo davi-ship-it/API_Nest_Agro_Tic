@@ -5,11 +5,14 @@ import {
   Column,
   ManyToOne,
   OneToMany,
+  OneToOne,
   JoinColumn,
 } from 'typeorm';
 import { Mapa } from '../../mapas/entities/mapa.entity';
 import { CultivosVariedadXZona } from '../../cultivos_variedad_x_zona/entities/cultivos_variedad_x_zona.entity';
 import { Sensor } from '../../sensor/entities/sensor.entity';
+import { MqttConfig } from '../../mqtt_config/entities/mqtt_config.entity';
+import { MedicionSensor } from '../../medicion_sensor/entities/medicion_sensor.entity';
 
 @Entity('zonas')
 export class Zona {
@@ -31,6 +34,9 @@ export class Zona {
   @Column({ name: 'zon_area_metros_cuadrados', type: 'numeric', precision: 10, scale: 2, nullable: true })
   areaMetrosCuadrados?: number;
 
+  @Column({ name: 'zon_coordenadas', type: 'jsonb', nullable: true })
+  coordenadas?: any; // Array de puntos [{lat: number, lng: number}]
+
   @Column({ name: 'fk_id_mapa' })
   fkMapaId: string;
 
@@ -41,6 +47,12 @@ export class Zona {
   @OneToMany(() => CultivosVariedadXZona, (cvz) => cvz.zona)
   cultivosVariedad?: CultivosVariedadXZona[];
 
+  @OneToOne(() => MqttConfig, (mc) => mc.zona)
+  mqttConfig?: MqttConfig;
+
   @OneToMany(() => Sensor, (s) => s.zona)
   sensores?: Sensor[];
+
+  @OneToMany(() => MedicionSensor, (ms) => ms.zona)
+  mediciones?: MedicionSensor[];
 }
