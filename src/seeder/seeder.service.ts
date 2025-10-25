@@ -23,7 +23,6 @@ import { UsuarioXActividad } from '../usuarios_x_actividades/entities/usuarios_x
 import { Cosecha } from '../cosechas/entities/cosecha.entity';
 import { Bodega } from '../bodega/entities/bodega.entity';
 import { Categoria } from '../categoria/entities/categoria.entity';
-import { Mapa } from '../mapas/entities/mapa.entity';
 import { CategoriaActividad } from '../categoria_actividad/entities/categoria_actividad.entity';
 import { UnidadMedida } from '../unidades_medida/entities/unidades_medida.entity';
 import { Producto } from '../productos/entities/productos.entity';
@@ -123,8 +122,6 @@ export class SeederService {
     private readonly bodegaRepository: Repository<Bodega>,
     @InjectRepository(Categoria)
     private readonly categoriaRepository: Repository<Categoria>,
-    @InjectRepository(Mapa)
-    private readonly mapaRepository: Repository<Mapa>,
     @InjectRepository(CategoriaActividad)
     private readonly categoriaActividadRepository: Repository<CategoriaActividad>,
     @InjectRepository(UnidadMedida)
@@ -852,100 +849,70 @@ export class SeederService {
   }
 
   private async seedMapa() {
-    this.logger.log('Creando mapas base...', 'Seeder');
-    try {
-      const mapas = [
-        { nombre: 'Mapa Principal', urlImg: 'uploads/mapas/mapa1.jpg' },
-      ];
-      for (const m of mapas) {
-        let mapa = await this.mapaRepository.findOne({
-          where: { nombre: m.nombre },
-        });
-        if (!mapa) {
-          mapa = this.mapaRepository.create(m);
-          await this.mapaRepository.save(mapa);
-          this.logger.log(`Mapa "${m.nombre}" creado.`, 'Seeder');
-        }
-      }
-    } catch (error) {
-      this.logger.error(`Error creando mapas: ${error.message}`, 'Seeder');
-    }
+    this.logger.log('Saltando creación de mapas - funcionalidad eliminada...', 'Seeder');
   }
 
   private async seedZona() {
-    this.logger.log('Creando zonas base con numeración de lotes...', 'Seeder');
+    this.logger.log('Creando zonas base sin mapas...', 'Seeder');
     try {
-      const mapa = await this.mapaRepository.findOne({
-        where: { nombre: 'Mapa Principal' },
-      });
-      if (mapa) {
-        const zonas = [
-          {
-            nombre: 'Zona Norte',
-            tipoLote: 'Lote',
-            coorX: 10.5,
-            coorY: 20.3,
-            fkMapaId: mapa.id,
-          },
-          {
-            nombre: 'Zona Sur',
-            tipoLote: 'Lote',
-            coorX: 15.2,
-            coorY: 25.7,
-            fkMapaId: mapa.id,
-          },
-          {
-            nombre: 'Lote N.1',
-            tipoLote: 'Lote',
-            coorX: 12.0,
-            coorY: 18.5,
-            fkMapaId: mapa.id,
-          },
-          {
-            nombre: 'Lote N.2',
-            tipoLote: 'Lote',
-            coorX: 14.5,
-            coorY: 22.1,
-            fkMapaId: mapa.id,
-          },
-          {
-            nombre: 'Lote N.3',
-            tipoLote: 'Lote',
-            coorX: 16.8,
-            coorY: 19.9,
-            fkMapaId: mapa.id,
-          },
-          {
-            nombre: 'Lote S.1',
-            tipoLote: 'Lote',
-            coorX: 11.2,
-            coorY: 24.3,
-            fkMapaId: mapa.id,
-          },
-          {
-            nombre: 'Lote S.2',
-            tipoLote: 'Lote',
-            coorX: 13.7,
-            coorY: 26.8,
-            fkMapaId: mapa.id,
-          },
-          {
-            nombre: 'Lote S.3',
-            tipoLote: 'Lote',
-            coorX: 17.1,
-            coorY: 23.4,
-            fkMapaId: mapa.id,
-          },
-        ];
-        for (const z of zonas) {
-          let zona = await this.zonaRepository.findOne({
-            where: { nombre: z.nombre },
-          });
-          if (!zona) {
-            zona = this.zonaRepository.create(z);
-            await this.zonaRepository.save(zona);
-            this.logger.log(`Zona "${z.nombre}" creada.`, 'Seeder');
-          }
+      const zonas = [
+        {
+          nombre: 'Zona Norte',
+          tipoLote: 'Lote',
+          coorX: 10.5,
+          coorY: 20.3,
+        },
+        {
+          nombre: 'Zona Sur',
+          tipoLote: 'Lote',
+          coorX: 15.2,
+          coorY: 25.7,
+        },
+        {
+          nombre: 'Lote N.1',
+          tipoLote: 'Lote',
+          coorX: 12.0,
+          coorY: 18.5,
+        },
+        {
+          nombre: 'Lote N.2',
+          tipoLote: 'Lote',
+          coorX: 14.5,
+          coorY: 22.1,
+        },
+        {
+          nombre: 'Lote N.3',
+          tipoLote: 'Lote',
+          coorX: 16.8,
+          coorY: 19.9,
+        },
+        {
+          nombre: 'Lote S.1',
+          tipoLote: 'Lote',
+          coorX: 11.2,
+          coorY: 24.3,
+        },
+        {
+          nombre: 'Lote S.2',
+          tipoLote: 'Lote',
+          coorX: 13.7,
+          coorY: 26.8,
+        },
+        {
+          nombre: 'Lote S.3',
+          tipoLote: 'Lote',
+          coorX: 17.1,
+          coorY: 23.4,
+        },
+      ];
+      for (const z of zonas) {
+        let zona = await this.zonaRepository.findOne({
+          where: { nombre: z.nombre },
+        });
+        if (!zona) {
+          zona = this.zonaRepository.create(z);
+          await this.zonaRepository.save(zona);
+          this.logger.log(`Zona "${z.nombre}" creada.`, 'Seeder');
         }
       }
     } catch (error) {

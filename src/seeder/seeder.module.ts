@@ -13,7 +13,6 @@ import { CultivosXVariedad } from 'src/cultivos_x_variedad/entities/cultivos_x_v
 import { Zona } from 'src/zonas/entities/zona.entity';
 import { CultivosVariedadXZona } from 'src/cultivos_variedad_x_zona/entities/cultivos_variedad_x_zona.entity';
 import { Actividad } from 'src/actividades/entities/actividades.entity';
-import { Mapa } from 'src/mapas/entities/mapa.entity';
 import { UsuarioXActividad } from 'src/usuarios_x_actividades/entities/usuarios_x_actividades.entity';
 import { Cosecha } from 'src/cosechas/entities/cosecha.entity';
 import { Epa } from 'src/epa/entities/epa.entity';
@@ -59,7 +58,6 @@ import { CosechasVentas } from 'src/cosechas_ventas/entities/cosechas_ventas.ent
       CultivosVariedadXZona,
       Actividad,
       UsuarioXActividad,
-      Mapa,
       Cosecha,
       Epa,
       TipoEpa,

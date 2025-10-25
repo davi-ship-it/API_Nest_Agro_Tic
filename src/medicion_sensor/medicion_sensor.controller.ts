@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { MedicionSensorService } from './medicion_sensor.service';
 import { CreateMedicionSensorDto } from './dto/create-medicion_sensor.dto';
@@ -20,14 +21,30 @@ export class MedicionSensorController {
     return this.medicionSensorService.create(createMedicionSensorDto);
   }
 
+  @Post('batch')
+  createBatch(@Body() createMedicionSensorDtos: CreateMedicionSensorDto[]) {
+    return this.medicionSensorService.saveBatch(createMedicionSensorDtos);
+  }
+
   @Get()
   findAll() {
     return this.medicionSensorService.findAll();
   }
 
+  @Get('zona/:zonaId')
+  findByZona(@Param('zonaId') zonaId: string, @Query('limit') limit?: string) {
+    const limitNum = limit ? parseInt(limit, 10) : 50;
+    return this.medicionSensorService.findRecentByZona(zonaId, limitNum);
+  }
+
+  @Get('mqtt-config/:mqttConfigId')
+  findByMqttConfig(@Param('mqttConfigId') mqttConfigId: string) {
+    return this.medicionSensorService.findByMqttConfig(mqttConfigId);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.medicionSensorService.findOne(+id);
+    return this.medicionSensorService.findOne(id);
   }
 
   @Patch(':id')
@@ -35,11 +52,11 @@ export class MedicionSensorController {
     @Param('id') id: string,
     @Body() updateMedicionSensorDto: UpdateMedicionSensorDto,
   ) {
-    return this.medicionSensorService.update(+id, updateMedicionSensorDto);
+    return this.medicionSensorService.update(id, updateMedicionSensorDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.medicionSensorService.remove(+id);
+    return this.medicionSensorService.remove(id);
   }
 }

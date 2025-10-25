@@ -14,7 +14,6 @@ import { CultivosXEpaModule } from './cultivos_x_epa/cultivos_x_epa.module';
 import { CultivosXVariedadModule } from './cultivos_x_variedad/cultivos_x_variedad.module';
 import { EpaModule } from './epa/epa.module';
 import { CategoriaModule } from './categoria/categoria.module';
-import { MapasModule } from './mapas/mapas.module';
 import { MedicionSensorModule } from './medicion_sensor/medicion_sensor.module';
 import { SensorModule } from './sensor/sensor.module';
 import { TipoCultivoModule } from './tipo_cultivo/tipo_cultivo.module';
@@ -49,6 +48,8 @@ import { FinanzasModule } from './finanzas/finanzas.module';
 import { EstadosReservaModule } from './estados_reserva/estados_reserva.module';
 import { EstadosFenologicosModule } from './estados_fenologicos/estados_fenologicos.module';
 import { PermissionsWsModule } from './permissions-ws/permissions-ws.module';
+import { MqttConfigModule } from './mqtt_config/mqtt_config.module';
+import { MqttModule } from './mqtt/mqtt.module';
 
 @Module({
   imports: [
@@ -64,6 +65,25 @@ import { PermissionsWsModule } from './permissions-ws/permissions-ws.module';
     EventEmitterModule.forRoot(),
 
     // 2. Módulo de Cache (Redis)
+    // 2. Módulo de Cache (Redis)
+    CacheModule.registerAsync({
+      isGlobal: true, // Hace el módulo disponible globalmente
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        store: await redisStore({
+          socket: {
+            host: configService.get<string>('REDIS_HOST'),
+            port: parseInt(
+              configService.get<string>('REDIS_PORT') || '6379',
+              10,
+            ),
+          },
+        }),
+        ttl: 300000, // 5 minutes TTL
+        max: 100, // maximum number of items in cache
+      }),
+    }),
     CacheModule.registerAsync({
       isGlobal: true, // Hace el módulo disponible globalmente
       imports: [ConfigModule],
@@ -145,7 +165,6 @@ import { PermissionsWsModule } from './permissions-ws/permissions-ws.module';
     CultivosXVariedadModule,
     EpaModule,
     CategoriaModule,
-    MapasModule,
     MedicionSensorModule,
     SensorModule,
     TipoCultivoModule,
@@ -173,6 +192,8 @@ import { PermissionsWsModule } from './permissions-ws/permissions-ws.module';
     EstadosReservaModule,
     EstadosFenologicosModule,
     PermissionsWsModule,
+    MqttConfigModule,
+    MqttModule,
   ],
   controllers: [AppController],
   providers: [AppService],

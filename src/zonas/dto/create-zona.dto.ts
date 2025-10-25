@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsNumber, Length } from 'class-validator';
+import { IsString, IsNotEmpty, IsNumber, Length, IsOptional } from 'class-validator';
 
 export class CreateZonaDto {
   @IsString()
@@ -19,7 +19,10 @@ export class CreateZonaDto {
   @IsNotEmpty()
   coorY: number;
 
+  @IsOptional()
+  coordenadas?: any;
+
   @IsString()
-  @IsNotEmpty()
-  fkMapaId: string;
+  @IsOptional()
+  fkMapaId?: string;
 }
