@@ -21,19 +21,32 @@ export class MqttGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   handleConnection(client: Socket, ...args: any[]) {
     this.logger.log(`Client connected: ${client.id}`);
+    this.logger.log(`Connection details:`, {
+      id: client.id,
+      handshake: client.handshake,
+      transport: client.conn.transport.name
+    });
   }
 
   handleDisconnect(client: Socket) {
     this.logger.log(`Client disconnected: ${client.id}`);
+    this.logger.log(`Disconnect reason:`, client.disconnected);
   }
 
   // Emitir nueva lectura a todos los clientes conectados
   emitNuevaLectura(lectura: any) {
+    this.logger.log(`Emitiendo nueva lectura MQTT:`, lectura);
     this.server.emit('lecturaNueva', lectura);
   }
 
-  // Emitir estado de conexión MQTT
+  // Emitir estado de conexión MQTT por zona
   emitEstadoConexion(estado: { zonaId: string; conectado: boolean; mensaje?: string }) {
+    this.logger.log(`Emitiendo estado MQTT para zona ${estado.zonaId}:`, estado);
     this.server.emit('estadoConexion', estado);
+  }
+
+  // Método para emitir estado de conexión inicial para una zona
+  emitEstadoConexionInicial(zonaId: string, conectado: boolean, mensaje: string = '') {
+    this.emitEstadoConexion({ zonaId, conectado, mensaje });
   }
 }

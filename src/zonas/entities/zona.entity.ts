@@ -36,9 +36,6 @@ export class Zona {
   @Column({ name: 'zon_coordenadas', type: 'jsonb', nullable: true })
   coordenadas?: any; // Array de puntos [{lat: number, lng: number}]
 
-  @Column({ name: 'fk_id_mapa', nullable: true })
-  fkMapaId?: string;
-
   @OneToMany(() => CultivosVariedadXZona, (cvz) => cvz.zona)
   cultivosVariedad?: CultivosVariedadXZona[];
 
