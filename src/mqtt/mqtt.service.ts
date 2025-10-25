@@ -42,6 +42,14 @@ export class MqttService implements OnModuleInit {
 
   private async createConnection(config: any) {
     try {
+      // Validar que el tópico no esté siendo usado por otra zona activa
+      const isTopicUnique = await this.validateUniqueTopic(config.topicBase, config.fkZonaId);
+      if (!isTopicUnique) {
+        this.logger.error(`Tópico ${config.topicBase} ya está siendo usado por otra zona activa`);
+        this.emitConnectionStatus(config.fkZonaId, false, 'Error: Tópico MQTT ya en uso por otra zona');
+        return;
+      }
+
       const brokerUrl = this.buildBrokerUrl(config);
       this.logger.log(`Conectando a ${brokerUrl} para zona ${config.fkZonaId}`);
 
@@ -57,17 +65,22 @@ export class MqttService implements OnModuleInit {
 
       this.connections.set(config.id, connection);
 
+      // Emitir estado inicial de conexión
+      this.emitConnectionStatus(config.fkZonaId, false, 'Conectando al broker...');
+
       client.on('connect', () => {
         this.logger.log(`Conectado a MQTT para zona ${config.fkZonaId}`);
         connection.connected = true;
-        this.emitConnectionStatus(config.fkZonaId, true, 'Conectado exitosamente');
+        this.emitConnectionStatus(config.fkZonaId, true, 'Conexión exitosa al broker');
 
         // Suscribirse al tópico
         client.subscribe(config.topicBase, (err) => {
           if (err) {
             this.logger.error(`Error suscribiéndose a ${config.topicBase}:`, err);
+            this.emitConnectionStatus(config.fkZonaId, false, `Error al suscribirse: ${err.message}`);
           } else {
             this.logger.log(`Suscrito a tópico ${config.topicBase} para zona ${config.fkZonaId}`);
+            this.emitConnectionStatus(config.fkZonaId, true, 'Suscripción exitosa - listo para recibir datos');
           }
         });
       });
@@ -75,13 +88,13 @@ export class MqttService implements OnModuleInit {
       client.on('disconnect', () => {
         this.logger.warn(`Desconectado MQTT para zona ${config.fkZonaId}`);
         connection.connected = false;
-        this.emitConnectionStatus(config.fkZonaId, false, 'Desconectado del broker');
+        this.emitConnectionStatus(config.fkZonaId, false, 'Desconectado del broker MQTT');
       });
 
       client.on('error', (error) => {
         this.logger.error(`Error MQTT para zona ${config.fkZonaId}:`, error);
         connection.connected = false;
-        this.emitConnectionStatus(config.fkZonaId, false, `Error: ${error.message}`);
+        this.emitConnectionStatus(config.fkZonaId, false, `Error de conexión: ${error.message}`);
       });
 
       client.on('message', async (topic, message) => {
@@ -91,11 +104,12 @@ export class MqttService implements OnModuleInit {
       client.on('offline', () => {
         this.logger.warn(`Cliente MQTT offline para zona ${config.fkZonaId}`);
         connection.connected = false;
-        this.emitConnectionStatus(config.fkZonaId, false, 'Offline');
+        this.emitConnectionStatus(config.fkZonaId, false, 'Sin conexión a internet - modo offline');
       });
 
       client.on('reconnect', () => {
         this.logger.log(`Reintentando conexión MQTT para zona ${config.fkZonaId}...`);
+        this.emitConnectionStatus(config.fkZonaId, false, 'Reintentando conexión...');
       });
 
     } catch (error) {
@@ -195,6 +209,16 @@ export class MqttService implements OnModuleInit {
       return { n: parseFloat(m[1]), unit: (m[2] || "").trim() };
     }
     return { n: NaN, unit: "" };
+  }
+
+  private async validateUniqueTopic(topicBase: string, zonaId: string): Promise<boolean> {
+    // Verificar si alguna conexión activa usa el mismo tópico para otra zona
+    for (const connection of this.connections.values()) {
+      if (connection.zonaId !== zonaId && connection.topic === topicBase && connection.connected) {
+        return false;
+      }
+    }
+    return true;
   }
 
   private emitConnectionStatus(zonaId: string, conectado: boolean, mensaje: string) {

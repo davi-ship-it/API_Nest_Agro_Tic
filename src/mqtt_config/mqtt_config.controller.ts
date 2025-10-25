@@ -96,33 +96,59 @@ export class MqttConfigController {
           client.end();
           resolve({
             success: false,
-            message: 'Timeout: No se pudo conectar al broker en 10 segundos',
+            message: 'Timeout: No se recibió un mensaje JSON válido en 10 segundos',
             latency: null,
           });
         }, 10000);
 
+        let messageReceived = false;
+
         client.on('connect', () => {
           const latency = Date.now() - startTime;
-          clearTimeout(timeout);
+          console.log(`MQTT Test: Connected to ${brokerUrl} in ${latency}ms`);
 
-          // Suscribirse al tópico para verificar permisos
+          // Suscribirse al tópico para verificar permisos y recibir mensajes
           client.subscribe(testData.topicBase, (err: any) => {
-            client.end();
-
             if (err) {
+              client.end();
               resolve({
                 success: false,
                 message: `Conexión exitosa pero error al suscribirse: ${err.message}`,
                 latency,
               });
             } else {
-              resolve({
-                success: true,
-                message: 'Conexión y suscripción exitosas',
-                latency,
-              });
+              console.log(`MQTT Test: Subscribed to ${testData.topicBase}`);
             }
           });
+        });
+
+        client.on('message', (topic: string, message: Buffer) => {
+          if (messageReceived) return; // Solo procesar el primer mensaje
+          messageReceived = true;
+
+          const latency = Date.now() - startTime;
+          clearTimeout(timeout);
+          client.end();
+
+          try {
+            // Intentar parsear el mensaje como JSON
+            const messageStr = message.toString();
+            console.log(`MQTT Test: Received message on ${topic}:`, messageStr);
+
+            JSON.parse(messageStr); // Validar que sea JSON válido
+
+            resolve({
+              success: true,
+              message: `Conexión exitosa. Recibido mensaje JSON válido en tópico ${topic}`,
+              latency,
+            });
+          } catch (parseError) {
+            resolve({
+              success: false,
+              message: `Mensaje recibido pero no es JSON válido: ${message.toString().substring(0, 100)}...`,
+              latency,
+            });
+          }
         });
 
         client.on('error', (error: any) => {
