@@ -25,8 +25,4 @@ export class CreateMqttConfigDto {
   @IsBoolean()
   @IsOptional()
   activa?: boolean;
-
-  @IsString()
-  @IsNotEmpty()
-  fkZonaId: string;
 }

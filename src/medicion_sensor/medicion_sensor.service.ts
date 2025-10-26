@@ -19,7 +19,7 @@ export class MedicionSensorService {
 
   async findAll(): Promise<MedicionSensor[]> {
     return await this.medicionSensorRepository.find({
-      relations: ['mqttConfig', 'zona'],
+      relations: ['zonaMqttConfig', 'zonaMqttConfig.mqttConfig', 'zonaMqttConfig.zona'],
       order: { fechaMedicion: 'DESC' },
     });
   }
@@ -27,30 +27,45 @@ export class MedicionSensorService {
   async findOne(id: string): Promise<MedicionSensor | null> {
     return await this.medicionSensorRepository.findOne({
       where: { id },
-      relations: ['mqttConfig', 'zona'],
+      relations: ['zonaMqttConfig', 'zonaMqttConfig.mqttConfig', 'zonaMqttConfig.zona'],
     });
   }
 
   async findByZona(zonaId: string): Promise<MedicionSensor[]> {
     return await this.medicionSensorRepository.find({
-      where: { fkZonaId: zonaId },
-      relations: ['mqttConfig', 'zona'],
+      relations: ['zonaMqttConfig', 'zonaMqttConfig.mqttConfig', 'zonaMqttConfig.zona'],
+      where: {
+        zonaMqttConfig: {
+          fkZonaId: zonaId,
+          estado: true
+        }
+      },
       order: { fechaMedicion: 'DESC' },
     });
   }
 
   async findByMqttConfig(mqttConfigId: string): Promise<MedicionSensor[]> {
     return await this.medicionSensorRepository.find({
-      where: { fkMqttConfigId: mqttConfigId },
-      relations: ['mqttConfig', 'zona'],
+      relations: ['zonaMqttConfig', 'zonaMqttConfig.mqttConfig', 'zonaMqttConfig.zona'],
+      where: {
+        zonaMqttConfig: {
+          fkMqttConfigId: mqttConfigId,
+          estado: true
+        }
+      },
       order: { fechaMedicion: 'DESC' },
     });
   }
 
   async findRecentByZona(zonaId: string, limit: number = 50): Promise<MedicionSensor[]> {
     return await this.medicionSensorRepository.find({
-      where: { fkZonaId: zonaId },
-      relations: ['mqttConfig', 'zona'],
+      relations: ['zonaMqttConfig', 'zonaMqttConfig.mqttConfig', 'zonaMqttConfig.zona'],
+      where: {
+        zonaMqttConfig: {
+          fkZonaId: zonaId,
+          estado: true
+        }
+      },
       order: { fechaMedicion: 'DESC' },
       take: limit,
     });

@@ -46,6 +46,16 @@ export class MqttConfigController {
     return this.mqttConfigService.findByZona(zonaId);
   }
 
+  @Get('zona/:zonaId/configs')
+  getZonaMqttConfigs(@Param('zonaId') zonaId: string) {
+    return this.mqttConfigService.getZonaMqttConfigs(zonaId);
+  }
+
+  @Get('zona/:zonaId/active')
+  getActiveZonaMqttConfig(@Param('zonaId') zonaId: string) {
+    return this.mqttConfigService.getActiveZonaMqttConfig(zonaId);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.mqttConfigService.findOne(id);
@@ -80,6 +90,35 @@ export class MqttConfigController {
     // Remover conexión MQTT antes de eliminar la configuración
     await this.mqttService.removeConnection(id);
     return this.mqttConfigService.remove(id);
+  }
+
+  @Post('assign')
+  async assignConfigToZona(@Body() body: { zonaId: string; configId: string }) {
+    try {
+      const zonaMqttConfig = await this.mqttConfigService.assignConfigToZona(body.zonaId, body.configId);
+
+      // Si la asignación está activa, crear conexión MQTT
+      if (zonaMqttConfig.estado) {
+        await this.mqttService.addConnection(zonaMqttConfig);
+      }
+
+      return zonaMqttConfig;
+    } catch (error) {
+      console.error('Error assigning MQTT config to zona:', error);
+      throw error;
+    }
+  }
+
+  @Post('unassign')
+  async unassignConfigFromZona(@Body() body: { zonaId: string; configId: string }) {
+    // Remover conexión MQTT antes de desasignar
+    const zonaMqttConfig = await this.mqttConfigService.getActiveZonaMqttConfig(body.zonaId);
+    if (zonaMqttConfig && zonaMqttConfig.mqttConfig?.id === body.configId) {
+      await this.mqttService.removeConnection(zonaMqttConfig.id);
+    }
+
+    await this.mqttConfigService.unassignConfigFromZona(body.zonaId, body.configId);
+    return { success: true };
   }
 
   @Post('test-connection')

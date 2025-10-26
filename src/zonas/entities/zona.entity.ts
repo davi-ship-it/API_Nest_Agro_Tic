@@ -5,13 +5,12 @@ import {
   Column,
   ManyToOne,
   OneToMany,
-  OneToOne,
-  JoinColumn,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 import { CultivosVariedadXZona } from '../../cultivos_variedad_x_zona/entities/cultivos_variedad_x_zona.entity';
 import { Sensor } from '../../sensor/entities/sensor.entity';
-import { MqttConfig } from '../../mqtt_config/entities/mqtt_config.entity';
-import { MedicionSensor } from '../../medicion_sensor/entities/medicion_sensor.entity';
+import { ZonaMqttConfig } from '../../mqtt_config/entities/zona_mqtt_config.entity';
 
 @Entity('zonas')
 export class Zona {
@@ -39,12 +38,9 @@ export class Zona {
   @OneToMany(() => CultivosVariedadXZona, (cvz) => cvz.zona)
   cultivosVariedad?: CultivosVariedadXZona[];
 
-  @OneToOne(() => MqttConfig, (mc) => mc.zona)
-  mqttConfig?: MqttConfig;
+  @OneToMany(() => ZonaMqttConfig, (zmc) => zmc.zona)
+  zonaMqttConfigs?: ZonaMqttConfig[];
 
   @OneToMany(() => Sensor, (s) => s.zona)
   sensores?: Sensor[];
-
-  @OneToMany(() => MedicionSensor, (ms) => ms.zona)
-  mediciones?: MedicionSensor[];
 }

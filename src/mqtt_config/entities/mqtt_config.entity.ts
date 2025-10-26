@@ -1,14 +1,13 @@
 // File: src/mqtt_config/entities/mqtt_config.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, OneToMany, JoinColumn } from 'typeorm';
-import { Zona } from '../../zonas/entities/zona.entity';
-import { MedicionSensor } from '../../medicion_sensor/entities/medicion_sensor.entity';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { ZonaMqttConfig } from './zona_mqtt_config.entity';
 
 @Entity('mqtt_config')
 export class MqttConfig {
   @PrimaryGeneratedColumn('uuid', { name: 'pk_id_mqtt_config' })
   id: string;
 
-  @Column({ name: 'mc_nombre', type: 'varchar', length: 100, unique: true })
+  @Column({ name: 'mc_nombre', type: 'varchar', length: 100 })
   nombre: string;
 
   @Column({ name: 'mc_host', type: 'varchar', length: 255 })
@@ -26,13 +25,6 @@ export class MqttConfig {
   @Column({ name: 'mc_activa', type: 'boolean', default: true })
   activa: boolean;
 
-  @Column({ name: 'fk_id_zona' })
-  fkZonaId: string;
-
-  @OneToOne(() => Zona, (z) => z.mqttConfig)
-  @JoinColumn({ name: 'fk_id_zona' })
-  zona?: Zona;
-
-  @OneToMany(() => MedicionSensor, (ms) => ms.mqttConfig)
-  mediciones?: MedicionSensor[];
+  @OneToMany(() => ZonaMqttConfig, (zmc) => zmc.mqttConfig)
+  zonaMqttConfigs?: ZonaMqttConfig[];
 }

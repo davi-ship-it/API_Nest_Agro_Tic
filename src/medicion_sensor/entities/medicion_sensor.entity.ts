@@ -6,8 +6,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { MqttConfig } from '../../mqtt_config/entities/mqtt_config.entity';
-import { Zona } from '../../zonas/entities/zona.entity';
+import { ZonaMqttConfig } from '../../mqtt_config/entities/zona_mqtt_config.entity';
 
 @Entity('medicion_sensor')
 export class MedicionSensor {
@@ -20,23 +19,13 @@ export class MedicionSensor {
   @Column({ name: 'med_valor', type: 'numeric', precision: 10, scale: 2 })
   valor: number;
 
-  @Column({ name: 'med_unidad', type: 'varchar', length: 20 })
-  unidad: string; // e.g., "°C", "%"
-
   @Column({ name: 'med_fecha_medicion', type: 'timestamp' })
   fechaMedicion: Date;
 
-  @Column({ name: 'fk_id_mqtt_config' })
-  fkMqttConfigId: string;
+  @Column({ name: 'fk_id_zona_mqtt_config' })
+  fkZonaMqttConfigId: string;
 
-  @Column({ name: 'fk_id_zona' })
-  fkZonaId: string;
-
-  @ManyToOne(() => MqttConfig, (mc) => mc.mediciones)
-  @JoinColumn({ name: 'fk_id_mqtt_config' })
-  mqttConfig?: MqttConfig;
-
-  @ManyToOne(() => Zona, (z) => z.mediciones)
-  @JoinColumn({ name: 'fk_id_zona' })
-  zona?: Zona;
+  @ManyToOne(() => ZonaMqttConfig, (zmc) => zmc.mediciones)
+  @JoinColumn({ name: 'fk_id_zona_mqtt_config' })
+  zonaMqttConfig?: ZonaMqttConfig;
 }
