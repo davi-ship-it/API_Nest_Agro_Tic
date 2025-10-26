@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Not } from 'typeorm';
 import { MqttConfig } from './entities/mqtt_config.entity';
 import { ZonaMqttConfig } from './entities/zona_mqtt_config.entity';
 import { CreateMqttConfigDto } from './dto/create-mqtt_config.dto';
@@ -74,7 +74,23 @@ export class MqttConfigService {
   }
 
   // ZonaMqttConfig methods
-  async assignConfigToZona(zonaId: string, configId: string): Promise<ZonaMqttConfig> {
+  async assignConfigToZona(zonaId: string, configId: string): Promise<{ success: boolean; data?: ZonaMqttConfig; error?: { configName: string; zonaName: string } }> {
+    // Check if this config is already actively assigned to another zona
+    const activeAssignment = await this.zonaMqttConfigRepository.findOne({
+      where: {
+        fkMqttConfigId: configId,
+        estado: true,
+        fkZonaId: Not(zonaId) // Not the current zona
+      },
+      relations: ['zona', 'mqttConfig'],
+    });
+
+    if (activeAssignment) {
+      const configName = activeAssignment.mqttConfig?.nombre || 'Unknown Configuration';
+      const zonaName = activeAssignment.zona?.nombre || 'Unknown Zone';
+      return { success: false, error: { configName, zonaName } };
+    }
+
     // Check if there's already an active assignment for this zona
     const existing = await this.zonaMqttConfigRepository.findOne({
       where: { fkZonaId: zonaId, estado: true },
@@ -104,7 +120,7 @@ export class MqttConfigService {
       throw new Error('Failed to load assigned configuration with relations');
     }
 
-    return result;
+    return { success: true, data: result };
   }
 
   async unassignConfigFromZona(zonaId: string, configId: string): Promise<void> {

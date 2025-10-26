@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  BadRequestException,
 } from '@nestjs/common';
 import { MqttConfigService } from './mqtt_config.service';
 import { CreateMqttConfigDto } from './dto/create-mqtt_config.dto';
@@ -95,16 +96,26 @@ export class MqttConfigController {
   @Post('assign')
   async assignConfigToZona(@Body() body: { zonaId: string; configId: string }) {
     try {
-      const zonaMqttConfig = await this.mqttConfigService.assignConfigToZona(body.zonaId, body.configId);
+      const result = await this.mqttConfigService.assignConfigToZona(body.zonaId, body.configId);
 
-      // Si la asignación está activa, crear conexión MQTT
-      if (zonaMqttConfig.estado) {
-        await this.mqttService.addConnection(zonaMqttConfig);
+      if (!result.success) {
+        return { success: false, error: result.error };
       }
 
-      return zonaMqttConfig;
-    } catch (error) {
+      // Si la asignación está activa, crear conexión MQTT
+      if (result.data?.estado) {
+        await this.mqttService.addConnection(result.data);
+      }
+
+      return { success: true, data: result.data };
+    } catch (error: any) {
       console.error('Error assigning MQTT config to zona:', error);
+
+      // Return validation errors as 400 Bad Request instead of 500 Internal Server Error
+      if (error.message && error.message.includes('Cannot assign configuration')) {
+        throw new BadRequestException(error.message);
+      }
+
       throw error;
     }
   }
